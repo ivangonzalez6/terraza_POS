@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Terraza Luna · POS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f1e8;
+  --bg-2:#ffffff;
+  --ink:#1a1610;
+  --ink-dim:#4a4337;
+  --ink-faint:#7a7264;
+  --line:#d8cfbd;
+  --line-2:#c4b89f;
+  --gold:#8a6420;
+  --gold-soft:#6b4d18;
+  --moon:#f3e9c9;
+  --danger:#a8442f;
+  --ok:#4a7a3a;
+  --shadow:0 10px 30px rgba(60,45,20,.12);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'Inter Tight',sans-serif;overscroll-behavior:none}
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(900px 500px at 90% -10%, rgba(138,100,32,.08), transparent 60%),
+    radial-gradient(700px 400px at -10% 110%, rgba(138,100,32,.05), transparent 60%),
+    var(--bg);
+}
+.serif{font-family:'Cormorant Garamond',serif;font-weight:500;letter-spacing:.01em}
+button,input,textarea,select{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+input,textarea{background:transparent;border:1px solid var(--line);color:var(--ink);padding:10px 12px;border-radius:10px;outline:none;width:100%}
+input:focus,textarea:focus{border-color:var(--gold)}
+textarea{resize:none;min-height:60px}
+
+/* ===== Top bar ===== */
+.topbar{
+  position:sticky;top:0;z-index:30;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px 12px;
+  background:linear-gradient(180deg,rgba(245,241,232,.95),rgba(245,241,232,.75));
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .moon{width:22px;height:22px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%, #fff5d6, #c9a35b 70%, #6e4f1d);
+  box-shadow:0 0 18px rgba(201,163,91,.4)}
+.brand .name{font-family:'Cormorant Garamond',serif;font-size:20px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink)}
+.brand .sub{font-size:10px;letter-spacing:.35em;color:var(--ink-faint);text-transform:uppercase;margin-top:-2px}
+
+.role-switch{display:flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:rgba(255,255,255,.6)}
+.role-switch button{
+  padding:7px 12px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-dim);border-radius:999px;transition:all .25s ease;
+}
+.role-switch button.active{background:var(--gold);color:#fff;font-weight:600}
+
+/* ===== Layout ===== */
+.app{padding:14px 14px 120px;max-width:560px;margin:0 auto}
+.view{display:none;animation:fade .35s ease}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+h2.section{
+  font-family:'Cormorant Garamond',serif;
+  font-size:26px;font-weight:600;margin:18px 4px 10px;
+  display:flex;align-items:baseline;gap:10px;
+  color:var(--ink);
+}
+h2.section::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6px}
+
+/* ===== Tables grid (mesas) ===== */
+.tables{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.table-card{
+  position:relative;
+  border:1px solid var(--line);border-radius:14px;
+  padding:14px 10px;text-align:center;
+  background:linear-gradient(180deg,#ffffff,#faf6ec);
+  transition:transform .15s ease,border-color .25s ease,background .25s ease;
+  color:var(--ink);
+  box-shadow:0 2px 6px rgba(60,45,20,.04);
+}
+.table-card:active{transform:scale(.97)}
+.table-card.has-order{border-color:var(--gold);background:linear-gradient(180deg,#fff8e8,#fdedc8)}
+.table-card .num{font-family:'Cormorant Garamond',serif;font-size:30px;line-height:1;color:var(--ink)}
+.table-card .lbl{font-size:9px;letter-spacing:.3em;color:var(--ink-faint);text-transform:uppercase;margin-top:4px}
+.table-card .total{
+  margin-top:8px;font-size:13px;color:var(--gold);font-weight:600;font-variant-numeric:tabular-nums;
+  min-height:18px
+}
+.table-card .dot{
+  position:absolute;top:8px;right:10px;width:7px;height:7px;border-radius:50%;
+  background:var(--gold);box-shadow:0 0 10px var(--gold);display:none
+}
+.table-card.has-order .dot{display:block;animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ===== Menu / categorías ===== */
+.category-tabs{
+  display:flex;gap:6px;overflow-x:auto;padding:8px 2px 14px;
+  scrollbar-width:none;-ms-overflow-style:none;
+}
+.category-tabs::-webkit-scrollbar{display:none}
+.cat-tab{
+  white-space:nowrap;padding:8px 14px;border:1px solid var(--line);
+  border-radius:999px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink-dim);background:#fff;transition:all .2s ease;
+}
+.cat-tab.active{background:var(--ink);color:#faf6ec;border-color:var(--ink);font-weight:600}
+
+.menu-list{display:flex;flex-direction:column;gap:8px}
+.menu-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 14px;border:1px solid var(--line);border-radius:12px;
+  background:#ffffff;
+  transition:all .18s ease;
+  box-shadow:0 1px 3px rgba(60,45,20,.04);
+}
+.menu-item:active{transform:scale(.985);border-color:var(--gold);background:#fff8e8}
+.menu-item.flash{animation:flash .5s ease}
+@keyframes flash{
+  0%{background:#fdedc8;border-color:var(--gold)}
+  100%{background:#ffffff;border-color:var(--line)}
+}
+.mi-left{flex:1;min-width:0;padding-right:10px}
+.mi-name{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;line-height:1.2;color:var(--ink)}
+.mi-desc{font-size:11px;color:var(--ink-faint);margin-top:3px;line-height:1.35}
+.mi-right{display:flex;align-items:center;gap:10px}
+.mi-price{font-variant-numeric:tabular-nums;font-size:14px;color:var(--gold);font-weight:600;min-width:42px;text-align:right}
+.add-btn{
+  width:34px;height:34px;border-radius:50%;
+  border:1.5px solid var(--gold);color:var(--gold);background:#fff;
+  font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;
+  transition:all .15s ease;
+}
+.add-btn:active{background:var(--gold);color:#fff;transform:scale(.9)}
+
+/* ===== Note modal ===== */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(40,30,15,.4);backdrop-filter:blur(6px);
+  display:none;align-items:flex-end;justify-content:center;z-index:100;
+}
+.modal-backdrop.show{display:flex;animation:fade .2s ease}
+.modal{
+  width:100%;max-width:520px;background:var(--bg-2);
+  border-top-left-radius:20px;border-top-right-radius:20px;
+  border-top:1px solid var(--line-2);
+  padding:20px 18px 24px;
+  animation:slideUp .3s cubic-bezier(.2,.8,.2,1);
+  box-shadow:0 -10px 30px rgba(60,45,20,.15);
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+.modal h3{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;margin:0 0 4px;color:var(--ink)}
+.modal .item-line{font-size:12px;color:var(--ink-faint);margin-bottom:14px}
+.modal-actions{display:flex;gap:10px;margin-top:14px}
+.btn{
+  flex:1;padding:13px;border-radius:10px;font-size:12px;letter-spacing:.2em;
+  text-transform:uppercase;transition:all .15s ease;
+}
+.btn-primary{background:var(--gold);color:#fff;font-weight:600}
+.btn-primary:active{background:var(--gold-soft);transform:scale(.98)}
+.btn-ghost{border:1px solid var(--line-2);color:var(--ink-dim);background:#fff}
+.btn-ghost:active{border-color:var(--gold);color:var(--gold)}
+.btn-danger{border:1px solid var(--danger);color:var(--danger);background:#fff}
+.btn-danger:active{background:var(--danger);color:#fff}
+
+/* ===== Cart / cuenta de mesa ===== */
+.cart-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:40;
+  background:linear-gradient(180deg,rgba(245,241,232,.85),var(--bg) 40%);
+  padding:12px 14px 18px;
+  border-top:1px solid var(--line);
+  display:none;
+  backdrop-filter:blur(8px);
+}
+.cart-bar.show{display:block}
+.cart-inner{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.cart-info{flex:1}
+.cart-table{font-size:10px;letter-spacing:.3em;color:var(--ink-faint);text-transform:uppercase}
+.cart-total{font-family:'Cormorant Garamond',serif;font-size:28px;line-height:1;margin-top:2px;color:var(--ink);font-weight:600}
+.cart-total small{font-size:14px;color:var(--ink-dim);margin-right:4px}
+.cart-btn{
+  padding:13px 18px;background:var(--gold);color:#fff;
+  border-radius:10px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;
+  transition:all .15s ease;
+}
+.cart-btn:active{background:var(--gold-soft);transform:scale(.97)}
+
+/* ===== Order detail (cart view) ===== */
+.order-detail{padding:6px 4px}
+.order-line{
+  display:flex;justify-content:space-between;align-items:flex-start;gap:10px;
+  padding:12px 0;border-bottom:1px solid var(--line);
+}
+.order-line:last-child{border-bottom:0}
+.ol-left{flex:1;min-width:0}
+.ol-name{font-family:'Cormorant Garamond',serif;font-size:17px;line-height:1.2;color:var(--ink);font-weight:600}
+.ol-note{font-size:11px;color:var(--gold);font-style:italic;margin-top:3px;font-weight:500}
+.ol-meta{font-size:10px;color:var(--ink-faint);letter-spacing:.15em;text-transform:uppercase;margin-top:4px}
+.ol-right{display:flex;align-items:center;gap:8px}
+.qty-pill{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:2px;background:#fff}
+.qty-pill button{width:24px;height:24px;color:var(--ink-dim);font-size:14px;border-radius:50%}
+.qty-pill button:active{background:var(--gold);color:#fff}
+.qty-pill .q{min-width:18px;text-align:center;font-variant-numeric:tabular-nums;font-size:13px;color:var(--ink);font-weight:600}
+.ol-price{font-variant-numeric:tabular-nums;font-size:13px;color:var(--gold);font-weight:600;min-width:50px;text-align:right}
+
+.summary{margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.summary-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;font-size:13px;color:var(--ink-dim)}
+.summary-row.total{margin-top:8px;padding-top:10px;border-top:1px solid var(--line);font-size:15px;color:var(--ink)}
+.summary-row.total b{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;color:var(--gold)}
+
+.empty{
+  text-align:center;padding:50px 20px;color:var(--ink-faint);
+}
+.empty .serif{font-size:22px;color:var(--ink-dim);margin-bottom:6px}
+.empty p{font-size:12px;letter-spacing:.1em}
+
+/* ===== Kitchen view ===== */
+.kitchen-grid{display:grid;grid-template-columns:1fr;gap:12px}
+.ticket{
+  border:1px solid var(--line);border-radius:14px;padding:14px;
+  background:#fff;
+  position:relative;
+  box-shadow:0 2px 6px rgba(60,45,20,.05);
+}
+.ticket.new{animation:newTicket .6s ease;border-color:var(--gold)}
+@keyframes newTicket{
+  0%{box-shadow:0 0 0 0 rgba(217,176,106,.6)}
+  100%{box-shadow:0 0 0 16px rgba(217,176,106,0)}
+}
+.ticket-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed var(--line-2)}
+.ticket-table{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--ink);font-weight:600}
+.ticket-time{font-size:10px;color:var(--ink-faint);letter-spacing:.2em;text-transform:uppercase}
+.ticket-note{font-size:12px;color:var(--gold);font-style:italic;margin-top:2px;font-weight:500;max-width:200px}
+.ticket-progress{margin-top:4px;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.badge-pending{
+  font-size:9px;letter-spacing:.15em;text-transform:uppercase;
+  background:#f6e6c0;color:#7a5a18;padding:3px 8px;border-radius:999px;font-weight:700;
+}
+.badge-delivered{
+  font-size:9px;letter-spacing:.15em;text-transform:uppercase;
+  background:#dceacf;color:#3d6b2e;padding:3px 8px;border-radius:999px;font-weight:700;
+}
+.ticket-items{margin:8px 0 4px}
+.ticket-headrow{
+  display:grid;grid-template-columns:42px 1fr 110px;gap:8px;
+  padding:6px 0;border-bottom:1px solid var(--line);
+  font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;
+}
+.ticket-line{
+  display:grid;grid-template-columns:42px 1fr 110px;gap:8px;align-items:center;
+  padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px;color:var(--ink);
+  transition:opacity .25s ease;
+}
+.ticket-line:last-child{border-bottom:0}
+.ticket-line.delivered{opacity:.55}
+.ticket-line.delivered .tl-name{text-decoration:line-through;text-decoration-color:rgba(0,0,0,.3);text-decoration-thickness:1px}
+.tl-q{color:var(--gold);font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
+.tl-name{line-height:1.3}
+.tl-note{font-size:11px;color:var(--gold);font-style:italic;display:block;margin-top:2px;font-weight:500}
+.tl-status{display:flex;justify-content:flex-end}
+.status-btn{
+  padding:7px 10px;border-radius:8px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  font-weight:600;transition:all .15s ease;white-space:nowrap;width:100%;
+}
+.status-btn.pending{background:#f6e6c0;color:#7a5a18;border:1px solid #d4b876}
+.status-btn.pending:active{background:#7a5a18;color:#fff;transform:scale(.96)}
+.status-btn.delivered{background:#dceacf;color:#3d6b2e;border:1px solid #a8c995}
+.status-btn.delivered:active{background:#3d6b2e;color:#fff;transform:scale(.96)}
+.ticket-foot{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line-2);display:flex;justify-content:space-between;align-items:center}
+.ticket-total{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold);font-weight:600}
+
+/* Table-note pill on table cards and inside the menu header */
+.table-card .table-note{
+  margin-top:6px;font-size:11px;color:var(--ink-dim);font-style:italic;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.2;
+  min-height:14px;
+}
+.table-note-strip{
+  display:flex;align-items:center;gap:8px;padding:10px 12px;
+  background:#fff8e8;border:1px solid var(--line);border-radius:10px;margin:4px 0 8px;
+  font-size:12px;color:var(--ink-dim);
+}
+.table-note-strip .lbl{font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--ink-faint);font-weight:600}
+.table-note-strip .val{flex:1;font-style:italic;color:var(--ink);font-weight:500}
+.table-note-strip .val.empty{color:var(--ink-faint);font-style:normal;font-weight:400}
+.table-note-strip button{
+  font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);
+  padding:6px 10px;border:1px solid var(--gold);border-radius:8px;font-weight:600;
+}
+.table-note-strip button:active{background:var(--gold);color:#fff}
+
+/* ===== Stats view ===== */
+.stat-card{
+  border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:10px;
+  background:#fff;
+  box-shadow:0 2px 6px rgba(60,45,20,.04);
+}
+.stat-label{font-size:10px;letter-spacing:.3em;color:var(--ink-faint);text-transform:uppercase}
+.stat-value{font-family:'Cormorant Garamond',serif;font-size:32px;margin-top:4px;color:var(--gold);font-weight:600}
+.stat-sub{font-size:12px;color:var(--ink-dim);margin-top:2px}
+
+.history-item{
+  padding:12px 14px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;
+  display:flex;justify-content:space-between;align-items:center;font-size:13px;
+  background:#fff;
+}
+.hi-left .table{font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--ink);font-weight:600}
+.hi-left .date{font-size:10px;color:var(--ink-faint);letter-spacing:.15em;text-transform:uppercase;margin-top:2px}
+.hi-right{text-align:right}
+.hi-total{color:var(--gold);font-weight:600;font-variant-numeric:tabular-nums;font-size:15px}
+.hi-items{font-size:10px;color:var(--ink-faint);margin-top:2px}
+
+.export-bar{display:flex;gap:8px;margin:14px 0}
+.export-bar .btn{flex:1;padding:11px;font-size:10px}
+
+/* ===== Toast ===== */
+.toast{
+  position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-20px);
+  background:var(--ink);border:1px solid var(--gold);border-radius:10px;
+  padding:10px 18px;font-size:12px;letter-spacing:.1em;color:var(--gold-soft);
+  opacity:0;pointer-events:none;transition:all .3s ease;z-index:200;
+  box-shadow:var(--shadow);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.note-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--gold);color:#fff;font-size:10px;font-weight:700;
+  margin-left:6px;
+}
+
+/* tiny crescent */
+.crescent::before{content:'☾';color:var(--gold);margin-right:6px;font-size:.85em}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="moon"></div>
+    <div>
+      <div class="name">Terraza Luna</div>
+      <div class="sub">Sistema de órdenes</div>
+    </div>
+  </div>
+  <div class="role-switch">
+    <button id="roleMesero" class="active">Mesero</button>
+    <button id="roleCocina">Barra</button>
+    <button id="roleStats">Caja</button>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- ===================== MESERO ===================== -->
+  <div class="view active" id="view-mesero">
+
+    <!-- Tables -->
+    <div id="screen-tables">
+      <h2 class="section serif">Mesas</h2>
+      <div class="tables" id="tablesGrid"></div>
+    </div>
+
+    <!-- Menu (per table) -->
+    <div id="screen-menu" style="display:none">
+      <div style="display:flex;align-items:center;gap:10px;margin:6px 0 0">
+        <button class="btn-ghost btn" style="flex:0;padding:8px 14px" id="backToTables">← Mesas</button>
+        <h2 class="section serif" style="margin:8px 0;flex:1">Mesa <span id="currentTableLbl"></span></h2>
+        <button class="btn-ghost btn" style="flex:0;padding:8px 14px" id="viewCart">Cuenta <span id="cartCount" class="note-badge" style="display:none">0</span></button>
+      </div>
+
+      <div class="table-note-strip">
+        <span class="lbl">Nota</span>
+        <span class="val empty" id="menuTableNote">Sin identificación</span>
+        <button id="editTableNoteBtn">Editar</button>
+      </div>
+
+      <div class="category-tabs" id="catTabs"></div>
+      <div class="menu-list" id="menuList"></div>
+    </div>
+
+    <!-- Cart / cuenta de mesa -->
+    <div id="screen-cart" style="display:none">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="btn-ghost btn" style="flex:0;padding:8px 14px" id="backToMenu">← Menú</button>
+        <h2 class="section serif" style="margin:8px 0;flex:1">Cuenta · Mesa <span id="cartTableLbl"></span></h2>
+      </div>
+      <div class="table-note-strip">
+        <span class="lbl">Nota</span>
+        <span class="val empty" id="cartTableNote">Sin identificación</span>
+      </div>
+      <div class="order-detail" id="orderDetail"></div>
+      <div class="summary" id="orderSummary" style="display:none">
+        <div class="summary-row"><span>Productos</span><span id="sumCount">0</span></div>
+        <div class="summary-row total"><span>Total</span><b id="sumTotal">$0</b></div>
+      </div>
+      <div class="modal-actions" id="cartActions" style="display:none">
+        <button class="btn btn-ghost" id="clearTable">Vaciar</button>
+        <button class="btn btn-primary" id="closeTable">Cobrar y cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== COCINA / BARRA ===================== -->
+  <div class="view" id="view-cocina">
+    <h2 class="section serif">Órdenes activas</h2>
+    <div class="kitchen-grid" id="kitchenGrid"></div>
+    <div class="empty" id="kitchenEmpty">
+      <div class="serif crescent">Sin órdenes activas</div>
+      <p>Las nuevas órdenes aparecerán aquí en tiempo real</p>
+    </div>
+  </div>
+
+  <!-- ===================== STATS / CAJA ===================== -->
+  <div class="view" id="view-stats">
+    <h2 class="section serif">Resumen</h2>
+    <div class="stat-card">
+      <div class="stat-label">Ventas del día</div>
+      <div class="stat-value" id="statToday">$0</div>
+      <div class="stat-sub" id="statTodayCount">0 cuentas cerradas</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Histórico total</div>
+      <div class="stat-value" id="statAll">$0</div>
+      <div class="stat-sub" id="statAllCount">0 cuentas en total</div>
+    </div>
+
+    <div class="export-bar">
+      <button class="btn btn-ghost" id="exportCSV">Exportar CSV</button>
+      <button class="btn btn-ghost" id="exportJSON">Exportar JSON</button>
+      <button class="btn btn-danger" id="clearHistory">Borrar historial</button>
+    </div>
+
+    <h2 class="section serif">Historial</h2>
+    <div id="historyList"></div>
+  </div>
+
+</div>
+
+<!-- Cart bar (mesero) -->
+<div class="cart-bar" id="cartBar">
+  <div class="cart-inner">
+    <div class="cart-info">
+      <div class="cart-table">Mesa <span id="cartBarTable"></span> · <span id="cartBarCount">0 items</span></div>
+      <div class="cart-total"><small>$</small><span id="cartBarTotal">0</span></div>
+    </div>
+    <button class="cart-btn" id="goToCart">Ver cuenta</button>
+  </div>
+</div>
+
+<!-- Note modal -->
+<div class="modal-backdrop" id="noteModal">
+  <div class="modal">
+    <h3 class="serif" id="noteItemName">Producto</h3>
+    <div class="item-line" id="noteItemPrice">$0</div>
+    <label style="font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--ink-faint)">Notas para barra</label>
+    <textarea id="noteInput" placeholder="Ej: sin hielo, extra limón, doble shot…" rows="3" style="margin-top:6px"></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="noteCancel">Cancelar</button>
+      <button class="btn btn-primary" id="noteSave">Agregar a mesa</button>
+    </div>
+  </div>
+</div>
+
+<!-- Table-note modal -->
+<div class="modal-backdrop" id="tableNoteModal">
+  <div class="modal">
+    <h3 class="serif">Identificar mesa <span id="tableNoteLbl"></span></h3>
+    <div class="item-line">Asigna un nombre o referencia para reconocerla</div>
+    <label style="font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--ink-faint)">Nombre / descripción</label>
+    <textarea id="tableNoteInput" placeholder="Ej: Sra. de rojo, cumpleañero, cuenta de Pedro…" rows="2" style="margin-top:6px"></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="tableNoteCancel">Cancelar</button>
+      <button class="btn btn-primary" id="tableNoteSave">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generic confirm modal -->
+<div class="modal-backdrop" id="confirmModal">
+  <div class="modal">
+    <h3 class="serif" id="confirmTitle">¿Confirmar?</h3>
+    <div class="item-line" id="confirmBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="confirmCancel">Cancelar</button>
+      <button class="btn btn-primary" id="confirmOk">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Agregado</div>
+
+<script>
+// ===================== MENÚ (extraído del PDF Terraza Luna) =====================
+const MENU = [
+  { cat:'Mojitos', items:[
+    {n:'Mojito Clásico', p:50}, {n:'Mojito Frutos rojos', p:60},
+    {n:'Mojito Fresa', p:60}, {n:'Mojito Mora', p:60},
+    {n:'Mojito Arándano', p:60}, {n:'Mojito Maracuyá', p:60},
+  ]},
+  { cat:'Gin & Tonic', items:[
+    {n:'Gin Tonic Clásico', p:50}, {n:'Gin Tonic Frutos rojos', p:60},
+    {n:'Gin Tonic Fresa', p:60}, {n:'Gin Tonic Mora', p:60},
+    {n:'Gin Tonic Arándano', p:60}, {n:'Gin Tonic Maracuyá', p:60},
+  ]},
+  { cat:'Caipiroska (Vodka)', items:[
+    {n:'Caipiroska Clásico', p:50}, {n:'Caipiroska Frutos rojos', p:60},
+    {n:'Caipiroska Fresa', p:60}, {n:'Caipiroska Mora', p:60},
+    {n:'Caipiroska Arándano', p:60}, {n:'Caipiroska Maracuyá', p:60},
+  ]},
+  { cat:'Daiquirí (Ron)', items:[
+    {n:'Daiquirí Clásico', p:50}, {n:'Daiquirí Frutos rojos', p:60},
+    {n:'Daiquirí Fresa', p:60}, {n:'Daiquirí Mora', p:60},
+    {n:'Daiquirí Arándano', p:60}, {n:'Daiquirí Maracuyá', p:60},
+  ]},
+  { cat:'Margarita (Tequila)', items:[
+    {n:'Margarita Coco', p:60},{n:'Margarita Piña', p:60},{n:'Margarita Mango', p:60},
+  ]},
+  { cat:'Frozen (Vodka)', items:[
+    {n:'Frozen Coco', p:60},{n:'Frozen Piña', p:60},{n:'Frozen Mango', p:60},
+  ]},
+  { cat:'Coctelería Clásica', items:[
+    {n:'Paloma', p:50, d:'Tequila, limón, refresco de toronja, escarchado sal-limón'},
+    {n:'Cantarito', p:60, d:'Tequila, limón, naranja, toronja, chamoy y tajín'},
+    {n:'Cuba Libre', p:50, d:'Ron, limón, refresco de cola'},
+    {n:'Screwdriver', p:50, d:'Vodka y jugo de naranja'},
+    {n:'Sex On The Beach', p:50, d:'Vodka, licor de naranja, naranja, arándanos'},
+    {n:'Tequila Sunrise', p:50, d:'Tequila, naranja y granadina'},
+    {n:'Azulito', p:50, d:'Vodka, curazao, limón, lima-limón, mora azul'},
+    {n:'Batanga', p:50, d:'Tequila, limón, cola, escarchado sal-limón'},
+    {n:'Tom Collins', p:50, d:'Ginebra, almíbar, limón y agua mineral'},
+    {n:'Whisky Sour', p:50, d:'Whisky, limón y almíbar'},
+    {n:'Gin Sour', p:50, d:'Ginebra, limón y almíbar'},
+    {n:'Ron Sour', p:50, d:'Ron, limón y almíbar'},
+    {n:'Brandy Highball', p:50, d:'Brandy, limón, almíbar y agua mineral'},
+    {n:'Whisky Highball', p:50, d:'Whisky, limón, almíbar y agua mineral'},
+    {n:'Ron Highball', p:50, d:'Ron, limón, cola y agua mineral'},
+    {n:'Piña Colada', p:60, d:'Ron blanco, piña, crema de coco, leche'},
+  ]},
+  { cat:'Alta Coctelería', items:[
+    {n:'AMF', p:70, d:'Vodka, ron, tequila, ginebra, curazao, limón, lima-limón'},
+    {n:'Sidecar', p:60, d:'Brandy, licor de naranja, limón, escarchado azúcar'},
+    {n:'Mai Tai', p:60, d:'Ron blanco, ron añejo, licor de naranja y almíbar'},
+    {n:'Espresso Martini', p:60, d:'Vodka, licor de café y espresso'},
+    {n:'Bloody Mary', p:60, d:'Vodka, clamato, inglesa, maggi, tabasco'},
+    {n:'Cosmopolitan', p:60, d:'Vodka, licor de naranja, arándanos y limón'},
+    {n:'Campari Tonic', p:60, d:'Campari y agua tónica'},
+    {n:'Limoncello Collins', p:60, d:'Limoncello, ginebra, limón y agua mineral'},
+    {n:'Long Island Iced Tea', p:70, d:'Vodka, ron, tequila, ginebra, naranja, limón, cola'},
+    {n:'Ruso Negro', p:60, d:'Vodka y licor de café'},
+    {n:'Ruso Blanco', p:60, d:'Vodka, licor de café y leche'},
+    {n:'Carajillo', p:60, d:'Licor de hierbas y espresso'},
+    {n:'Carajillo de Mazapán', p:70},
+    {n:'Carajillo de Chocolate', p:70},
+    {n:'Carajillo de Nutella', p:70},
+    {n:'Gold Rush', p:60, d:'Whisky, limón y almíbar de miel'},
+    {n:'Canchanchara', p:60, d:'Ron añejo, limón y almíbar de miel'},
+  ]},
+  { cat:'Tequila (shot)', items:[
+    {n:'Sueño Azteca', p:40},{n:'Cabrito', p:40},
+    {n:'José Cuervo Especial Blanco', p:50},{n:'José Cuervo Especial Reposado', p:50},
+  ]},
+  { cat:'Whisky (shot)', items:[
+    {n:'Black Jack', p:50},{n:'Cardigan\'s', p:50},{n:'Black Zebra', p:50},
+    {n:'Johnnie Walker Red Label', p:60},
+    {n:'Buchanan\'s Deluxe 12 años', p:90},{n:'Buchanan\'s Masters 15 años', p:120},
+    {n:'Glenfiddich VAT 01', p:150},{n:'Glenmorangie 16 años', p:150},
+  ]},
+  { cat:'Ron (shot)', items:[
+    {n:'Havana Club 3 años', p:50},{n:'Havana Club Ritual Cubano', p:80},
+    {n:'Black Tears', p:60},{n:'Bacardí Carta Blanca', p:50},
+    {n:'Bacardí Spiced', p:50},{n:'Captain Morgan', p:40},
+    {n:'Baraima Blanco', p:40},{n:'Caney Blanco', p:40},
+    {n:'Santa Cruz del Norte', p:40},
+  ]},
+  { cat:'Brandy / Mezcal', items:[
+    {n:'Brandy Presidente', p:40},{n:'Torres 10', p:60},
+    {n:'Mezcal El Chiniquil', p:50},{n:'Mezcal Ancestral', p:50},
+  ]},
+  { cat:'Cervezas', items:[
+    {n:'Carta Blanca', p:40},{n:'Indio', p:40},{n:'Tecate', p:40},
+    {n:'Victoria', p:45},{n:'XX', p:45},{n:'Modelo', p:45},
+    {n:'Modelo Oscura', p:60},{n:'Bohemia Cristal', p:45},
+    {n:'Corona', p:45},{n:'Michelob Ultra', p:50},
+    {n:'Tarro Chelado', p:5},{n:'Tarro Michelado', p:10},
+    {n:'Tarro para Española', p:15},
+  ]},
+  { cat:'Promociones', items:[
+    {n:'Chelada 1 litro', p:80, d:'Carta Blanca, Indio o Tecate'},
+    {n:'Michelada 1 litro', p:90},
+    {n:'Española 1 litro', p:100},
+    {n:'Cantarito 1 litro', p:80},
+    {n:'Whisky Challenge', p:150, d:'Premium vs comercial, a ciegas'},
+  ]},
+  { cat:'Alitas', items:[
+    {n:'Mango Habanero', p:70, d:'Incluye papas a la francesa'},
+    {n:'BBQ', p:70, d:'Incluye papas a la francesa'},
+    {n:'Tamarindo', p:70, d:'Incluye papas a la francesa'},
+    {n:'Tamarindo Habanero', p:70, d:'Incluye papas a la francesa'},
+    {n:'Piña Coco Habanero', p:70, d:'Incluye papas a la francesa'},
+    {n:'Chiltepín', p:70, d:'Incluye papas a la francesa'},
+    {n:'Clásicas', p:70, d:'Incluye papas a la francesa'},
+  ]},
+  { cat:'Boneless', items:[
+    {n:'Mango Habanero', p:70, d:'Incluye papas a la francesa'},
+    {n:'BBQ', p:70, d:'Incluye papas a la francesa'},
+    {n:'Tamarindo', p:70, d:'Incluye papas a la francesa'},
+    {n:'Tamarindo Habanero', p:70, d:'Incluye papas a la francesa'},
+    {n:'Piña Coco Habanero', p:70, d:'Incluye papas a la francesa'},
+    {n:'Chiltepín', p:70, d:'Incluye papas a la francesa'},
+    {n:'Clásicos', p:70, d:'Incluye papas a la francesa'},
+  ]},
+  { cat:'Snacks', items:[
+    {n:'Papas a la Francesa', p:60},
+    {n:'Salchichas con Chiltepín', p:50, d:'Con queso amarillo, catsup y valentina'},
+  ]},
+  { cat:'Postres', items:[
+    {n:'Pastel de Chocolate', p:55},
+    {n:'Hot Cakes Cajeta', p:60},{n:'Hot Cakes Nutella', p:60},
+    {n:'Hot Cakes Leche Condensada', p:60},
+    {n:'Hot Cakes Frutos Rojos', p:60},{n:'Hot Cakes Fresa', p:60},
+    {n:'Hot Cakes Mora', p:60},{n:'Hot Cakes Arándanos', p:60},
+  ]},
+  { cat:'Bebidas Calientes', items:[
+    {n:'Espresso', p:30},{n:'Americano', p:40},
+    {n:'Capuccino', p:50},{n:'Capuccino Vainilla', p:55},
+    {n:'Capuccino Chocolate', p:55},{n:'Capuccino Mazapán', p:55},
+    {n:'Capuccino Nutella', p:55},{n:'Capuccino Cajeta', p:55},
+    {n:'Latte', p:50},{n:'Moka', p:50},{n:'Chocolate', p:50},
+    {n:'Té limón', p:25},{n:'Té manzanilla', p:25},
+  ]},
+  { cat:'Bebidas Frías', items:[
+    {n:'Frapuccino', p:60},{n:'Smoothie', p:60},{n:'Licuado', p:60},
+    {n:'Limonada', p:40},{n:'Naranjada', p:40},
+    {n:'Refresco', p:30},{n:'Agua mineral', p:30},
+  ]},
+];
+
+const NUM_TABLES = 12;
+
+// ===================== STORAGE =====================
+// All orders are shared so a different phone running this app sees them too.
+const K_ORDERS = 'tl:orders';        // active orders by table
+const K_HISTORY = 'tl:history';      // closed tickets
+
+async function loadOrders(){
+  try{
+    const r = await window.storage.get(K_ORDERS, true);
+    return r ? JSON.parse(r.value) : {};
+  }catch(e){ return {}; }
+}
+async function saveOrders(o){
+  try{ await window.storage.set(K_ORDERS, JSON.stringify(o), true); }catch(e){}
+}
+async function loadHistory(){
+  try{
+    const r = await window.storage.get(K_HISTORY, true);
+    return r ? JSON.parse(r.value) : [];
+  }catch(e){ return []; }
+}
+async function saveHistory(h){
+  try{ await window.storage.set(K_HISTORY, JSON.stringify(h), true); }catch(e){}
+}
+
+// ===================== STATE =====================
+let orders = {};
+let history = [];
+let currentTable = null;
+let currentCat = MENU[0].cat;
+let pendingItem = null;
+let lastSeenTickets = new Set();
+
+// ===================== GOOGLE SHEETS SYNC =====================
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxETK5LdQd5P9BhzRmd_5IB7nDSadwZNUDR6uKE1eQypO3qt5e3-cRTyxvOgKRT_DI9/exec';
+
+async function sendToSheets(ticket){
+  try{
+    // Using no-cors mode + text/plain avoids CORS preflight issues with Apps Script
+    await fetch(SHEETS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'text/plain;charset=utf-8'},
+      body: JSON.stringify(ticket),
+    });
+    // Mark as synced (with no-cors we cannot read the response, so assume success)
+    ticket.synced = true;
+    return true;
+  }catch(e){
+    ticket.synced = false;
+    return false;
+  }
+}
+
+// ===================== HELPERS =====================
+function $(id){return document.getElementById(id)}
+function money(n){return '$'+Math.round(n).toLocaleString('es-MX')}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function toast(msg){
+  const t=$('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._tid); t._tid=setTimeout(()=>t.classList.remove('show'),1400);
+}
+function tableTotal(t){
+  const o = orders[t]; if(!o||!o.items) return 0;
+  return o.items.reduce((s,it)=>s+it.p*it.q,0);
+}
+function tableCount(t){
+  const o = orders[t]; if(!o||!o.items) return 0;
+  return o.items.reduce((s,it)=>s+it.q,0);
+}
+
+// ===================== RENDER: MESAS =====================
+function renderTables(){
+  const g = $('tablesGrid'); g.innerHTML='';
+  for(let i=1;i<=NUM_TABLES;i++){
+    const total = tableTotal(i);
+    const has = total>0;
+    const note = (orders[i] && orders[i].tableNote) || '';
+    const el = document.createElement('button');
+    el.className = 'table-card'+(has?' has-order':'');
+    el.innerHTML = `
+      <div class="dot"></div>
+      <div class="num">${i.toString().padStart(2,'0')}</div>
+      <div class="lbl">Mesa</div>
+      <div class="total">${has?money(total):'—'}</div>
+      <div class="table-note">${note?escapeHtml(note):''}</div>
+    `;
+    el.onclick = ()=>openTable(i);
+    g.appendChild(el);
+  }
+}
+
+// ===================== RENDER: MENU =====================
+function renderCatTabs(){
+  const c = $('catTabs'); c.innerHTML='';
+  MENU.forEach(group=>{
+    const b = document.createElement('button');
+    b.className = 'cat-tab'+(group.cat===currentCat?' active':'');
+    b.textContent = group.cat;
+    b.onclick = ()=>{currentCat=group.cat; renderCatTabs(); renderMenu()};
+    c.appendChild(b);
+  });
+}
+function renderMenu(){
+  const list = $('menuList'); list.innerHTML='';
+  const group = MENU.find(g=>g.cat===currentCat);
+  group.items.forEach(it=>{
+    const row = document.createElement('div');
+    row.className = 'menu-item';
+    row.innerHTML = `
+      <div class="mi-left">
+        <div class="mi-name">${it.n}</div>
+        ${it.d?`<div class="mi-desc">${it.d}</div>`:''}
+      </div>
+      <div class="mi-right">
+        <div class="mi-price">${money(it.p)}</div>
+        <button class="add-btn" aria-label="Agregar">+</button>
+      </div>
+    `;
+    row.querySelector('.add-btn').onclick = (e)=>{
+      e.stopPropagation();
+      row.classList.add('flash');
+      setTimeout(()=>row.classList.remove('flash'),500);
+      openNoteModal(it);
+    };
+    row.onclick = ()=>openNoteModal(it);
+    list.appendChild(row);
+  });
+}
+
+// ===================== NOTE MODAL =====================
+function openNoteModal(it){
+  pendingItem = it;
+  $('noteItemName').textContent = it.n;
+  $('noteItemPrice').textContent = money(it.p);
+  $('noteInput').value = '';
+  $('noteModal').classList.add('show');
+  setTimeout(()=>$('noteInput').focus(),250);
+}
+function closeNoteModal(){ $('noteModal').classList.remove('show'); pendingItem=null }
+
+$('noteCancel').onclick = closeNoteModal;
+$('noteSave').onclick = async ()=>{
+  if(!pendingItem || !currentTable) return;
+  const note = $('noteInput').value.trim();
+  if(!orders[currentTable]) orders[currentTable] = {items:[], openedAt: Date.now()};
+  // For Alitas/Boneless, prefix the category so the bar knows the preparation
+  let displayName = pendingItem.n;
+  if(currentCat==='Alitas' || currentCat==='Boneless'){
+    displayName = currentCat+' '+pendingItem.n;
+  }
+  // group by name+note: if same item with same note exists, increment q
+  const o = orders[currentTable];
+  const existing = o.items.find(x=>x.n===displayName && (x.note||'')===note);
+  if(existing){ existing.q += 1; }
+  else{
+    o.items.push({
+      id: uid(),
+      n: displayName,
+      p: pendingItem.p,
+      q: 1,
+      note: note || '',
+      addedAt: Date.now(),
+      status: 'pending',  // pending | delivered
+    });
+  }
+  await saveOrders(orders);
+  closeNoteModal();
+  toast(note ? '✓ Agregado con nota' : '✓ Agregado a mesa '+currentTable);
+  updateCartBar();
+};
+
+// ===================== TABLE FLOW =====================
+function openTable(n){
+  currentTable = n;
+  $('currentTableLbl').textContent = n.toString().padStart(2,'0');
+  $('screen-tables').style.display='none';
+  $('screen-menu').style.display='block';
+  $('screen-cart').style.display='none';
+  currentCat = MENU[0].cat;
+  renderCatTabs(); renderMenu();
+  renderTableNoteStrip();
+  updateCartBar();
+}
+
+function renderTableNoteStrip(){
+  if(!currentTable) return;
+  const note = (orders[currentTable] && orders[currentTable].tableNote) || '';
+  const menuEl = $('menuTableNote');
+  const cartEl = $('cartTableNote');
+  if(menuEl){
+    if(note){ menuEl.textContent = note; menuEl.classList.remove('empty'); }
+    else    { menuEl.textContent = 'Sin identificación'; menuEl.classList.add('empty'); }
+  }
+  if(cartEl){
+    if(note){ cartEl.textContent = note; cartEl.classList.remove('empty'); }
+    else    { cartEl.textContent = 'Sin identificación'; cartEl.classList.add('empty'); }
+  }
+}
+
+// Edit table note
+$('editTableNoteBtn').onclick = ()=>{
+  if(!currentTable) return;
+  $('tableNoteLbl').textContent = currentTable.toString().padStart(2,'0');
+  $('tableNoteInput').value = (orders[currentTable] && orders[currentTable].tableNote) || '';
+  $('tableNoteModal').classList.add('show');
+  setTimeout(()=>$('tableNoteInput').focus(),250);
+};
+$('tableNoteCancel').onclick = ()=>$('tableNoteModal').classList.remove('show');
+$('tableNoteSave').onclick = async ()=>{
+  if(!currentTable) return;
+  const v = $('tableNoteInput').value.trim();
+  if(!orders[currentTable]) orders[currentTable] = {items:[], openedAt: Date.now()};
+  orders[currentTable].tableNote = v;
+  await saveOrders(orders);
+  $('tableNoteModal').classList.remove('show');
+  renderTableNoteStrip();
+  toast(v?'Nota guardada':'Nota borrada');
+};
+$('backToTables').onclick = ()=>{
+  $('screen-menu').style.display='none';
+  $('screen-cart').style.display='none';
+  $('screen-tables').style.display='block';
+  $('cartBar').classList.remove('show');
+  currentTable=null;
+  renderTables();
+};
+$('viewCart').onclick = ()=>goCart();
+$('goToCart').onclick = ()=>goCart();
+function goCart(){
+  if(!currentTable) return;
+  $('cartTableLbl').textContent = currentTable.toString().padStart(2,'0');
+  $('screen-menu').style.display='none';
+  $('screen-cart').style.display='block';
+  renderTableNoteStrip();
+  renderCart();
+}
+$('backToMenu').onclick = ()=>{
+  $('screen-cart').style.display='none';
+  $('screen-menu').style.display='block';
+};
+
+function updateCartBar(){
+  if(!currentTable){ $('cartBar').classList.remove('show'); return; }
+  const total = tableTotal(currentTable);
+  const count = tableCount(currentTable);
+  $('cartBarTable').textContent = currentTable.toString().padStart(2,'0');
+  $('cartBarCount').textContent = count+' item'+(count!==1?'s':'');
+  $('cartBarTotal').textContent = Math.round(total).toLocaleString('es-MX');
+  $('cartCount').textContent = count;
+  $('cartCount').style.display = count>0?'inline-flex':'none';
+  if(count>0) $('cartBar').classList.add('show'); else $('cartBar').classList.remove('show');
+}
+
+function renderCart(){
+  const wrap = $('orderDetail'); wrap.innerHTML='';
+  const o = orders[currentTable];
+  if(!o || !o.items.length){
+    wrap.innerHTML = `<div class="empty"><div class="serif crescent">Cuenta vacía</div><p>Agrega productos desde el menú</p></div>`;
+    $('orderSummary').style.display='none';
+    $('cartActions').style.display='none';
+    return;
+  }
+  o.items.forEach(it=>{
+    const line = document.createElement('div');
+    line.className='order-line';
+    line.innerHTML = `
+      <div class="ol-left">
+        <div class="ol-name">${it.n}</div>
+        ${it.note?`<div class="ol-note">“${it.note}”</div>`:''}
+        <div class="ol-meta">${money(it.p)} c/u${it.sent?' · enviado':''}</div>
+      </div>
+      <div class="ol-right">
+        <div class="qty-pill">
+          <button data-act="dec">−</button>
+          <span class="q">${it.q}</span>
+          <button data-act="inc">+</button>
+        </div>
+        <div class="ol-price">${money(it.p*it.q)}</div>
+      </div>
+    `;
+    line.querySelector('[data-act=inc]').onclick = async ()=>{
+      it.q += 1; await saveOrders(orders); renderCart(); updateCartBar();
+    };
+    line.querySelector('[data-act=dec]').onclick = async ()=>{
+      it.q -= 1;
+      if(it.q<=0){ o.items = o.items.filter(x=>x.id!==it.id); }
+      await saveOrders(orders); renderCart(); updateCartBar();
+    };
+    wrap.appendChild(line);
+  });
+  const total = tableTotal(currentTable);
+  const count = tableCount(currentTable);
+  $('sumCount').textContent = count;
+  $('sumTotal').textContent = money(total);
+  $('orderSummary').style.display='block';
+  $('cartActions').style.display='flex';
+}
+
+// Generic confirm dialog (replaces native confirm() which can fail in mobile webviews)
+function showConfirm(title, body, okText){
+  return new Promise(resolve=>{
+    $('confirmTitle').textContent = title;
+    $('confirmBody').textContent = body || '';
+    $('confirmOk').textContent = okText || 'Confirmar';
+    $('confirmModal').classList.add('show');
+    const cleanup = ()=>{
+      $('confirmModal').classList.remove('show');
+      $('confirmOk').onclick = null;
+      $('confirmCancel').onclick = null;
+    };
+    $('confirmOk').onclick = ()=>{ cleanup(); resolve(true); };
+    $('confirmCancel').onclick = ()=>{ cleanup(); resolve(false); };
+  });
+}
+
+$('clearTable').onclick = async ()=>{
+  if(!currentTable) return;
+  const ok = await showConfirm(
+    'Vaciar mesa '+currentTable,
+    'Se eliminarán todos los productos de la cuenta. Esta acción no se puede deshacer.',
+    'Vaciar'
+  );
+  if(!ok) return;
+  delete orders[currentTable];
+  await saveOrders(orders);
+  renderCart(); updateCartBar();
+  toast('Cuenta vaciada');
+};
+
+$('closeTable').onclick = async ()=>{
+  if(!currentTable) return;
+  const o = orders[currentTable];
+  if(!o || !o.items.length) return;
+  const total = tableTotal(currentTable);
+  const ok = await showConfirm(
+    'Cobrar mesa '+currentTable,
+    'Total a cobrar: '+money(total)+'. Se guardará en el historial de ventas.',
+    'Cobrar y cerrar'
+  );
+  if(!ok) return;
+  history.unshift({
+    id: uid(),
+    table: currentTable,
+    tableNote: o.tableNote || '',
+    openedAt: o.openedAt || Date.now(),
+    closedAt: Date.now(),
+    total,
+    itemCount: tableCount(currentTable),
+    items: o.items.map(x=>({n:x.n,p:x.p,q:x.q,note:x.note||''})),
+  });
+  delete orders[currentTable];
+  await saveOrders(orders);
+  await saveHistory(history);
+  toast('✓ Cuenta cerrada · '+money(total));
+  $('backToTables').click();
+};
+
+// ===================== KITCHEN VIEW =====================
+function renderKitchen(){
+  const g = $('kitchenGrid'); g.innerHTML='';
+  const active = Object.keys(orders).filter(t=>orders[t].items && orders[t].items.length);
+  if(!active.length){ $('kitchenEmpty').style.display='block'; return; }
+  $('kitchenEmpty').style.display='none';
+  active.sort((a,b)=>orders[a].openedAt-orders[b].openedAt);
+
+  active.forEach(t=>{
+    const o = orders[t];
+    const total = o.items.reduce((s,it)=>s+it.p*it.q,0);
+    const time = new Date(o.openedAt||Date.now());
+    const hh = time.getHours().toString().padStart(2,'0');
+    const mm = time.getMinutes().toString().padStart(2,'0');
+    const minutesOpen = Math.floor((Date.now()-(o.openedAt||Date.now()))/60000);
+    const pending = o.items.filter(it=>(it.status||'pending')==='pending').length;
+    const delivered = o.items.filter(it=>it.status==='delivered').length;
+
+    const ticket = document.createElement('div');
+    // Use a stable key based on what's on the ticket so new items pulse
+    const ticketKey = t+':'+o.items.map(it=>it.id+':'+it.q).join(',');
+    const isNew = !lastSeenTickets.has(ticketKey);
+    lastSeenTickets.add(ticketKey);
+    ticket.className = 'ticket'+(isNew?' new':'');
+
+    const noteHtml = o.tableNote
+      ? `<div class="ticket-note">↳ ${escapeHtml(o.tableNote)}</div>`
+      : '';
+
+    ticket.innerHTML = `
+      <div class="ticket-head">
+        <div>
+          <div class="ticket-table">Mesa ${t.toString().padStart(2,'0')}</div>
+          ${noteHtml}
+        </div>
+        <div style="text-align:right">
+          <div class="ticket-time">${hh}:${mm} · ${minutesOpen}min</div>
+          <div class="ticket-progress">
+            ${pending>0?`<span class="badge-pending">${pending} pend.</span>`:''}
+            ${delivered>0?`<span class="badge-delivered">${delivered} ✓</span>`:''}
+          </div>
+        </div>
+      </div>
+      <div class="ticket-items">
+        <div class="ticket-headrow">
+          <span>Cant</span>
+          <span>Producto</span>
+          <span>Status</span>
+        </div>
+        ${o.items.map(it=>{
+          const st = it.status || 'pending';
+          return `
+          <div class="ticket-line ${st}" data-table="${t}" data-id="${it.id}">
+            <span class="tl-q">${it.q}×</span>
+            <span class="tl-name">
+              ${escapeHtml(it.n)}
+              ${it.note?`<span class="tl-note">↳ ${escapeHtml(it.note)}</span>`:''}
+            </span>
+            <span class="tl-status">
+              ${st==='pending'
+                ? `<button class="status-btn pending" data-act="deliver">Entregar</button>`
+                : `<button class="status-btn delivered" data-act="undeliver">✓ Entregado</button>`
+              }
+            </span>
+          </div>
+          `;
+        }).join('')}
+      </div>
+      <div class="ticket-foot">
+        <span style="font-size:10px;letter-spacing:.25em;color:var(--ink-faint);text-transform:uppercase">${o.items.reduce((s,it)=>s+it.q,0)} productos</span>
+        <span class="ticket-total">${money(total)}</span>
+      </div>
+    `;
+
+    // wire up delivery buttons
+    ticket.querySelectorAll('.status-btn').forEach(btn=>{
+      btn.onclick = async (e)=>{
+        e.stopPropagation();
+        const line = btn.closest('.ticket-line');
+        const tbl = line.dataset.table;
+        const itemId = line.dataset.id;
+        const targetItem = orders[tbl] && orders[tbl].items.find(x=>x.id===itemId);
+        if(!targetItem) return;
+        targetItem.status = (targetItem.status==='delivered') ? 'pending' : 'delivered';
+        await saveOrders(orders);
+        renderKitchen();
+        toast(targetItem.status==='delivered' ? '✓ Entregado' : 'Marcado como pendiente');
+      };
+    });
+
+    g.appendChild(ticket);
+  });
+
+  // prune lastSeenTickets to current ones only
+  const currentKeys = new Set(active.map(t=>{
+    const o=orders[t];
+    return t+':'+o.items.map(it=>it.id+':'+it.q).join(',');
+  }));
+  lastSeenTickets = new Set([...lastSeenTickets].filter(k=>currentKeys.has(k)));
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ===================== STATS VIEW =====================
+function renderStats(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayTickets = history.filter(h=>h.closedAt>=today.getTime());
+  const todayTotal = todayTickets.reduce((s,h)=>s+h.total,0);
+  const allTotal = history.reduce((s,h)=>s+h.total,0);
+
+  $('statToday').textContent = money(todayTotal);
+  $('statTodayCount').textContent = todayTickets.length+' cuentas cerradas hoy';
+  $('statAll').textContent = money(allTotal);
+  $('statAllCount').textContent = history.length+' cuentas en total';
+
+  const list = $('historyList'); list.innerHTML='';
+  if(!history.length){
+    list.innerHTML = `<div class="empty"><div class="serif crescent">Sin historial aún</div><p>Las cuentas cerradas aparecerán aquí</p></div>`;
+    return;
+  }
+  history.slice(0,50).forEach(h=>{
+    const d = new Date(h.closedAt);
+    const dateStr = d.toLocaleDateString('es-MX',{day:'2-digit',month:'short'})+' · '+
+      d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+    const el = document.createElement('div');
+    el.className='history-item';
+    el.innerHTML = `
+      <div class="hi-left">
+        <div class="table">Mesa ${h.table.toString().padStart(2,'0')}</div>
+        <div class="date">${dateStr}</div>
+      </div>
+      <div class="hi-right">
+        <div class="hi-total">${money(h.total)}</div>
+        <div class="hi-items">${h.itemCount} productos</div>
+      </div>
+    `;
+    el.onclick = ()=>showHistoryDetail(h);
+    list.appendChild(el);
+  });
+}
+
+function showHistoryDetail(h){
+  const d = new Date(h.closedAt);
+  const lines = h.items.map(it=>
+    `${it.q}× ${it.n}${it.note?' ('+it.note+')':''} — ${money(it.p*it.q)}`
+  ).join('\n');
+  alert(
+    `Mesa ${h.table} · ${d.toLocaleString('es-MX')}\n\n${lines}\n\nTotal: ${money(h.total)}`
+  );
+}
+
+// ===================== EXPORT =====================
+$('exportCSV').onclick = ()=>{
+  if(!history.length){ toast('Sin datos para exportar'); return; }
+  let csv = 'fecha,hora,mesa,producto,nota,cantidad,precio_unitario,subtotal,total_cuenta\n';
+  history.forEach(h=>{
+    const d = new Date(h.closedAt);
+    const fecha = d.toISOString().slice(0,10);
+    const hora = d.toTimeString().slice(0,5);
+    h.items.forEach(it=>{
+      const note = (it.note||'').replace(/"/g,'""');
+      csv += `${fecha},${hora},${h.table},"${it.n}","${note}",${it.q},${it.p},${it.p*it.q},${h.total}\n`;
+    });
+  });
+  downloadFile('terraza_luna_'+Date.now()+'.csv', csv, 'text/csv');
+  toast('CSV descargado');
+};
+$('exportJSON').onclick = ()=>{
+  if(!history.length){ toast('Sin datos para exportar'); return; }
+  downloadFile('terraza_luna_'+Date.now()+'.json', JSON.stringify(history,null,2),'application/json');
+  toast('JSON descargado');
+};
+$('clearHistory').onclick = async ()=>{
+  const ok = await showConfirm(
+    'Borrar todo el historial',
+    'Se perderán todas las ventas registradas. Esta acción no se puede deshacer.',
+    'Borrar todo'
+  );
+  if(!ok) return;
+  history = [];
+  await saveHistory(history);
+  renderStats();
+  toast('Historial borrado');
+};
+function downloadFile(name, content, type){
+  const blob = new Blob([content], {type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+// ===================== ROLE SWITCHING =====================
+function setRole(role){
+  document.querySelectorAll('.role-switch button').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  if(role==='mesero'){
+    $('roleMesero').classList.add('active');
+    $('view-mesero').classList.add('active');
+    $('cartBar').classList.toggle('show', !!currentTable && tableCount(currentTable)>0);
+  } else if(role==='cocina'){
+    $('roleCocina').classList.add('active');
+    $('view-cocina').classList.add('active');
+    $('cartBar').classList.remove('show');
+    renderKitchen();
+  } else {
+    $('roleStats').classList.add('active');
+    $('view-stats').classList.add('active');
+    $('cartBar').classList.remove('show');
+    renderStats();
+  }
+}
+$('roleMesero').onclick = ()=>setRole('mesero');
+$('roleCocina').onclick = ()=>setRole('cocina');
+$('roleStats').onclick = ()=>setRole('stats');
+
+// ===================== POLL FOR LIVE SYNC =====================
+async function syncFromStorage(){
+  const [o,h] = await Promise.all([loadOrders(), loadHistory()]);
+  const ordersChanged = JSON.stringify(o)!==JSON.stringify(orders);
+  const historyChanged = JSON.stringify(h)!==JSON.stringify(history);
+  orders = o; history = h;
+  if(ordersChanged){
+    // re-render whichever screen is visible
+    if($('view-mesero').classList.contains('active')){
+      if($('screen-tables').style.display!=='none') renderTables();
+      else if($('screen-cart').style.display!=='none') renderCart();
+      updateCartBar();
+    }
+    if($('view-cocina').classList.contains('active')) renderKitchen();
+  }
+  if(historyChanged && $('view-stats').classList.contains('active')) renderStats();
+}
+
+// ===================== INIT =====================
+(async function init(){
+  orders = await loadOrders();
+  history = await loadHistory();
+  renderTables();
+  renderCatTabs();
+  renderMenu();
+  setInterval(syncFromStorage, 2500);
+})();
+</script>
+
+</body>
+</html>
