@@ -8,27 +8,26 @@
 <style>
 :root{
   --bg:#f5f1e8;--bg-2:#ffffff;--ink:#1a1610;--ink-dim:#4a4337;--ink-faint:#7a7264;
-  --line:#d8cfbd;--line-2:#c4b89f;--gold:#8a6420;--gold-soft:#6b4d18;--moon:#f3e9c9;
-  --danger:#a8442f;--ok:#4a7a3a;--shadow:0 10px 30px rgba(60,45,20,.12);
-  --person-colors: #8a6420,#2d6b7a,#5a3a7a,#3a6b3a,#7a3a3a,#6b5a2d,#2d4a6b,#7a5a2d;
+  --line:#d8cfbd;--line-2:#c4b89f;--gold:#8a6420;--gold-soft:#6b4d18;
+  --danger:#a8442f;--shadow:0 10px 30px rgba(60,45,20,.12);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'Inter Tight',sans-serif;overscroll-behavior:none}
 body{min-height:100vh;background:radial-gradient(900px 500px at 90% -10%,rgba(138,100,32,.08),transparent 60%),radial-gradient(700px 400px at -10% 110%,rgba(138,100,32,.05),transparent 60%),var(--bg)}
 .serif{font-family:'Cormorant Garamond',serif;font-weight:500;letter-spacing:.01em}
-button,input,textarea,select{font:inherit;color:inherit}
+button,input,textarea{font:inherit;color:inherit}
 button{background:none;border:0;cursor:pointer}
 input,textarea{background:transparent;border:1px solid var(--line);color:var(--ink);padding:10px 12px;border-radius:10px;outline:none;width:100%}
 input:focus,textarea:focus{border-color:var(--gold)}
-textarea{resize:none;min-height:60px}
+textarea{resize:none}
 
 .topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;padding:14px 18px 12px;background:linear-gradient(180deg,rgba(245,241,232,.95),rgba(245,241,232,.75));backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .brand{display:flex;align-items:center;gap:10px}
 .brand .moon{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff5d6,#c9a35b 70%,#6e4f1d);box-shadow:0 0 18px rgba(201,163,91,.4)}
-.brand .name{font-family:'Cormorant Garamond',serif;font-size:20px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink)}
+.brand .name{font-family:'Cormorant Garamond',serif;font-size:20px;letter-spacing:.18em;text-transform:uppercase}
 .brand .sub{font-size:10px;letter-spacing:.35em;color:var(--ink-faint);text-transform:uppercase;margin-top:-2px}
 .role-switch{display:flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:rgba(255,255,255,.6)}
-.role-switch button{padding:7px 12px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-dim);border-radius:999px;transition:all .25s ease}
+.role-switch button{padding:7px 12px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-dim);border-radius:999px;transition:all .25s}
 .role-switch button.active{background:var(--gold);color:#fff;font-weight:600}
 
 .app{padding:14px 14px 120px;max-width:560px;margin:0 auto}
@@ -36,53 +35,49 @@ textarea{resize:none;min-height:60px}
 .view.active{display:block}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-h2.section{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;margin:18px 4px 10px;display:flex;align-items:baseline;gap:10px;color:var(--ink)}
+h2.section{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;margin:18px 4px 10px;display:flex;align-items:baseline;gap:10px}
 h2.section::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6px}
 
-/* ===== Tables ===== */
+/* MESAS */
 .tables{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.table-card{position:relative;border:1px solid var(--line);border-radius:14px;padding:12px 10px 10px;text-align:center;background:linear-gradient(180deg,#ffffff,#faf6ec);transition:transform .15s ease,border-color .25s ease,background .25s ease;color:var(--ink);box-shadow:0 2px 6px rgba(60,45,20,.04)}
+.table-card{position:relative;border:1px solid var(--line);border-radius:14px;padding:16px 10px 14px;text-align:center;background:linear-gradient(180deg,#fff,#faf6ec);transition:transform .15s,border-color .25s,background .25s;color:var(--ink);box-shadow:0 2px 6px rgba(60,45,20,.04);cursor:pointer;-webkit-user-select:none;user-select:none}
+.table-card:active{transform:scale(.97)}
 .table-card.has-order{border-color:var(--gold);background:linear-gradient(180deg,#fff8e8,#fdedc8)}
-.table-card .num{font-family:'Cormorant Garamond',serif;font-size:28px;line-height:1;color:var(--ink)}
+.table-card .num{font-family:'Cormorant Garamond',serif;font-size:30px;line-height:1}
 .table-card .lbl{font-size:9px;letter-spacing:.3em;color:var(--ink-faint);text-transform:uppercase;margin-top:3px}
-.table-card .total{margin-top:6px;font-size:13px;color:var(--gold);font-weight:600;font-variant-numeric:tabular-nums;min-height:18px}
+.table-card .tot{margin-top:6px;font-size:13px;color:var(--gold);font-weight:600;min-height:18px}
+.table-card .tnote{margin-top:4px;font-size:11px;color:var(--ink-dim);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-height:14px}
 .table-card .dot{position:absolute;top:8px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold);display:none}
 .table-card.has-order .dot{display:block;animation:pulse 1.8s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.table-card .table-note{margin-top:4px;font-size:11px;color:var(--ink-dim);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.2;min-height:14px}
-.table-card-btns{display:flex;gap:4px;margin-top:8px}
-.tc-btn{flex:1;padding:5px 4px;border-radius:8px;font-size:9px;letter-spacing:.15em;text-transform:uppercase;font-weight:600;border:1px solid var(--line);color:var(--ink-dim);background:#fff;transition:all .15s ease}
-.tc-btn:active{border-color:var(--gold);color:var(--gold)}
-.tc-btn.primary{background:var(--gold);color:#fff;border-color:var(--gold)}
-.tc-btn.primary:active{background:var(--gold-soft)}
 
-/* ===== Menu / categorías ===== */
-.category-tabs{display:flex;gap:6px;overflow-x:auto;padding:8px 2px 14px;scrollbar-width:none;-ms-overflow-style:none}
+/* MENÚ */
+.category-tabs{display:flex;gap:6px;overflow-x:auto;padding:8px 2px 14px;scrollbar-width:none}
 .category-tabs::-webkit-scrollbar{display:none}
-.cat-tab{white-space:nowrap;padding:8px 14px;border:1px solid var(--line);border-radius:999px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-dim);background:#fff;transition:all .2s ease}
+.cat-tab{white-space:nowrap;padding:8px 14px;border:1px solid var(--line);border-radius:999px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-dim);background:#fff;transition:all .2s}
 .cat-tab.active{background:var(--ink);color:#faf6ec;border-color:var(--ink);font-weight:600}
 .menu-list{display:flex;flex-direction:column;gap:8px}
-.menu-item{display:flex;align-items:center;justify-content:space-between;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:#ffffff;transition:all .18s ease;box-shadow:0 1px 3px rgba(60,45,20,.04)}
+.menu-item{display:flex;align-items:center;justify-content:space-between;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;transition:all .18s;box-shadow:0 1px 3px rgba(60,45,20,.04)}
 .menu-item:active{transform:scale(.985);border-color:var(--gold);background:#fff8e8}
 .menu-item.flash{animation:flash .5s ease}
-@keyframes flash{0%{background:#fdedc8;border-color:var(--gold)}100%{background:#ffffff;border-color:var(--line)}}
+@keyframes flash{0%{background:#fdedc8;border-color:var(--gold)}100%{background:#fff;border-color:var(--line)}}
 .mi-left{flex:1;min-width:0;padding-right:10px}
-.mi-name{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;line-height:1.2;color:var(--ink)}
+.mi-name{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;line-height:1.2}
 .mi-desc{font-size:11px;color:var(--ink-faint);margin-top:3px;line-height:1.35}
 .mi-right{display:flex;align-items:center;gap:10px}
-.mi-price{font-variant-numeric:tabular-nums;font-size:14px;color:var(--gold);font-weight:600;min-width:42px;text-align:right}
-.add-btn{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--gold);color:var(--gold);background:#fff;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;transition:all .15s ease}
+.mi-price{font-size:14px;color:var(--gold);font-weight:600;min-width:42px;text-align:right}
+.add-btn{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--gold);color:var(--gold);background:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .add-btn:active{background:var(--gold);color:#fff;transform:scale(.9)}
 
-/* ===== Modals ===== */
+/* MODALES */
 .modal-backdrop{position:fixed;inset:0;background:rgba(40,30,15,.4);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center;z-index:100}
 .modal-backdrop.show{display:flex;animation:fade .2s ease}
-.modal{width:100%;max-width:520px;background:var(--bg-2);border-top-left-radius:20px;border-top-right-radius:20px;border-top:1px solid var(--line-2);padding:20px 18px 24px;animation:slideUp .3s cubic-bezier(.2,.8,.2,1);box-shadow:0 -10px 30px rgba(60,45,20,.15)}
+.modal{width:100%;max-width:520px;background:var(--bg-2);border-top-left-radius:20px;border-top-right-radius:20px;border-top:1px solid var(--line-2);padding:20px 18px 28px;animation:slideUp .3s cubic-bezier(.2,.8,.2,1);box-shadow:0 -10px 30px rgba(60,45,20,.15)}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
-.modal h3{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;margin:0 0 4px;color:var(--ink)}
+.modal h3{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;margin:0 0 4px}
 .modal .item-line{font-size:12px;color:var(--ink-faint);margin-bottom:14px}
 .modal-actions{display:flex;gap:10px;margin-top:14px}
-.btn{flex:1;padding:13px;border-radius:10px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;transition:all .15s ease}
+.btn{flex:1;padding:13px;border-radius:10px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;transition:all .15s}
 .btn-primary{background:var(--gold);color:#fff;font-weight:600}
 .btn-primary:active{background:var(--gold-soft);transform:scale(.98)}
 .btn-ghost{border:1px solid var(--line-2);color:var(--ink-dim);background:#fff}
@@ -90,133 +85,133 @@ h2.section::after{content:'';flex:1;height:1px;background:var(--line);margin-lef
 .btn-danger{border:1px solid var(--danger);color:var(--danger);background:#fff}
 .btn-danger:active{background:var(--danger);color:#fff}
 
-/* ===== Cart bar ===== */
+/* CART BAR */
 .cart-bar{position:fixed;bottom:0;left:0;right:0;z-index:40;background:linear-gradient(180deg,rgba(245,241,232,.85),var(--bg) 40%);padding:12px 14px 18px;border-top:1px solid var(--line);display:none;backdrop-filter:blur(8px)}
 .cart-bar.show{display:block}
 .cart-inner{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:12px}
 .cart-info{flex:1}
-.cart-table{font-size:10px;letter-spacing:.3em;color:var(--ink-faint);text-transform:uppercase}
-.cart-total{font-family:'Cormorant Garamond',serif;font-size:28px;line-height:1;margin-top:2px;color:var(--ink);font-weight:600}
-.cart-total small{font-size:14px;color:var(--ink-dim);margin-right:4px}
-.cart-btn{padding:13px 18px;background:var(--gold);color:#fff;border-radius:10px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;transition:all .15s ease}
+.cart-lbl{font-size:10px;letter-spacing:.3em;color:var(--ink-faint);text-transform:uppercase}
+.cart-tot{font-family:'Cormorant Garamond',serif;font-size:28px;line-height:1;margin-top:2px;font-weight:600}
+.cart-tot small{font-size:14px;color:var(--ink-dim);margin-right:4px}
+.cart-btn{padding:13px 18px;background:var(--gold);color:#fff;border-radius:10px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;transition:all .15s}
 .cart-btn:active{background:var(--gold-soft);transform:scale(.97)}
 
-/* ===== Order detail ===== */
+/* ORDER DETAIL */
 .order-detail{padding:6px 4px}
 .order-line{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
 .order-line:last-child{border-bottom:0}
 .ol-left{flex:1;min-width:0}
-.ol-name{font-family:'Cormorant Garamond',serif;font-size:17px;line-height:1.2;color:var(--ink);font-weight:600}
+.ol-name{font-family:'Cormorant Garamond',serif;font-size:17px;line-height:1.2;font-weight:600}
 .ol-note{font-size:11px;color:var(--gold);font-style:italic;margin-top:3px;font-weight:500}
 .ol-meta{font-size:10px;color:var(--ink-faint);letter-spacing:.15em;text-transform:uppercase;margin-top:4px}
 .ol-right{display:flex;align-items:center;gap:8px}
 .qty-pill{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:2px;background:#fff}
 .qty-pill button{width:24px;height:24px;color:var(--ink-dim);font-size:14px;border-radius:50%}
 .qty-pill button:active{background:var(--gold);color:#fff}
-.qty-pill .q{min-width:18px;text-align:center;font-variant-numeric:tabular-nums;font-size:13px;color:var(--ink);font-weight:600}
-.ol-price{font-variant-numeric:tabular-nums;font-size:13px;color:var(--gold);font-weight:600;min-width:50px;text-align:right}
+.qty-pill .q{min-width:18px;text-align:center;font-size:13px;font-weight:600}
+.ol-price{font-size:13px;color:var(--gold);font-weight:600;min-width:50px;text-align:right}
 .summary{margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff}
-.summary-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;font-size:13px;color:var(--ink-dim)}
+.summary-row{display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;color:var(--ink-dim)}
 .summary-row.total{margin-top:8px;padding-top:10px;border-top:1px solid var(--line);font-size:15px;color:var(--ink)}
 .summary-row.total b{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;color:var(--gold)}
 
-/* ===== POR PERSONA ===== */
-.persons-header{display:flex;align-items:center;gap:10px;margin:6px 0 0}
-.person-tabs{display:flex;gap:6px;overflow-x:auto;padding:8px 2px 10px;scrollbar-width:none;-ms-overflow-style:none;align-items:center}
+/* POR PERSONA */
+.person-tabs{display:flex;gap:6px;overflow-x:auto;padding:8px 2px 10px;scrollbar-width:none;align-items:center}
 .person-tabs::-webkit-scrollbar{display:none}
-.person-tab{display:flex;align-items:center;gap:6px;white-space:nowrap;padding:8px 12px;border:1px solid var(--line);border-radius:999px;font-size:11px;font-weight:600;color:var(--ink-dim);background:#fff;transition:all .2s ease;cursor:pointer}
+.person-tab{display:flex;align-items:center;gap:6px;white-space:nowrap;padding:8px 12px;border:1px solid var(--line);border-radius:999px;font-size:11px;font-weight:600;color:var(--ink-dim);background:#fff;transition:all .2s;cursor:pointer}
 .person-tab.active{color:#fff;border-color:transparent}
-.person-tab .ptab-del{font-size:14px;opacity:.6;margin-left:2px;line-height:1}
-.person-tab .ptab-del:hover{opacity:1}
-.add-person-btn{white-space:nowrap;padding:8px 14px;border:1px dashed var(--gold);border-radius:999px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);background:transparent;transition:all .2s ease}
+.person-tab .ptab-del{font-size:14px;opacity:.6;margin-left:2px}
+.add-person-btn{white-space:nowrap;padding:8px 14px;border:1px dashed var(--gold);border-radius:999px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);background:transparent;flex-shrink:0}
 .add-person-btn:active{background:#fff8e8}
-
-.person-card{border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;background:#fff;box-shadow:0 2px 6px rgba(60,45,20,.04)}
+.person-card{border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;background:#fff}
 .person-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:10px;border-bottom:1px dashed var(--line-2)}
 .person-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
-.person-name-big{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--ink);margin-left:10px;flex:1}
+.person-name-big{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;margin-left:10px;flex:1}
 .person-subtotal{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);font-weight:600}
-.person-add-btn{padding:7px 14px;border:1px solid var(--gold);border-radius:8px;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-weight:600;transition:all .15s ease}
+.person-add-btn{padding:7px 14px;border:1px solid var(--gold);border-radius:8px;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-weight:600}
 .person-add-btn:active{background:var(--gold);color:#fff}
-.person-items{font-size:13px}
 .pi-line{display:flex;align-items:baseline;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line);gap:8px}
 .pi-line:last-child{border-bottom:0}
-.pi-name{flex:1;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--ink)}
+.pi-name{flex:1;font-family:'Cormorant Garamond',serif;font-size:15px}
 .pi-note{font-size:10px;color:var(--gold);font-style:italic;margin-left:4px}
 .pi-qty{font-size:11px;color:var(--ink-faint);margin-right:4px}
-.pi-price{font-size:13px;color:var(--gold);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pi-price{font-size:13px;color:var(--gold);font-weight:600;white-space:nowrap}
 .pi-del{font-size:14px;color:var(--ink-faint);margin-left:6px;padding:2px 4px}
 .pi-del:active{color:var(--danger)}
 .empty-person{text-align:center;padding:20px;color:var(--ink-faint);font-size:12px;font-style:italic}
-
 .persons-summary{margin-top:16px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
-.ps-header{background:var(--moon);padding:12px 16px;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink-faint);font-weight:600}
+.ps-header{background:#f3e9c9;padding:12px 16px;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink-faint);font-weight:600}
 .ps-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px dashed var(--line)}
 .ps-row:last-child{border-bottom:0}
 .ps-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
-.ps-name{flex:1;font-size:13px;color:var(--ink);font-weight:500}
+.ps-name{flex:1;font-size:13px;font-weight:500}
 .ps-count{font-size:11px;color:var(--ink-faint);margin-right:6px}
 .ps-amount{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--gold)}
 .ps-total-row{display:flex;justify-content:space-between;padding:12px 16px;background:#fffbf2;border-top:1px solid var(--line-2)}
 .ps-total-label{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink-faint);font-weight:600}
 .ps-total-amount{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--gold);font-weight:600}
-.ps-unassigned{font-size:11px;color:var(--ink-faint);font-style:italic;padding:8px 16px;border-top:1px dashed var(--line)}
 
-/* ===== Table note strip ===== */
-.table-note-strip{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#fff8e8;border:1px solid var(--line);border-radius:10px;margin:4px 0 8px;font-size:12px;color:var(--ink-dim)}
-.table-note-strip .lbl{font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--ink-faint);font-weight:600}
-.table-note-strip .val{flex:1;font-style:italic;color:var(--ink);font-weight:500}
-.table-note-strip .val.empty{color:var(--ink-faint);font-style:normal;font-weight:400}
-.table-note-strip button{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);padding:6px 10px;border:1px solid var(--gold);border-radius:8px;font-weight:600}
-.table-note-strip button:active{background:var(--gold);color:#fff}
+/* TABLE NOTE STRIP */
+.note-strip{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#fff8e8;border:1px solid var(--line);border-radius:10px;margin:4px 0 8px;font-size:12px;color:var(--ink-dim)}
+.note-strip .lbl{font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--ink-faint);font-weight:600}
+.note-strip .val{flex:1;font-style:italic;font-weight:500}
+.note-strip .val.empty{color:var(--ink-faint);font-style:normal;font-weight:400}
+.note-strip button{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);padding:6px 10px;border:1px solid var(--gold);border-radius:8px;font-weight:600}
+.note-strip button:active{background:var(--gold);color:#fff}
 
-/* ===== Kitchen ===== */
-.kitchen-grid{display:grid;grid-template-columns:1fr;gap:12px}
-.ticket{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff;position:relative;box-shadow:0 2px 6px rgba(60,45,20,.05)}
+/* KITCHEN */
+.kitchen-grid{display:grid;gap:12px}
+.ticket{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff;box-shadow:0 2px 6px rgba(60,45,20,.05)}
 .ticket.new{animation:newTicket .6s ease;border-color:var(--gold)}
 @keyframes newTicket{0%{box-shadow:0 0 0 0 rgba(217,176,106,.6)}100%{box-shadow:0 0 0 16px rgba(217,176,106,0)}}
 .ticket-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed var(--line-2)}
-.ticket-table{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--ink);font-weight:600}
+.ticket-table{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600}
 .ticket-time{font-size:10px;color:var(--ink-faint);letter-spacing:.2em;text-transform:uppercase}
-.ticket-note{font-size:12px;color:var(--gold);font-style:italic;margin-top:2px;font-weight:500;max-width:200px}
+.ticket-note{font-size:12px;color:var(--gold);font-style:italic;margin-top:2px;font-weight:500}
 .ticket-progress{margin-top:4px;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
 .badge-pending{font-size:9px;letter-spacing:.15em;text-transform:uppercase;background:#f6e6c0;color:#7a5a18;padding:3px 8px;border-radius:999px;font-weight:700}
 .badge-delivered{font-size:9px;letter-spacing:.15em;text-transform:uppercase;background:#dceacf;color:#3d6b2e;padding:3px 8px;border-radius:999px;font-weight:700}
-.ticket-items{margin:8px 0 4px}
 .ticket-headrow{display:grid;grid-template-columns:42px 1fr 110px;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--ink-faint);font-weight:600}
-.ticket-line{display:grid;grid-template-columns:42px 1fr 110px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px;color:var(--ink);transition:opacity .25s ease}
+.ticket-line{display:grid;grid-template-columns:42px 1fr 110px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px;transition:opacity .25s}
 .ticket-line:last-child{border-bottom:0}
 .ticket-line.delivered{opacity:.55}
-.ticket-line.delivered .tl-name{text-decoration:line-through;text-decoration-color:rgba(0,0,0,.3);text-decoration-thickness:1px}
-.tl-q{color:var(--gold);font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
-.tl-name{line-height:1.3}
+.ticket-line.delivered .tl-name{text-decoration:line-through;text-decoration-color:rgba(0,0,0,.3)}
+.tl-q{color:var(--gold);font-weight:700;font-size:15px}
 .tl-note{font-size:11px;color:var(--gold);font-style:italic;display:block;margin-top:2px;font-weight:500}
+.tl-person{font-size:10px;font-style:italic;display:block;margin-top:1px}
 .tl-status{display:flex;justify-content:flex-end}
-.status-btn{padding:7px 10px;border-radius:8px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;transition:all .15s ease;white-space:nowrap;width:100%}
+.status-btn{padding:7px 10px;border-radius:8px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;transition:all .15s;white-space:nowrap;width:100%}
 .status-btn.pending{background:#f6e6c0;color:#7a5a18;border:1px solid #d4b876}
-.status-btn.pending:active{background:#7a5a18;color:#fff;transform:scale(.96)}
+.status-btn.pending:active{background:#7a5a18;color:#fff}
 .status-btn.delivered{background:#dceacf;color:#3d6b2e;border:1px solid #a8c995}
-.status-btn.delivered:active{background:#3d6b2e;color:#fff;transform:scale(.96)}
+.status-btn.delivered:active{background:#3d6b2e;color:#fff}
 .ticket-foot{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line-2);display:flex;justify-content:space-between;align-items:center}
 .ticket-total{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold);font-weight:600}
-.tl-person{font-size:10px;color:var(--ink-faint);font-style:italic;display:block;margin-top:1px}
 
-/* ===== Stats ===== */
-.stat-card{border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:10px;background:#fff;box-shadow:0 2px 6px rgba(60,45,20,.04)}
+/* CAJA */
+.period-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.period-tab{padding:9px 14px;border:1px solid var(--line);border-radius:999px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-dim);background:#fff;transition:all .2s;font-weight:500}
+.period-tab.active{background:var(--gold);color:#fff;border-color:var(--gold);font-weight:600}
+.stat-card{border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:10px;background:#fff}
 .stat-label{font-size:10px;letter-spacing:.3em;color:var(--ink-faint);text-transform:uppercase}
 .stat-value{font-family:'Cormorant Garamond',serif;font-size:32px;margin-top:4px;color:var(--gold);font-weight:600}
 .stat-sub{font-size:12px;color:var(--ink-dim);margin-top:2px}
-.history-item{padding:12px 14px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-size:13px;background:#fff}
-.hi-left .table{font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--ink);font-weight:600}
-.hi-left .date{font-size:10px;color:var(--ink-faint);letter-spacing:.15em;text-transform:uppercase;margin-top:2px}
-.hi-right{text-align:right}
-.hi-total{color:var(--gold);font-weight:600;font-variant-numeric:tabular-nums;font-size:15px}
-.hi-items{font-size:10px;color:var(--ink-faint);margin-top:2px}
-.export-bar{display:flex;gap:8px;margin:14px 0}
-.export-bar .btn{flex:1;padding:11px;font-size:10px}
+.action-bar{display:flex;gap:8px;margin:14px 0;flex-wrap:wrap}
+.action-bar .btn{flex:1;min-width:110px;padding:11px;font-size:10px}
+.history-item{padding:12px 14px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:#fff}
+.hi-top{display:flex;justify-content:space-between;align-items:center}
+.hi-table{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600}
+.hi-date{font-size:10px;color:var(--ink-faint);letter-spacing:.15em;text-transform:uppercase;margin-top:2px}
+.hi-total{color:var(--gold);font-weight:600;font-size:15px}
+.hi-items{font-size:10px;color:var(--ink-faint);margin-top:2px;text-align:right}
+.hi-actions{display:flex;gap:6px;margin-top:8px;justify-content:flex-end}
+.hi-edit-btn{font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border:1px solid var(--gold);border-radius:6px;color:var(--gold);font-weight:600}
+.hi-edit-btn:active{background:var(--gold);color:#fff}
+.hi-del-btn{font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border:1px solid var(--danger);border-radius:6px;color:var(--danger);font-weight:600}
+.hi-del-btn:active{background:var(--danger);color:#fff}
 
-/* ===== Toast ===== */
-.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--ink);border:1px solid var(--gold);border-radius:10px;padding:10px 18px;font-size:12px;letter-spacing:.1em;color:var(--gold-soft);opacity:0;pointer-events:none;transition:all .3s ease;z-index:200;box-shadow:var(--shadow)}
+/* TOAST */
+.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--ink);border:1px solid var(--gold);border-radius:10px;padding:10px 18px;font-size:12px;letter-spacing:.1em;color:#c9a35b;opacity:0;pointer-events:none;transition:all .3s;z-index:200}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .note-badge{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--gold);color:#fff;font-size:10px;font-weight:700;margin-left:6px}
 .empty{text-align:center;padding:50px 20px;color:var(--ink-faint)}
@@ -243,22 +238,25 @@ h2.section::after{content:'';flex:1;height:1px;background:var(--line);margin-lef
 </div>
 
 <div class="app">
+
   <!-- MESERO -->
   <div class="view active" id="view-mesero">
-    <!-- Mesas -->
+
+    <!-- MESAS -->
     <div id="screen-tables">
       <h2 class="section serif">Mesas</h2>
       <div class="tables" id="tablesGrid"></div>
     </div>
 
-    <!-- Menú general -->
+    <!-- MENÚ (con botones Cuenta + Por persona) -->
     <div id="screen-menu" style="display:none">
-      <div style="display:flex;align-items:center;gap:10px;margin:6px 0 0">
+      <div style="display:flex;align-items:center;gap:8px;margin:6px 0 0;flex-wrap:wrap">
         <button class="btn-ghost btn" style="flex:0;padding:8px 14px" id="backToTables">← Mesas</button>
-        <h2 class="section serif" style="margin:8px 0;flex:1">Mesa <span id="currentTableLbl"></span></h2>
+        <h2 class="section serif" style="margin:8px 0;flex:1;min-width:0">Mesa <span id="currentTableLbl"></span></h2>
+        <button class="btn-ghost btn" style="flex:0;padding:8px 14px;font-size:11px" id="goPersonsFromMenu">Por persona <span id="personsBadge" class="note-badge" style="display:none;background:var(--ink-dim)">0</span></button>
         <button class="btn-ghost btn" style="flex:0;padding:8px 14px" id="viewCart">Cuenta <span id="cartCount" class="note-badge" style="display:none">0</span></button>
       </div>
-      <div class="table-note-strip">
+      <div class="note-strip">
         <span class="lbl">Nota</span>
         <span class="val empty" id="menuTableNote">Sin identificación</span>
         <button id="editTableNoteBtn">Editar</button>
@@ -267,15 +265,14 @@ h2.section::after{content:'';flex:1;height:1px;background:var(--line);margin-lef
       <div class="menu-list" id="menuList"></div>
     </div>
 
-    <!-- Cuenta general -->
+    <!-- CUENTA -->
     <div id="screen-cart" style="display:none">
-      <div style="display:flex;align-items:center;gap:10px">
+      <div style="display:flex;align-items:center;gap:8px">
         <button class="btn-ghost btn" style="flex:0;padding:8px 14px" id="backToMenu">← Menú</button>
         <h2 class="section serif" style="margin:8px 0;flex:1">Cuenta · Mesa <span id="cartTableLbl"></span></h2>
       </div>
-      <div class="table-note-strip">
-        <span class="lbl">Nota</span>
-        <span class="val empty" id="cartTableNote">Sin identificación</span>
+      <div class="note-strip">
+        <span class="lbl">Nota</span><span class="val empty" id="cartTableNote">Sin identificación</span>
       </div>
       <div class="order-detail" id="orderDetail"></div>
       <div class="summary" id="orderSummary" style="display:none">
@@ -288,27 +285,20 @@ h2.section::after{content:'';flex:1;height:1px;background:var(--line);margin-lef
       </div>
     </div>
 
-    <!-- ===== NUEVA: POR PERSONA ===== -->
+    <!-- POR PERSONA -->
     <div id="screen-persons" style="display:none">
-      <div class="persons-header">
-        <button class="btn-ghost btn" style="flex:0;padding:8px 14px" id="backToTablesFromPersons">← Mesas</button>
+      <div style="display:flex;align-items:center;gap:8px;margin:6px 0 0">
+        <button class="btn-ghost btn" style="flex:0;padding:8px 14px" id="backToMenuFromPersons">← Menú</button>
         <h2 class="section serif" style="margin:8px 0;flex:1">Personas · Mesa <span id="personsTableLbl"></span></h2>
       </div>
-      <div class="table-note-strip">
-        <span class="lbl">Mesa</span>
-        <span class="val empty" id="personsTableNote">Sin identificación</span>
+      <div class="note-strip">
+        <span class="lbl">Mesa</span><span class="val empty" id="personsTableNote">Sin identificación</span>
       </div>
-
-      <!-- Tabs personas -->
-      <div style="display:flex;align-items:center;gap:0;margin-bottom:6px">
-        <div class="person-tabs" id="personTabs" style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <div class="person-tabs" id="personTabs" style="flex:1;overflow-x:auto"></div>
         <button class="add-person-btn" id="addPersonBtn">+ Persona</button>
       </div>
-
-      <!-- Contenido persona activa -->
       <div id="personContent"></div>
-
-      <!-- Resumen por persona -->
       <div class="persons-summary" id="personsSummary" style="display:none">
         <div class="ps-header">Resumen por persona</div>
         <div id="psSummaryRows"></div>
@@ -317,16 +307,15 @@ h2.section::after{content:'';flex:1;height:1px;background:var(--line);margin-lef
           <span class="ps-total-amount" id="psTotalAmount">$0</span>
         </div>
       </div>
-
-      <div class="modal-actions" style="margin-top:16px" id="personsCartActions" style="display:none">
-        <button class="btn btn-ghost" id="personsGoMenu">+ Agregar al menú general</button>
+      <div class="modal-actions" style="margin-top:16px">
+        <button class="btn btn-ghost" id="personsGoMenu">← Volver al menú</button>
         <button class="btn btn-primary" id="personsCloseTable">Cobrar y cerrar</button>
       </div>
     </div>
 
-    <!-- Menú desde persona -->
+    <!-- MENÚ DESDE PERSONA -->
     <div id="screen-person-menu" style="display:none">
-      <div style="display:flex;align-items:center;gap:10px;margin:6px 0 0">
+      <div style="display:flex;align-items:center;gap:8px;margin:6px 0 0">
         <button class="btn-ghost btn" style="flex:0;padding:8px 14px" id="backToPersons">← Personas</button>
         <h2 class="section serif" style="margin:8px 0;flex:1">Pedido de <span id="personMenuName"></span></h2>
       </div>
@@ -335,30 +324,31 @@ h2.section::after{content:'';flex:1;height:1px;background:var(--line);margin-lef
     </div>
   </div>
 
-  <!-- COCINA / BARRA -->
+  <!-- BARRA -->
   <div class="view" id="view-cocina">
     <h2 class="section serif">Órdenes activas</h2>
     <div class="kitchen-grid" id="kitchenGrid"></div>
-    <div class="empty" id="kitchenEmpty">
+    <div class="empty" id="kitchenEmpty" style="display:none">
       <div class="serif crescent">Sin órdenes activas</div>
       <p>Las nuevas órdenes aparecerán aquí en tiempo real</p>
     </div>
   </div>
 
-  <!-- STATS / CAJA -->
+  <!-- CAJA -->
   <div class="view" id="view-stats">
-    <h2 class="section serif">Resumen</h2>
-    <div class="stat-card">
-      <div class="stat-label">Ventas del día</div>
-      <div class="stat-value" id="statToday">$0</div>
-      <div class="stat-sub" id="statTodayCount">0 cuentas cerradas</div>
+    <h2 class="section serif">Caja</h2>
+    <div class="period-tabs">
+      <button class="period-tab active" data-period="day">Ventas del día</button>
+      <button class="period-tab" data-period="week">Venta semanal</button>
+      <button class="period-tab" data-period="month">Venta mensual</button>
+      <button class="period-tab" data-period="year">Venta anual</button>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Histórico total</div>
-      <div class="stat-value" id="statAll">$0</div>
-      <div class="stat-sub" id="statAllCount">0 cuentas en total</div>
+      <div class="stat-label" id="statPeriodLabel">Hoy</div>
+      <div class="stat-value" id="statPeriodTotal">$0</div>
+      <div class="stat-sub" id="statPeriodCount">0 cuentas</div>
     </div>
-    <div class="export-bar">
+    <div class="action-bar">
       <button class="btn btn-ghost" id="exportCSV">Exportar CSV</button>
       <button class="btn btn-ghost" id="exportJSON">Exportar JSON</button>
       <button class="btn btn-danger" id="clearHistory">Borrar historial</button>
@@ -366,14 +356,15 @@ h2.section::after{content:'';flex:1;height:1px;background:var(--line);margin-lef
     <h2 class="section serif">Historial</h2>
     <div id="historyList"></div>
   </div>
+
 </div>
 
 <!-- Cart bar -->
 <div class="cart-bar" id="cartBar">
   <div class="cart-inner">
     <div class="cart-info">
-      <div class="cart-table">Mesa <span id="cartBarTable"></span> · <span id="cartBarCount">0 items</span></div>
-      <div class="cart-total"><small>$</small><span id="cartBarTotal">0</span></div>
+      <div class="cart-lbl">Mesa <span id="cartBarTable"></span> · <span id="cartBarCount">0 items</span></div>
+      <div class="cart-tot"><small>$</small><span id="cartBarTotal">0</span></div>
     </div>
     <button class="cart-btn" id="goToCart">Ver cuenta</button>
   </div>
@@ -385,7 +376,7 @@ h2.section::after{content:'';flex:1;height:1px;background:var(--line);margin-lef
     <h3 class="serif" id="noteItemName">Producto</h3>
     <div class="item-line" id="noteItemPrice">$0</div>
     <label style="font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--ink-faint)">Notas para barra</label>
-    <textarea id="noteInput" placeholder="Ej: sin hielo, extra limón, doble shot…" rows="3" style="margin-top:6px"></textarea>
+    <textarea id="noteInput" placeholder="Ej: sin hielo, extra limón…" rows="3" style="margin-top:6px"></textarea>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="noteCancel">Cancelar</button>
       <button class="btn btn-primary" id="noteSave">Agregar</button>
@@ -399,7 +390,7 @@ h2.section::after{content:'';flex:1;height:1px;background:var(--line);margin-lef
     <h3 class="serif">Nueva persona</h3>
     <div class="item-line">Mesa <span id="addPersonTableLbl"></span></div>
     <label style="font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--ink-faint)">Nombre</label>
-    <input id="addPersonName" placeholder="Ej: Ana, Mesa 1 – cliente de azul…" style="margin-top:6px" maxlength="30">
+    <input id="addPersonName" placeholder="Ej: Ana, cliente de azul…" style="margin-top:6px" maxlength="30">
     <div class="modal-actions">
       <button class="btn btn-ghost" id="addPersonCancel">Cancelar</button>
       <button class="btn btn-primary" id="addPersonSave">Agregar</button>
@@ -407,11 +398,11 @@ h2.section::after{content:'';flex:1;height:1px;background:var(--line);margin-lef
   </div>
 </div>
 
-<!-- Table-note modal -->
+<!-- Table note modal -->
 <div class="modal-backdrop" id="tableNoteModal">
   <div class="modal">
     <h3 class="serif">Identificar mesa <span id="tableNoteLbl"></span></h3>
-    <div class="item-line">Asigna un nombre o referencia para reconocerla</div>
+    <div class="item-line">Asigna un nombre o referencia</div>
     <textarea id="tableNoteInput" placeholder="Ej: Sra. de rojo, cumpleañero…" rows="2" style="margin-top:6px"></textarea>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="tableNoteCancel">Cancelar</button>
@@ -432,388 +423,225 @@ h2.section::after{content:'';flex:1;height:1px;background:var(--line);margin-lef
   </div>
 </div>
 
-<div class="toast" id="toast">Agregado</div>
+<!-- Password modal -->
+<div class="modal-backdrop" id="passwordModal">
+  <div class="modal">
+    <h3 class="serif">Acceso restringido</h3>
+    <div class="item-line" id="passwordModalDesc">Ingresa la contraseña para continuar</div>
+    <label style="font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--ink-faint)">Contraseña</label>
+    <input id="passwordInput" type="password" placeholder="••••••••" style="margin-top:6px">
+    <div style="font-size:11px;color:var(--danger);margin-top:6px;min-height:16px" id="passwordError"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="passwordCancel">Cancelar</button>
+      <button class="btn btn-primary" id="passwordOk">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit sale modal -->
+<div class="modal-backdrop" id="editSaleModal">
+  <div class="modal">
+    <h3 class="serif">Editar venta</h3>
+    <div class="item-line" id="editSaleDesc"></div>
+    <label style="font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--ink-faint)">Total corregido ($)</label>
+    <input id="editSaleTotal" type="number" min="0" style="margin-top:6px" placeholder="0">
+    <label style="font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--ink-faint);margin-top:10px;display:block">Nota de corrección</label>
+    <input id="editSaleNote" type="text" placeholder="Ej: se aplicó descuento" style="margin-top:6px">
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="editSaleCancel">Cancelar</button>
+      <button class="btn btn-primary" id="editSaleSave">Guardar cambio</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-const MENU = [
-  {cat:'Mojitos',items:[{n:'Mojito Clásico',p:50},{n:'Mojito Frutos rojos',p:60},{n:'Mojito Fresa',p:60},{n:'Mojito Mora',p:60},{n:'Mojito Arándano',p:60},{n:'Mojito Maracuyá',p:60}]},
-  {cat:'Gin & Tonic',items:[{n:'Gin Tonic Clásico',p:50},{n:'Gin Tonic Frutos rojos',p:60},{n:'Gin Tonic Fresa',p:60},{n:'Gin Tonic Mora',p:60},{n:'Gin Tonic Arándano',p:60},{n:'Gin Tonic Maracuyá',p:60}]},
-  {cat:'Caipiroska',items:[{n:'Caipiroska Clásico',p:50},{n:'Caipiroska Frutos rojos',p:60},{n:'Caipiroska Fresa',p:60},{n:'Caipiroska Mora',p:60},{n:'Caipiroska Arándano',p:60},{n:'Caipiroska Maracuyá',p:60}]},
-  {cat:'Daiquirí',items:[{n:'Daiquirí Clásico',p:50},{n:'Daiquirí Frutos rojos',p:60},{n:'Daiquirí Fresa',p:60},{n:'Daiquirí Mora',p:60},{n:'Daiquirí Arándano',p:60},{n:'Daiquirí Maracuyá',p:60}]},
-  {cat:'Margarita',items:[{n:'Margarita Coco',p:60},{n:'Margarita Piña',p:60},{n:'Margarita Mango',p:60}]},
-  {cat:'Frozen',items:[{n:'Frozen Coco',p:60},{n:'Frozen Piña',p:60},{n:'Frozen Mango',p:60}]},
+// ===================== SUPABASE =====================
+const SUPA_URL='https://biuaxkpyujypiigxolwt.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpdWF4a3B5dWp5cGlpZ3hvbHd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MDY1ODUsImV4cCI6MjA5NTQ4MjU4NX0.4MJ2WfTo6tDNImcN0E5RCy4ilU2-sXnmRb6_BB85YaQ';
+const SH={'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY};
+
+async function loadOrders(){try{const r=await fetch(`${SUPA_URL}/rest/v1/orders?id=eq.current&select=data`,{headers:SH});const rows=await r.json();return(rows&&rows[0])?rows[0].data:{}}catch(e){return{}}}
+async function saveOrders(o){try{await fetch(`${SUPA_URL}/rest/v1/orders?id=eq.current`,{method:'PATCH',headers:{...SH,'Prefer':'return=minimal'},body:JSON.stringify({data:o,updated_at:new Date().toISOString()})})}catch(e){}}
+async function loadHistory(){
+  try{
+    const r=await fetch(`${SUPA_URL}/rest/v1/history?select=*&order=closed_at.desc&limit=500`,{headers:SH});
+    const rows=await r.json();if(!Array.isArray(rows))return[];
+    return rows.map(h=>({id:h.id,table:h.table_num,tableNote:h.table_note||'',openedAt:new Date(h.opened_at).getTime(),closedAt:new Date(h.closed_at).getTime(),total:Number(h.total),itemCount:h.item_count,items:h.items||[],persons:h.persons||[],editNote:h.edit_note||''}));
+  }catch(e){return[]}
+}
+async function insertHistoryRecord(rec){
+  try{await fetch(`${SUPA_URL}/rest/v1/history`,{method:'POST',headers:{...SH,'Prefer':'resolution=ignore-duplicates'},body:JSON.stringify({id:rec.id,table_num:rec.table,table_note:rec.tableNote||'',opened_at:new Date(rec.openedAt).toISOString(),closed_at:new Date(rec.closedAt).toISOString(),total:rec.total,item_count:rec.itemCount,items:rec.items||[],persons:rec.persons||[]})})}catch(e){}
+}
+async function updateHistoryRecord(id,total,editNote){try{await fetch(`${SUPA_URL}/rest/v1/history?id=eq.${id}`,{method:'PATCH',headers:{...SH,'Prefer':'return=minimal'},body:JSON.stringify({total,edit_note:editNote})})}catch(e){}}
+async function deleteHistoryRecord(id){try{await fetch(`${SUPA_URL}/rest/v1/history?id=eq.${id}`,{method:'DELETE',headers:SH})}catch(e){}}
+async function deleteAllHistory(){try{await fetch(`${SUPA_URL}/rest/v1/history?closed_at=gte.2000-01-01`,{method:'DELETE',headers:SH})}catch(e){}}
+
+// ===================== MENÚ COMPLETO =====================
+const SABORES_FULL=[
+  {n:'Clásico',p:50},{n:'Frutos rojos',p:60},{n:'Fresa',p:60},{n:'Mora',p:60},{n:'Arándano',p:60},{n:'Maracuyá',p:60}
+];
+const SABORES_FRUTAS=[
+  {n:'Coco',p:60},{n:'Piña',p:60},{n:'Mango',p:60},{n:'Clásico',p:50},{n:'Frutos rojos',p:60},{n:'Fresa',p:60},{n:'Mora',p:60},{n:'Arándano',p:60},{n:'Maracuyá',p:60}
+];
+
+const MENU=[
+  {cat:'Mojitos', items: SABORES_FULL.map(s=>({n:'Mojito '+s.n,p:s.p}))},
+  {cat:'Gin & Tonic', items: SABORES_FULL.map(s=>({n:'Gin Tonic '+s.n,p:s.p}))},
+  {cat:'Caipiroska (Vodka)', items: SABORES_FULL.map(s=>({n:'Caipiroska '+s.n,p:s.p}))},
+  {cat:'Daiquirí (Ron)', items: SABORES_FULL.map(s=>({n:'Daiquirí '+s.n,p:s.p}))},
+  {cat:'Margarita (Tequila)', items: SABORES_FRUTAS.map(s=>({n:'Margarita '+s.n,p:s.p}))},
+  {cat:'Frozen (Vodka)', items: SABORES_FRUTAS.map(s=>({n:'Frozen '+s.n,p:s.p}))},
   {cat:'Coctelería Clásica',items:[
-    {n:'Paloma',p:50,d:'Tequila, limón, toronja, sal-limón'},{n:'Cantarito',p:60,d:'Tequila, limón, naranja, toronja, chamoy'},
-    {n:'Cuba Libre',p:50,d:'Ron, limón, cola'},{n:'Screwdriver',p:50,d:'Vodka y naranja'},
-    {n:'Sex On The Beach',p:50,d:'Vodka, licor naranja, naranja, arándanos'},{n:'Tequila Sunrise',p:50,d:'Tequila, naranja, granadina'},
-    {n:'Azulito',p:50,d:'Vodka, curazao, limón, lima-limón, mora azul'},{n:'Batanga',p:50,d:'Tequila, limón, cola, sal-limón'},
-    {n:'Tom Collins',p:50,d:'Ginebra, almíbar, limón, agua mineral'},{n:'Whisky Sour',p:50,d:'Whisky, limón, almíbar'},
-    {n:'Gin Sour',p:50,d:'Ginebra, limón, almíbar'},{n:'Ron Sour',p:50,d:'Ron, limón, almíbar'},
-    {n:'Brandy Highball',p:50,d:'Brandy, limón, almíbar, agua mineral'},{n:'Whisky Highball',p:50,d:'Whisky, limón, almíbar, agua mineral'},
-    {n:'Ron Highball',p:50,d:'Ron, limón, cola, agua mineral'},{n:'Piña Colada',p:60,d:'Ron blanco, piña, crema de coco, leche'},
+    {n:'Paloma',p:50,d:'Tequila, limón, toronja, escarchado sal-limón'},
+    {n:'Cantarito',p:60,d:'Tequila, limón, naranja, toronja, chamoy y tajín'},
+    {n:'Cuba Libre',p:50,d:'Ron, limón y refresco de cola'},
+    {n:'Screwdriver',p:50,d:'Vodka y jugo de naranja'},
+    {n:'Sex On The Beach',p:50,d:'Vodka, licor de naranja, naranja, arándanos'},
+    {n:'Tequila Sunrise',p:50,d:'Tequila, naranja y granadina'},
+    {n:'Azulito',p:50,d:'Vodka, curazao, limón, lima-limón, mora azul'},
+    {n:'Batanga',p:50,d:'Tequila, limón, cola, escarchado sal-limón'},
+    {n:'Tom Collins',p:50,d:'Ginebra, almíbar, limón y agua mineral'},
+    {n:'Whisky Sour',p:50,d:'Whisky, limón y almíbar'},
+    {n:'Gin Sour',p:50,d:'Ginebra, limón y almíbar'},
+    {n:'Ron Sour',p:50,d:'Ron, limón y almíbar'},
+    {n:'Brandy Highball',p:50,d:'Brandy, limón, almíbar y agua mineral'},
+    {n:'Whisky Highball',p:50,d:'Whisky, limón, almíbar y agua mineral'},
+    {n:'Ron Highball',p:50,d:'Ron, limón, cola y agua mineral'},
+    {n:'Piña Colada',p:60,d:'Ron blanco, piña, crema de coco, leche condensada y evaporada'},
   ]},
   {cat:'Alta Coctelería',items:[
-    {n:'AMF',p:70,d:'Vodka, ron, tequila, ginebra, curazao, limón'},{n:'Sidecar',p:60,d:'Brandy, licor naranja, limón'},
-    {n:'Mai Tai',p:60,d:'Ron blanco, ron añejo, licor naranja'},{n:'Espresso Martini',p:60,d:'Vodka, licor café, espresso'},
-    {n:'Bloody Mary',p:60,d:'Vodka, clamato, inglesa, maggi, tabasco'},{n:'Cosmopolitan',p:60,d:'Vodka, licor naranja, arándanos, limón'},
-    {n:'Campari Tonic',p:60,d:'Campari y agua tónica'},{n:'Limoncello Collins',p:60,d:'Limoncello, ginebra, limón, agua mineral'},
-    {n:'Long Island Iced Tea',p:70,d:'Vodka, ron, tequila, ginebra, naranja, limón, cola'},{n:'Ruso Negro',p:60,d:'Vodka y licor café'},
-    {n:'Ruso Blanco',p:60,d:'Vodka, licor café y leche'},{n:'Carajillo',p:60,d:'Licor hierbas y espresso'},
-    {n:'Carajillo Mazapán',p:70},{n:'Carajillo Chocolate',p:70},{n:'Carajillo Nutella',p:70},
-    {n:'Gold Rush',p:60,d:'Whisky, limón, almíbar miel'},{n:'Canchanchara',p:60,d:'Ron añejo, limón, almíbar miel'},
+    {n:'AMF',p:70,d:'Vodka, ron, tequila, ginebra, curazao, limón, lima-limón'},
+    {n:'Sidecar',p:60,d:'Brandy, licor de naranja, limón, escarchado azúcar'},
+    {n:'Mai Tai',p:60,d:'Ron blanco, ron añejo, licor de naranja y almíbar'},
+    {n:'Espresso Martini',p:60,d:'Vodka, licor de café y café espresso'},
+    {n:'Bloody Mary',p:60,d:'Vodka, clamato, inglesa, maggi, tabasco'},
+    {n:'Cosmopolitan',p:60,d:'Vodka, licor de naranja, arándanos y limón'},
+    {n:'Campari Tonic',p:60,d:'Campari y agua tónica'},
+    {n:'Limoncello Collins',p:60,d:'Limoncello, ginebra, limón y agua mineral'},
+    {n:'Long Island Iced Tea',p:70,d:'Vodka, ron, tequila, ginebra, naranja, limón, cola'},
+    {n:'Ruso Negro',p:60,d:'Vodka y licor de café'},
+    {n:'Ruso Blanco',p:60,d:'Vodka, licor de café y leche'},
+    {n:'Carajillo',p:60,d:'Licor de hierbas y café espresso'},
+    {n:'Carajillo de Mazapán',p:70,d:'Licor de hierbas, mazapán y espresso'},
+    {n:'Carajillo de Chocolate',p:70,d:'Licor de hierbas, chocolate Hershey\'s y espresso'},
+    {n:'Carajillo de Nutella',p:70,d:'Licor de hierbas, crema de avellanas y espresso'},
+    {n:'Gold Rush',p:60,d:'Whisky, limón y almíbar de miel'},
+    {n:'Canchanchara',p:60,d:'Ron añejo, limón y almíbar de miel'},
   ]},
-  {cat:'Tequila (shot)',items:[{n:'Sueño Azteca',p:40},{n:'Cabrito',p:40},{n:'José Cuervo Blanco',p:50},{n:'José Cuervo Reposado',p:50}]},
+  {cat:'Tequila (shot)',items:[
+    {n:'Sueño Azteca',p:40},{n:'Cabrito',p:40},
+    {n:'José Cuervo Especial Blanco',p:50},{n:'José Cuervo Especial Reposado',p:50},
+  ]},
   {cat:'Whisky (shot)',items:[
-    {n:'Black Jack',p:50},{n:"Cardigan's",p:50},{n:'Black Zebra',p:50},{n:'Johnnie Walker Red Label',p:60},
-    {n:"Buchanan's Deluxe 12 años",p:90},{n:"Buchanan's Masters 15 años",p:120},{n:'Glenfiddich VAT 01',p:150},{n:'Glenmorangie 16 años',p:150},
+    {n:'Black Jack',p:50},{n:"Cardigan's",p:50},{n:'Black Zebra',p:50},
+    {n:'Johnnie Walker Red Label',p:60},
+    {n:"Buchanan's Deluxe 12 años",p:90},{n:"Buchanan's Masters 15 años",p:120},
+    {n:'Glenfiddich VAT 01',p:150},{n:'Glenmorangie 16 años',p:150},
   ]},
   {cat:'Ron (shot)',items:[
-    {n:'Havana Club 3 años',p:50},{n:'Havana Club Ritual Cubano',p:80},{n:'Black Tears',p:60},
-    {n:'Bacardí Carta Blanca',p:50},{n:'Bacardí Spiced',p:50},{n:'Captain Morgan',p:40},
-    {n:'Baraima Blanco',p:40},{n:'Caney Blanco',p:40},{n:'Santa Cruz del Norte',p:40},
+    {n:'Havana Club 3 años',p:50},{n:'Havana Club Ritual Cubano',p:80},
+    {n:'Black Tears',p:60},{n:'Bacardí Carta Blanca',p:50},{n:'Bacardí Spiced',p:50},
+    {n:'Captain Morgan',p:40},{n:'Baraima Blanco',p:40},{n:'Caney Blanco',p:40},
+    {n:'Santa Cruz del Norte',p:40},
   ]},
-  {cat:'Brandy / Mezcal',items:[{n:'Brandy Presidente',p:40},{n:'Torres 10',p:60},{n:'Mezcal El Chiniquil',p:50},{n:'Mezcal Ancestral',p:50}]},
+  {cat:'Brandy & Mezcal',items:[
+    {n:'Brandy Presidente',p:40},{n:'Torres 10',p:60},
+    {n:'Mezcal El Chiniquil',p:50},{n:'Mezcal Ancestral',p:50},
+  ]},
   {cat:'Cervezas',items:[
-    {n:'Carta Blanca',p:40},{n:'Indio',p:40},{n:'Tecate',p:40},{n:'Victoria',p:45},{n:'XX',p:45},{n:'Modelo',p:45},
-    {n:'Modelo Oscura',p:60},{n:'Bohemia Cristal',p:45},{n:'Corona',p:45},{n:'Michelob Ultra',p:50},
-    {n:'Tarro Chelado',p:5},{n:'Tarro Michelado',p:10},{n:'Tarro Española',p:15},
+    {n:'Carta Blanca',p:40},{n:'Indio',p:40},{n:'Tecate',p:40},
+    {n:'Victoria',p:45},{n:'XX Lager',p:45},{n:'Modelo',p:45},
+    {n:'Modelo Oscura',p:60},{n:'Bohemia Cristal',p:45},{n:'Corona',p:45},
+    {n:'Michelob Ultra',p:50},
+    {n:'Chelada (1/2 lt)',p:5,d:'Sal y limón'},{n:'Michelada (1/2 lt)',p:10,d:'Inglesa, maggi, valentina, vinagre, limón, sal y pimienta'},{n:'Española (1/2 lt)',p:15,d:'Con clamato'},
   ]},
   {cat:'Promociones',items:[
-    {n:'Chelada 1 litro',p:80,d:'Carta Blanca, Indio o Tecate'},{n:'Michelada 1 litro',p:90},{n:'Española 1 litro',p:100},
-    {n:'Cantarito 1 litro',p:80},{n:'Whisky Challenge',p:150,d:'Premium vs comercial, a ciegas'},
+    {n:'Chelada 1 litro',p:80,d:'Carta Blanca, Indio o Tecate'},
+    {n:'Michelada 1 litro',p:90,d:'Carta Blanca, Indio o Tecate'},
+    {n:'Española 1 litro',p:100,d:'Con clamato'},
+    {n:'Cantarito 1 litro',p:80},
+    {n:'Whisky Challenge',p:150,d:'Degusta premium vs comercial a ciegas'},
   ]},
   {cat:'Alitas',items:[
-    {n:'Alitas Mango Habanero',p:70,d:'Con papas'},{n:'Alitas BBQ',p:70,d:'Con papas'},{n:'Alitas Tamarindo',p:70,d:'Con papas'},
-    {n:'Alitas Tamarindo Habanero',p:70,d:'Con papas'},{n:'Alitas Piña Coco Habanero',p:70,d:'Con papas'},
-    {n:'Alitas Chiltepín',p:70,d:'Con papas'},{n:'Alitas Clásicas',p:70,d:'Con papas'},
+    {n:'Alitas Mango Habanero',p:70,d:'Con papas a la francesa'},
+    {n:'Alitas BBQ',p:70,d:'Con papas a la francesa'},
+    {n:'Alitas Tamarindo',p:70,d:'Con papas a la francesa'},
+    {n:'Alitas Tamarindo Habanero',p:70,d:'Con papas a la francesa'},
+    {n:'Alitas Piña Coco Habanero',p:70,d:'Con papas a la francesa'},
+    {n:'Alitas Chiltepín',p:70,d:'Con papas a la francesa'},
+    {n:'Alitas Clásicas',p:70,d:'Con papas a la francesa'},
   ]},
   {cat:'Boneless',items:[
-    {n:'Boneless Mango Habanero',p:70,d:'Con papas'},{n:'Boneless BBQ',p:70,d:'Con papas'},{n:'Boneless Tamarindo',p:70,d:'Con papas'},
-    {n:'Boneless Tamarindo Habanero',p:70,d:'Con papas'},{n:'Boneless Piña Coco Habanero',p:70,d:'Con papas'},
-    {n:'Boneless Chiltepín',p:70,d:'Con papas'},{n:'Boneless Clásicos',p:70,d:'Con papas'},
+    {n:'Boneless Mango Habanero',p:70,d:'Con papas a la francesa'},
+    {n:'Boneless BBQ',p:70,d:'Con papas a la francesa'},
+    {n:'Boneless Tamarindo',p:70,d:'Con papas a la francesa'},
+    {n:'Boneless Tamarindo Habanero',p:70,d:'Con papas a la francesa'},
+    {n:'Boneless Piña Coco Habanero',p:70,d:'Con papas a la francesa'},
+    {n:'Boneless Chiltepín',p:70,d:'Con papas a la francesa'},
+    {n:'Boneless Clásicos',p:70,d:'Con papas a la francesa'},
   ]},
-  {cat:'Snacks',items:[{n:'Papas a la Francesa',p:60},{n:'Salchichas con Chiltepín',p:50,d:'Con queso, catsup y valentina'}]},
+  {cat:'Snacks',items:[
+    {n:'Papas a la Francesa',p:60,d:'Con queso amarillo, catsup y valentina'},
+    {n:'Salchichas con Chiltepín',p:50,d:'Con queso amarillo, catsup y valentina · incluye papas'},
+  ]},
   {cat:'Postres',items:[
-    {n:'Pastel de Chocolate',p:55},{n:'Hot Cakes Cajeta',p:60},{n:'Hot Cakes Nutella',p:60},
-    {n:'Hot Cakes Leche Condensada',p:60},{n:'Hot Cakes Frutos Rojos',p:60},{n:'Hot Cakes Fresa',p:60},
-    {n:'Hot Cakes Mora',p:60},{n:'Hot Cakes Arándanos',p:60},
+    {n:'Pastel de Chocolate',p:55},
+    {n:'Hot Cakes Cajeta',p:60},{n:'Hot Cakes Nutella',p:60},
+    {n:'Hot Cakes Leche Condensada',p:60},{n:'Hot Cakes Frutos Rojos',p:60},
+    {n:'Hot Cakes Fresa',p:60},{n:'Hot Cakes Mora',p:60},{n:'Hot Cakes Arándanos',p:60},
   ]},
   {cat:'Bebidas Calientes',items:[
-    {n:'Espresso',p:30},{n:'Americano',p:40},{n:'Capuccino',p:50},{n:'Capuccino Vainilla',p:55},
-    {n:'Capuccino Chocolate',p:55},{n:'Capuccino Mazapán',p:55},{n:'Capuccino Nutella',p:55},
-    {n:'Capuccino Cajeta',p:55},{n:'Latte',p:50},{n:'Moka',p:50},{n:'Chocolate',p:50},
+    {n:'Espresso',p:30},{n:'Americano',p:40},{n:'Capuccino',p:50},
+    {n:'Capuccino Vainilla',p:55},{n:'Capuccino Chocolate',p:55},
+    {n:'Capuccino Mazapán',p:55},{n:'Capuccino Nutella',p:55},{n:'Capuccino Cajeta',p:55},
+    {n:'Latte',p:50},{n:'Moka',p:50},{n:'Chocolate caliente',p:50},
     {n:'Té limón',p:25},{n:'Té manzanilla',p:25},
   ]},
   {cat:'Bebidas Frías',items:[
-    {n:'Frapuccino',p:60},{n:'Smoothie',p:60},{n:'Licuado',p:60},{n:'Limonada',p:40},
-    {n:'Naranjada',p:40},{n:'Refresco',p:30},{n:'Agua mineral',p:30},
+    {n:'Frapuccino',p:60},{n:'Smoothie',p:60},{n:'Licuado',p:60},
+    {n:'Limonada',p:40},{n:'Naranjada',p:40},
+    {n:'Refresco',p:30,d:'Sprite, Manzanita, Coca Cola, Squirt, etc.'},
+    {n:'Agua mineral',p:30},
   ]},
 ];
 
-const PERSON_COLORS = ['#8a6420','#1d6b7a','#6b3a7a','#3a7a3a','#7a3a3a','#4a6b2d','#2d3a7a','#7a5a1d'];
-const NUM_TABLES = 12;
-const SUPA_URL = 'https://biuaxkpyujypiigxolwt.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpdWF4a3B5dWp5cGlpZ3hvbHd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MDY1ODUsImV4cCI6MjA5NTQ4MjU4NX0.4MJ2WfTo6tDNImcN0E5RCy4ilU2-sXnmRb6_BB85YaQ';
-const SUPA_HEADERS = {'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY};
+const PERSON_COLORS=['#8a6420','#1d6b7a','#6b3a7a','#3a7a3a','#7a3a3a','#4a6b2d','#2d3a7a','#7a5a1d'];
+const NUM_TABLES=12;
+const ADMIN_PASS='Unwell06$';
 
-async function loadOrders(){
-  try{
-    const r=await fetch(`${SUPA_URL}/rest/v1/orders?id=eq.current&select=data`,{headers:SUPA_HEADERS});
-    const rows=await r.json();
-    return (rows&&rows[0])?rows[0].data:{};
-  }catch(e){return{}}
-}
-async function saveOrders(o){
-  try{
-    await fetch(`${SUPA_URL}/rest/v1/orders?id=eq.current`,{
-      method:'PATCH',headers:{...SUPA_HEADERS,'Prefer':'return=minimal'},
-      body:JSON.stringify({data:o,updated_at:new Date().toISOString()})
-    });
-  }catch(e){}
-}
-async function loadHistory(){
-  try{
-    const r=await fetch(`${SUPA_URL}/rest/v1/history?select=*&order=closed_at.desc&limit=200`,{headers:SUPA_HEADERS});
-    const rows=await r.json();
-    if(!Array.isArray(rows))return[];
-    return rows.map(h=>({
-      id:h.id,table:h.table_num,tableNote:h.table_note||'',
-      openedAt:new Date(h.opened_at).getTime(),closedAt:new Date(h.closed_at).getTime(),
-      total:h.total,itemCount:h.item_count,items:h.items||[],persons:h.persons||[]
-    }));
-  }catch(e){return[]}
-}
-async function saveHistory(h){
-  // saveHistory is called after closing a table — we only need to insert the new record (first element)
-  if(!h||!h.length)return;
-  const rec=h[0];
-  try{
-    await fetch(`${SUPA_URL}/rest/v1/history`,{
-      method:'POST',headers:{...SUPA_HEADERS,'Prefer':'resolution=ignore-duplicates'},
-      body:JSON.stringify({
-        id:rec.id,table_num:rec.table,table_note:rec.tableNote||'',
-        opened_at:new Date(rec.openedAt).toISOString(),closed_at:new Date(rec.closedAt).toISOString(),
-        total:rec.total,item_count:rec.itemCount,items:rec.items||[],persons:rec.persons||[]
-      })
-    });
-  }catch(e){}
-}
-async function deleteHistory(){
-  try{await fetch(`${SUPA_URL}/rest/v1/history?id=neq.none`,{method:'DELETE',headers:SUPA_HEADERS})}catch(e){}
-}
+let orders={},history=[],currentTable=null,currentCat=MENU[0].cat;
+let pendingItem=null,noteTarget='general',currentPersonId=null,personMenuCat=MENU[0].cat;
+let lastSeenTickets=new Set(),currentPeriod='day';
 
-let orders={}, history=[], currentTable=null, currentCat=MENU[0].cat, pendingItem=null;
-let currentPersonId=null, personMenuCat=MENU[0].cat, lastSeenTickets=new Set();
-
+// ===== HELPERS =====
 function $(id){return document.getElementById(id)}
 function money(n){return '$'+Math.round(n).toLocaleString('es-MX')}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
-function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._tid);t._tid=setTimeout(()=>t.classList.remove('show'),1400)}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._tid);t._tid=setTimeout(()=>t.classList.remove('show'),1600)}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function tableTotal(t){const o=orders[t];if(!o)return 0;let s=0;if(o.items)s+=o.items.reduce((x,it)=>x+it.p*it.q,0);if(o.persons)o.persons.forEach(p=>s+=personTotal(p));return s}
 function tableCount(t){const o=orders[t];if(!o)return 0;let c=0;if(o.items)c+=o.items.reduce((x,it)=>x+it.q,0);if(o.persons)o.persons.forEach(p=>c+=p.items?p.items.reduce((x,it)=>x+it.q,0):0);return c}
 function personTotal(p){return p.items?p.items.reduce((s,it)=>s+it.p*it.q,0):0}
 function personCount(p){return p.items?p.items.reduce((s,it)=>s+it.q,0):0}
-function initTable(t){if(!orders[t])orders[t]={items:[],persons:[],openedAt:Date.now()};if(!orders[t].persons)orders[t].persons=[];if(!orders[t].items)orders[t].items=[]}
-function personColor(idx){return PERSON_COLORS[idx%PERSON_COLORS.length]}
+function pColor(idx){return PERSON_COLORS[idx%PERSON_COLORS.length]}
 function initials(name){return name.trim().split(/\s+/).slice(0,2).map(w=>w[0].toUpperCase()).join('')||'?'}
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function initTable(t){if(!orders[t])orders[t]={items:[],persons:[],openedAt:Date.now()};if(!orders[t].persons)orders[t].persons=[];if(!orders[t].items)orders[t].items=[]}
+function showScreen(name){['tables','menu','cart','persons','person-menu'].forEach(s=>$('screen-'+s).style.display=(s===name)?'block':'none')}
+function personsItemCount(t){const o=orders[t];if(!o||!o.persons)return 0;return o.persons.reduce((s,p)=>s+personCount(p),0)}
 
-// ===== MESAS =====
-function renderTables(){
-  const g=$('tablesGrid');g.innerHTML='';
-  for(let i=1;i<=NUM_TABLES;i++){
-    const total=tableTotal(i),has=total>0;
-    const note=(orders[i]&&orders[i].tableNote)||'';
-    const el=document.createElement('div');
-    el.className='table-card'+(has?' has-order':'');
-    el.innerHTML=`
-      <div class="dot"></div>
-      <div class="num">${i.toString().padStart(2,'0')}</div>
-      <div class="lbl">Mesa</div>
-      <div class="total">${has?money(total):'—'}</div>
-      <div class="table-note">${note?escapeHtml(note):''}</div>
-      <div class="table-card-btns">
-        <button class="tc-btn" data-action="menu">Menú</button>
-        <button class="tc-btn primary" data-action="persons">Por persona</button>
-      </div>
-    `;
-    el.querySelector('[data-action=menu]').onclick=(e)=>{e.stopPropagation();openTable(i)};
-    el.querySelector('[data-action=persons]').onclick=(e)=>{e.stopPropagation();openPersonsView(i)};
-    g.appendChild(el);
-  }
-}
-
-// ===== MENÚ GENERAL =====
-function renderCatTabs(){
-  const c=$('catTabs');c.innerHTML='';
-  MENU.forEach(group=>{
-    const b=document.createElement('button');
-    b.className='cat-tab'+(group.cat===currentCat?' active':'');
-    b.textContent=group.cat;
-    b.onclick=()=>{currentCat=group.cat;renderCatTabs();renderMenu()};
-    c.appendChild(b);
+// ===== PASSWORD =====
+function askPassword(desc){
+  return new Promise(resolve=>{
+    $('passwordModalDesc').textContent=desc||'Ingresa la contraseña para continuar';
+    $('passwordInput').value='';$('passwordError').textContent='';
+    $('passwordModal').classList.add('show');setTimeout(()=>$('passwordInput').focus(),250);
+    const cleanup=()=>{$('passwordModal').classList.remove('show');$('passwordOk').onclick=null;$('passwordCancel').onclick=null};
+    $('passwordOk').onclick=()=>{if($('passwordInput').value===ADMIN_PASS){cleanup();resolve(true)}else{$('passwordError').textContent='Contraseña incorrecta';$('passwordInput').value='';$('passwordInput').focus()}};
+    $('passwordCancel').onclick=()=>{cleanup();resolve(false)};
+    $('passwordInput').onkeydown=e=>{if(e.key==='Enter')$('passwordOk').click()};
   });
-}
-function renderMenu(){
-  const list=$('menuList');list.innerHTML='';
-  const group=MENU.find(g=>g.cat===currentCat);
-  group.items.forEach(it=>{
-    const row=document.createElement('div');
-    row.className='menu-item';
-    row.innerHTML=`<div class="mi-left"><div class="mi-name">${it.n}</div>${it.d?`<div class="mi-desc">${it.d}</div>`:''}</div><div class="mi-right"><div class="mi-price">${money(it.p)}</div><button class="add-btn">+</button></div>`;
-    row.querySelector('.add-btn').onclick=(e)=>{e.stopPropagation();row.classList.add('flash');setTimeout(()=>row.classList.remove('flash'),500);openNoteModal(it,'general')};
-    row.onclick=()=>openNoteModal(it,'general');
-    list.appendChild(row);
-  });
-}
-
-// ===== MENÚ PERSONA =====
-function renderPersonCatTabs(){
-  const c=$('catTabsPerson');c.innerHTML='';
-  MENU.forEach(group=>{
-    const b=document.createElement('button');
-    b.className='cat-tab'+(group.cat===personMenuCat?' active':'');
-    b.textContent=group.cat;
-    b.onclick=()=>{personMenuCat=group.cat;renderPersonCatTabs();renderPersonMenu()};
-    c.appendChild(b);
-  });
-}
-function renderPersonMenu(){
-  const list=$('menuListPerson');list.innerHTML='';
-  const group=MENU.find(g=>g.cat===personMenuCat);
-  group.items.forEach(it=>{
-    const row=document.createElement('div');
-    row.className='menu-item';
-    row.innerHTML=`<div class="mi-left"><div class="mi-name">${it.n}</div>${it.d?`<div class="mi-desc">${it.d}</div>`:''}</div><div class="mi-right"><div class="mi-price">${money(it.p)}</div><button class="add-btn">+</button></div>`;
-    row.querySelector('.add-btn').onclick=(e)=>{e.stopPropagation();row.classList.add('flash');setTimeout(()=>row.classList.remove('flash'),500);openNoteModal(it,'person')};
-    row.onclick=()=>openNoteModal(it,'person');
-    list.appendChild(row);
-  });
-}
-
-// ===== NOTE MODAL =====
-let noteTarget='general';
-function openNoteModal(it,target){
-  pendingItem=it;noteTarget=target;
-  $('noteItemName').textContent=it.n;
-  $('noteItemPrice').textContent=money(it.p);
-  $('noteInput').value='';
-  $('noteModal').classList.add('show');
-  setTimeout(()=>$('noteInput').focus(),250);
-}
-function closeNoteModal(){$('noteModal').classList.remove('show');pendingItem=null}
-$('noteCancel').onclick=closeNoteModal;
-$('noteSave').onclick=async()=>{
-  if(!pendingItem||!currentTable)return;
-  const note=$('noteInput').value.trim();
-  initTable(currentTable);
-  if(noteTarget==='person'&&currentPersonId){
-    const o=orders[currentTable];
-    const person=o.persons.find(p=>p.id===currentPersonId);
-    if(!person)return;
-    if(!person.items)person.items=[];
-    const existing=person.items.find(x=>x.n===pendingItem.n&&(x.note||'')===note);
-    if(existing)existing.q+=1;
-    else person.items.push({id:uid(),n:pendingItem.n,p:pendingItem.p,q:1,note:note||'',addedAt:Date.now(),status:'pending'});
-  } else {
-    const o=orders[currentTable];
-    const existing=o.items.find(x=>x.n===pendingItem.n&&(x.note||'')===note);
-    if(existing)existing.q+=1;
-    else o.items.push({id:uid(),n:pendingItem.n,p:pendingItem.p,q:1,note:note||'',addedAt:Date.now(),status:'pending'});
-  }
-  await saveOrders(orders);
-  closeNoteModal();
-  if(noteTarget==='person'){renderPersonsView();toast(note?'✓ Agregado con nota':'✓ Agregado a '+getPersonName())}
-  else{toast(note?'✓ Agregado con nota':'✓ Agregado a mesa '+currentTable);updateCartBar()}
-};
-
-function getPersonName(){
-  if(!currentTable||!currentPersonId)return '';
-  const o=orders[currentTable];
-  const p=o&&o.persons&&o.persons.find(x=>x.id===currentPersonId);
-  return p?p.name:'';
-}
-
-// ===== NAVEGACIÓN MESAS =====
-function openTable(n){
-  currentTable=n;
-  $('currentTableLbl').textContent=n.toString().padStart(2,'0');
-  showScreen('menu');
-  currentCat=MENU[0].cat;
-  renderCatTabs();renderMenu();renderTableNoteStrip();updateCartBar();
-}
-
-function showScreen(name){
-  ['tables','menu','cart','persons','person-menu'].forEach(s=>{
-    $(('screen-'+s)).style.display=(s===name)?'block':'none';
-  });
-}
-
-function renderTableNoteStrip(){
-  if(!currentTable)return;
-  const note=(orders[currentTable]&&orders[currentTable].tableNote)||'';
-  ['menuTableNote','cartTableNote','personsTableNote'].forEach(id=>{
-    const el=$(id);if(!el)return;
-    if(note){el.textContent=note;el.classList.remove('empty')}
-    else{el.textContent='Sin identificación';el.classList.add('empty')}
-  });
-}
-
-$('editTableNoteBtn').onclick=()=>{
-  if(!currentTable)return;
-  $('tableNoteLbl').textContent=currentTable.toString().padStart(2,'0');
-  $('tableNoteInput').value=(orders[currentTable]&&orders[currentTable].tableNote)||'';
-  $('tableNoteModal').classList.add('show');
-  setTimeout(()=>$('tableNoteInput').focus(),250);
-};
-$('tableNoteCancel').onclick=()=>$('tableNoteModal').classList.remove('show');
-$('tableNoteSave').onclick=async()=>{
-  if(!currentTable)return;
-  const v=$('tableNoteInput').value.trim();
-  initTable(currentTable);
-  orders[currentTable].tableNote=v;
-  await saveOrders(orders);
-  $('tableNoteModal').classList.remove('show');
-  renderTableNoteStrip();
-  toast(v?'Nota guardada':'Nota borrada');
-};
-
-$('backToTables').onclick=()=>{showScreen('tables');$('cartBar').classList.remove('show');currentTable=null;renderTables()};
-$('viewCart').onclick=()=>goCart();
-$('goToCart').onclick=()=>goCart();
-function goCart(){
-  if(!currentTable)return;
-  $('cartTableLbl').textContent=currentTable.toString().padStart(2,'0');
-  showScreen('cart');
-  renderTableNoteStrip();renderCart();
-}
-$('backToMenu').onclick=()=>showScreen('menu');
-
-function updateCartBar(){
-  if(!currentTable){$('cartBar').classList.remove('show');return}
-  const total=tableTotal(currentTable),count=tableCount(currentTable);
-  $('cartBarTable').textContent=currentTable.toString().padStart(2,'0');
-  $('cartBarCount').textContent=count+' item'+(count!==1?'s':'');
-  $('cartBarTotal').textContent=Math.round(total).toLocaleString('es-MX');
-  $('cartCount').textContent=count;
-  $('cartCount').style.display=count>0?'inline-flex':'none';
-  if(count>0)$('cartBar').classList.add('show');else $('cartBar').classList.remove('show');
-}
-
-function renderCart(){
-  const wrap=$('orderDetail');wrap.innerHTML='';
-  const o=orders[currentTable];
-  const allItems=[];
-  if(o&&o.items)o.items.forEach(it=>allItems.push({...it,_src:'general'}));
-  if(o&&o.persons)o.persons.forEach(p=>{if(p.items)p.items.forEach(it=>allItems.push({...it,_src:'person',_pname:p.name,_pid:p.id,_pcolor:PERSON_COLORS[(o.persons.indexOf(p))%PERSON_COLORS.length]}))});
-  if(!allItems.length){
-    wrap.innerHTML=`<div class="empty"><div class="serif crescent">Cuenta vacía</div><p>Agrega productos desde el menú</p></div>`;
-    $('orderSummary').style.display='none';$('cartActions').style.display='none';return;
-  }
-  allItems.forEach(it=>{
-    const line=document.createElement('div');
-    line.className='order-line';
-    const personBadge=it._src==='person'?`<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;color:#fff;background:${it._pcolor};margin-top:4px">${escapeHtml(it._pname)}</span>`:'';
-    line.innerHTML=`
-      <div class="ol-left">
-        <div class="ol-name">${escapeHtml(it.n)}</div>
-        ${it.note?`<div class="ol-note">"${escapeHtml(it.note)}"</div>`:''}
-        <div class="ol-meta">${money(it.p)} c/u</div>
-        ${personBadge}
-      </div>
-      <div class="ol-right">
-        <div class="qty-pill">
-          <button data-act="dec">−</button>
-          <span class="q">${it.q}</span>
-          <button data-act="inc">+</button>
-        </div>
-        <div class="ol-price">${money(it.p*it.q)}</div>
-      </div>
-    `;
-    line.querySelector('[data-act=inc]').onclick=async()=>{
-      const target=findItem(it);if(target)target.q+=1;await saveOrders(orders);renderCart();updateCartBar();
-    };
-    line.querySelector('[data-act=dec]').onclick=async()=>{
-      const target=findItem(it);if(!target)return;target.q-=1;
-      if(target.q<=0){removeItem(it)}
-      await saveOrders(orders);renderCart();updateCartBar();
-    };
-    wrap.appendChild(line);
-  });
-  const total=tableTotal(currentTable),count=tableCount(currentTable);
-  $('sumCount').textContent=count;$('sumTotal').textContent=money(total);
-  $('orderSummary').style.display='block';$('cartActions').style.display='flex';
-}
-
-function findItem(it){
-  const o=orders[currentTable];if(!o)return null;
-  if(it._src==='person'){const p=o.persons.find(x=>x.id===it._pid);return p&&p.items?p.items.find(x=>x.id===it.id):null}
-  return o.items?o.items.find(x=>x.id===it.id):null;
-}
-function removeItem(it){
-  const o=orders[currentTable];if(!o)return;
-  if(it._src==='person'){const p=o.persons.find(x=>x.id===it._pid);if(p&&p.items)p.items=p.items.filter(x=>x.id!==it.id)}
-  else if(o.items)o.items=o.items.filter(x=>x.id!==it.id);
 }
 
 // ===== CONFIRM =====
@@ -822,340 +650,383 @@ function showConfirm(title,body,okText){
     $('confirmTitle').textContent=title;$('confirmBody').textContent=body||'';$('confirmOk').textContent=okText||'Confirmar';
     $('confirmModal').classList.add('show');
     const cleanup=()=>{$('confirmModal').classList.remove('show');$('confirmOk').onclick=null;$('confirmCancel').onclick=null};
-    $('confirmOk').onclick=()=>{cleanup();resolve(true)};
-    $('confirmCancel').onclick=()=>{cleanup();resolve(false)};
+    $('confirmOk').onclick=()=>{cleanup();resolve(true)};$('confirmCancel').onclick=()=>{cleanup();resolve(false)};
   });
 }
 
-$('clearTable').onclick=async()=>{
-  if(!currentTable)return;
-  const ok=await showConfirm('Vaciar mesa '+currentTable,'Se eliminarán todos los productos. Esta acción no se puede deshacer.','Vaciar');
-  if(!ok)return;
-  delete orders[currentTable];await saveOrders(orders);renderCart();updateCartBar();toast('Cuenta vaciada');
-};
+// ===== MESAS =====
+function renderTables(){
+  const g=$('tablesGrid');g.innerHTML='';
+  for(let i=1;i<=NUM_TABLES;i++){
+    const total=tableTotal(i),has=total>0,note=(orders[i]&&orders[i].tableNote)||'';
+    const el=document.createElement('div');
+    el.className='table-card'+(has?' has-order':'');
+    el.innerHTML=`<div class="dot"></div><div class="num">${i.toString().padStart(2,'0')}</div><div class="lbl">Mesa</div><div class="tot">${has?money(total):'—'}</div><div class="tnote">${note?esc(note):''}</div>`;
+    el.onclick=()=>openTable(i);
+    g.appendChild(el);
+  }
+}
 
+// ===== MENÚ GENERAL =====
+function renderCatTabs(){
+  const c=$('catTabs');c.innerHTML='';
+  MENU.forEach(g=>{const b=document.createElement('button');b.className='cat-tab'+(g.cat===currentCat?' active':'');b.textContent=g.cat;b.onclick=()=>{currentCat=g.cat;renderCatTabs();renderMenu()};c.appendChild(b)});
+}
+function renderMenu(){
+  const list=$('menuList');list.innerHTML='';
+  MENU.find(g=>g.cat===currentCat).items.forEach(it=>{
+    const row=document.createElement('div');row.className='menu-item';
+    row.innerHTML=`<div class="mi-left"><div class="mi-name">${esc(it.n)}</div>${it.d?`<div class="mi-desc">${esc(it.d)}</div>`:''}</div><div class="mi-right"><div class="mi-price">${money(it.p)}</div><button class="add-btn" aria-label="Agregar">+</button></div>`;
+    row.querySelector('.add-btn').onclick=e=>{e.stopPropagation();row.classList.add('flash');setTimeout(()=>row.classList.remove('flash'),500);openNoteModal(it,'general')};
+    row.onclick=()=>openNoteModal(it,'general');
+    list.appendChild(row);
+  });
+}
+function updateMenuBadges(){
+  if(!currentTable)return;
+  const count=tableCount(currentTable);
+  const pcount=personsItemCount(currentTable);
+  $('cartCount').textContent=count;$('cartCount').style.display=count>0?'inline-flex':'none';
+  $('personsBadge').textContent=pcount;$('personsBadge').style.display=pcount>0?'inline-flex':'none';
+}
+
+// ===== MENÚ PERSONA =====
+function renderPersonCatTabs(){
+  const c=$('catTabsPerson');c.innerHTML='';
+  MENU.forEach(g=>{const b=document.createElement('button');b.className='cat-tab'+(g.cat===personMenuCat?' active':'');b.textContent=g.cat;b.onclick=()=>{personMenuCat=g.cat;renderPersonCatTabs();renderPersonMenu()};c.appendChild(b)});
+}
+function renderPersonMenu(){
+  const list=$('menuListPerson');list.innerHTML='';
+  MENU.find(g=>g.cat===personMenuCat).items.forEach(it=>{
+    const row=document.createElement('div');row.className='menu-item';
+    row.innerHTML=`<div class="mi-left"><div class="mi-name">${esc(it.n)}</div>${it.d?`<div class="mi-desc">${esc(it.d)}</div>`:''}</div><div class="mi-right"><div class="mi-price">${money(it.p)}</div><button class="add-btn">+</button></div>`;
+    row.querySelector('.add-btn').onclick=e=>{e.stopPropagation();row.classList.add('flash');setTimeout(()=>row.classList.remove('flash'),500);openNoteModal(it,'person')};
+    row.onclick=()=>openNoteModal(it,'person');
+    list.appendChild(row);
+  });
+}
+
+// ===== NOTE MODAL =====
+function openNoteModal(it,target){pendingItem=it;noteTarget=target;$('noteItemName').textContent=it.n;$('noteItemPrice').textContent=money(it.p);$('noteInput').value='';$('noteModal').classList.add('show');setTimeout(()=>$('noteInput').focus(),250)}
+function closeNoteModal(){$('noteModal').classList.remove('show');pendingItem=null}
+$('noteCancel').onclick=closeNoteModal;
+$('noteSave').onclick=async()=>{
+  if(!pendingItem||!currentTable)return;
+  const note=$('noteInput').value.trim();
+  initTable(currentTable);
+  if(noteTarget==='person'&&currentPersonId){
+    const person=orders[currentTable].persons.find(p=>p.id===currentPersonId);
+    if(!person)return;if(!person.items)person.items=[];
+    const ex=person.items.find(x=>x.n===pendingItem.n&&(x.note||'')===note);
+    if(ex)ex.q+=1;else person.items.push({id:uid(),n:pendingItem.n,p:pendingItem.p,q:1,note:note||'',addedAt:Date.now(),status:'pending'});
+  } else {
+    const ex=orders[currentTable].items.find(x=>x.n===pendingItem.n&&(x.note||'')===note);
+    if(ex)ex.q+=1;else orders[currentTable].items.push({id:uid(),n:pendingItem.n,p:pendingItem.p,q:1,note:note||'',addedAt:Date.now(),status:'pending'});
+  }
+  await saveOrders(orders);closeNoteModal();
+  if(noteTarget==='person'){renderPersonsView();toast('✓ Agregado a '+getPersonName())}
+  else{toast('✓ Agregado a mesa '+currentTable);updateCartBar();updateMenuBadges()}
+};
+function getPersonName(){if(!currentTable||!currentPersonId)return'';const p=orders[currentTable]?.persons?.find(x=>x.id===currentPersonId);return p?p.name:''}
+
+// ===== TABLE NOTE =====
+$('editTableNoteBtn').onclick=()=>{if(!currentTable)return;$('tableNoteLbl').textContent=currentTable.toString().padStart(2,'0');$('tableNoteInput').value=(orders[currentTable]&&orders[currentTable].tableNote)||'';$('tableNoteModal').classList.add('show');setTimeout(()=>$('tableNoteInput').focus(),250)};
+$('tableNoteCancel').onclick=()=>$('tableNoteModal').classList.remove('show');
+$('tableNoteSave').onclick=async()=>{if(!currentTable)return;const v=$('tableNoteInput').value.trim();initTable(currentTable);orders[currentTable].tableNote=v;await saveOrders(orders);$('tableNoteModal').classList.remove('show');renderNoteStrips();toast(v?'Nota guardada':'Nota borrada')};
+
+function renderNoteStrips(){
+  if(!currentTable)return;
+  const note=(orders[currentTable]&&orders[currentTable].tableNote)||'';
+  ['menuTableNote','cartTableNote','personsTableNote'].forEach(id=>{const el=$(id);if(!el)return;if(note){el.textContent=note;el.classList.remove('empty')}else{el.textContent='Sin identificación';el.classList.add('empty')}});
+}
+
+// ===== NAVEGACIÓN =====
+function openTable(n){
+  currentTable=n;$('currentTableLbl').textContent=n.toString().padStart(2,'0');
+  showScreen('menu');currentCat=MENU[0].cat;renderCatTabs();renderMenu();renderNoteStrips();updateCartBar();updateMenuBadges();
+}
+$('backToTables').onclick=()=>{showScreen('tables');$('cartBar').classList.remove('show');currentTable=null;renderTables()};
+$('viewCart').onclick=()=>goCart();
+$('goToCart').onclick=()=>goCart();
+$('goPersonsFromMenu').onclick=()=>{if(!currentTable)return;initTable(currentTable);$('personsTableLbl').textContent=currentTable.toString().padStart(2,'0');currentPersonId=orders[currentTable].persons[0]?.id||null;showScreen('persons');renderNoteStrips();renderPersonsView();$('cartBar').classList.remove('show')};
+function goCart(){if(!currentTable)return;$('cartTableLbl').textContent=currentTable.toString().padStart(2,'0');showScreen('cart');renderNoteStrips();renderCart()}
+$('backToMenu').onclick=()=>showScreen('menu');
+
+function updateCartBar(){
+  if(!currentTable){$('cartBar').classList.remove('show');return}
+  const total=tableTotal(currentTable),count=tableCount(currentTable);
+  $('cartBarTable').textContent=currentTable.toString().padStart(2,'0');
+  $('cartBarCount').textContent=count+' item'+(count!==1?'s':'');
+  $('cartBarTotal').textContent=Math.round(total).toLocaleString('es-MX');
+  $('cartCount').textContent=count;$('cartCount').style.display=count>0?'inline-flex':'none';
+  if(count>0)$('cartBar').classList.add('show');else $('cartBar').classList.remove('show');
+}
+
+function renderCart(){
+  const wrap=$('orderDetail');wrap.innerHTML='';
+  const o=orders[currentTable];
+  const allItems=[];
+  if(o&&o.items)o.items.forEach(it=>allItems.push({...it,_src:'general'}));
+  if(o&&o.persons)o.persons.forEach((p,idx)=>{if(p.items)p.items.forEach(it=>allItems.push({...it,_src:'person',_pname:p.name,_pid:p.id,_pc:PERSON_COLORS[idx%PERSON_COLORS.length]}))});
+  if(!allItems.length){wrap.innerHTML=`<div class="empty"><div class="serif crescent">Cuenta vacía</div><p>Agrega productos desde el menú</p></div>`;$('orderSummary').style.display='none';$('cartActions').style.display='none';return}
+  allItems.forEach(it=>{
+    const line=document.createElement('div');line.className='order-line';
+    const badge=it._src==='person'?`<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;color:#fff;background:${it._pc};margin-top:4px">${esc(it._pname)}</span>`:'';
+    line.innerHTML=`<div class="ol-left"><div class="ol-name">${esc(it.n)}</div>${it.note?`<div class="ol-note">"${esc(it.note)}"</div>`:''}<div class="ol-meta">${money(it.p)} c/u</div>${badge}</div><div class="ol-right"><div class="qty-pill"><button data-act="dec">−</button><span class="q">${it.q}</span><button data-act="inc">+</button></div><div class="ol-price">${money(it.p*it.q)}</div></div>`;
+    line.querySelector('[data-act=inc]').onclick=async()=>{const t=findItem(it);if(t)t.q+=1;await saveOrders(orders);renderCart();updateCartBar()};
+    line.querySelector('[data-act=dec]').onclick=async()=>{const t=findItem(it);if(!t)return;t.q-=1;if(t.q<=0)removeItem(it);await saveOrders(orders);renderCart();updateCartBar()};
+    wrap.appendChild(line);
+  });
+  const total=tableTotal(currentTable),count=tableCount(currentTable);
+  $('sumCount').textContent=count;$('sumTotal').textContent=money(total);
+  $('orderSummary').style.display='block';$('cartActions').style.display='flex';
+}
+function findItem(it){const o=orders[currentTable];if(!o)return null;if(it._src==='person'){const p=o.persons.find(x=>x.id===it._pid);return p?.items?.find(x=>x.id===it.id)||null}return o.items?.find(x=>x.id===it.id)||null}
+function removeItem(it){const o=orders[currentTable];if(!o)return;if(it._src==='person'){const p=o.persons.find(x=>x.id===it._pid);if(p?.items)p.items=p.items.filter(x=>x.id!==it.id)}else if(o.items)o.items=o.items.filter(x=>x.id!==it.id)}
+
+$('clearTable').onclick=async()=>{if(!currentTable)return;const ok=await showConfirm('Vaciar mesa '+currentTable,'Se eliminarán todos los productos.','Vaciar');if(!ok)return;delete orders[currentTable];await saveOrders(orders);renderCart();updateCartBar();toast('Cuenta vaciada')};
 $('closeTable').onclick=async()=>{
-  if(!currentTable)return;
-  const o=orders[currentTable];if(!o)return;
+  if(!currentTable)return;const o=orders[currentTable];if(!o)return;
   const total=tableTotal(currentTable);if(!total)return;
-  const ok=await showConfirm('Cobrar mesa '+currentTable,'Total: '+money(total)+'. Se guardará en historial.','Cobrar y cerrar');
-  if(!ok)return;
-  await closeAndSaveTable(currentTable,total,o);
-  $('backToTables').click();
+  const ok=await showConfirm('Cobrar mesa '+currentTable,'Total: '+money(total),'Cobrar y cerrar');if(!ok)return;
+  await closeAndSaveTable(currentTable,total,o);$('backToTables').click();
 };
-
 async function closeAndSaveTable(t,total,o){
   const allItems=[];
   if(o.items)o.items.forEach(it=>allItems.push({n:it.n,p:it.p,q:it.q,note:it.note||''}));
   if(o.persons)o.persons.forEach(p=>{if(p.items)p.items.forEach(it=>allItems.push({n:it.n,p:it.p,q:it.q,note:it.note||'',person:p.name}))});
-  const personsBreakdown=o.persons?o.persons.map(p=>({name:p.name,total:personTotal(p),count:personCount(p)})):[];
-  history.unshift({id:uid(),table:t,tableNote:o.tableNote||'',openedAt:o.openedAt||Date.now(),closedAt:Date.now(),total,itemCount:allItems.length,items:allItems,persons:personsBreakdown});
-  delete orders[t];
-  await saveOrders(orders);await saveHistory(history);
+  const persBreak=o.persons?o.persons.map(p=>({name:p.name,total:personTotal(p),count:personCount(p)})):[];
+  const rec={id:uid(),table:t,tableNote:o.tableNote||'',openedAt:o.openedAt||Date.now(),closedAt:Date.now(),total,itemCount:allItems.length,items:allItems,persons:persBreak};
+  history.unshift(rec);delete orders[t];
+  await saveOrders(orders);await insertHistoryRecord(rec);
   toast('✓ Cuenta cerrada · '+money(total));
 }
 
-// ===== VISTA POR PERSONA =====
-function openPersonsView(n){
-  currentTable=n;
-  initTable(n);
-  $('personsTableLbl').textContent=n.toString().padStart(2,'0');
-  showScreen('persons');
-  currentPersonId=orders[n].persons.length>0?orders[n].persons[0].id:null;
-  renderTableNoteStrip();renderPersonsView();
-  $('cartBar').classList.remove('show');
-}
-
-$('backToTablesFromPersons').onclick=()=>{
-  showScreen('tables');currentTable=null;currentPersonId=null;renderTables();
-};
-
-$('addPersonBtn').onclick=()=>{
-  $('addPersonTableLbl').textContent=(currentTable||'').toString().padStart(2,'0');
-  $('addPersonName').value='';
-  $('addPersonModal').classList.add('show');
-  setTimeout(()=>$('addPersonName').focus(),250);
-};
+// ===== POR PERSONA =====
+$('backToMenuFromPersons').onclick=()=>{showScreen('menu');updateMenuBadges();updateCartBar()};
+$('addPersonBtn').onclick=()=>{$('addPersonTableLbl').textContent=(currentTable||'').toString().padStart(2,'0');$('addPersonName').value='';$('addPersonModal').classList.add('show');setTimeout(()=>$('addPersonName').focus(),250)};
 $('addPersonCancel').onclick=()=>$('addPersonModal').classList.remove('show');
 $('addPersonSave').onclick=async()=>{
-  const name=$('addPersonName').value.trim();
-  if(!name){toast('Ingresa un nombre');return}
-  initTable(currentTable);
-  const newP={id:uid(),name,items:[]};
-  orders[currentTable].persons.push(newP);
-  currentPersonId=newP.id;
-  await saveOrders(orders);
-  $('addPersonModal').classList.remove('show');
-  renderPersonsView();
-  toast('✓ '+name+' agregada');
+  const name=$('addPersonName').value.trim();if(!name){toast('Ingresa un nombre');return}
+  initTable(currentTable);const np={id:uid(),name,items:[]};orders[currentTable].persons.push(np);currentPersonId=np.id;
+  await saveOrders(orders);$('addPersonModal').classList.remove('show');renderPersonsView();toast('✓ '+name+' agregada');
 };
 
 function renderPersonsView(){
-  const o=orders[currentTable];
-  if(!o){renderTables();return}
+  const o=orders[currentTable];if(!o){renderTables();return}
   const persons=o.persons||[];
-
-  // tabs
   const tabs=$('personTabs');tabs.innerHTML='';
   persons.forEach((p,idx)=>{
-    const tab=document.createElement('button');
-    tab.className='person-tab'+(p.id===currentPersonId?' active':'');
-    if(p.id===currentPersonId)tab.style.background=personColor(idx);
-    const av=`<span style="width:20px;height:20px;border-radius:50%;background:${personColor(idx)};display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff">${initials(p.name)}</span>`;
-    tab.innerHTML=`${av}<span>${escapeHtml(p.name)}</span><span class="ptab-del" data-pid="${p.id}">×</span>`;
-    tab.onclick=(e)=>{
-      if(e.target.classList.contains('ptab-del'))return;
-      currentPersonId=p.id;renderPersonsView();
-    };
-    tab.querySelector('.ptab-del').onclick=async(e)=>{
-      e.stopPropagation();
-      const ok=await showConfirm('Eliminar '+p.name,'Se perderá su pedido.','Eliminar');
-      if(!ok)return;
+    const tab=document.createElement('button');tab.className='person-tab'+(p.id===currentPersonId?' active':'');
+    if(p.id===currentPersonId)tab.style.background=pColor(idx);
+    tab.innerHTML=`<span style="width:20px;height:20px;border-radius:50%;background:${pColor(idx)};display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff">${initials(p.name)}</span><span>${esc(p.name)}</span><span class="ptab-del" data-pid="${p.id}">×</span>`;
+    tab.onclick=e=>{if(e.target.classList.contains('ptab-del'))return;currentPersonId=p.id;renderPersonsView()};
+    tab.querySelector('.ptab-del').onclick=async e=>{
+      e.stopPropagation();const ok=await showConfirm('Eliminar '+p.name,'Se perderá su pedido.','Eliminar');if(!ok)return;
       orders[currentTable].persons=orders[currentTable].persons.filter(x=>x.id!==p.id);
       if(currentPersonId===p.id)currentPersonId=orders[currentTable].persons[0]?.id||null;
       await saveOrders(orders);renderPersonsView();
     };
     tabs.appendChild(tab);
   });
-
-  // content for active person
   const content=$('personContent');content.innerHTML='';
-  if(!persons.length){
-    content.innerHTML=`<div class="empty"><div class="serif crescent">Sin personas</div><p>Agrega personas con el botón de arriba</p></div>`;
-    $('personsSummary').style.display='none';
-    $('personsCartActions').style.display='none';
-    return;
-  }
+  if(!persons.length){content.innerHTML=`<div class="empty"><div class="serif crescent">Sin personas</div><p>Agrega personas con el botón de arriba</p></div>`;$('personsSummary').style.display='none';return}
   const person=persons.find(p=>p.id===currentPersonId);
   if(person){
-    const idx=persons.indexOf(person);
-    const color=personColor(idx);
-    const card=document.createElement('div');
-    card.className='person-card';
+    const idx=persons.indexOf(person),color=pColor(idx);
+    const card=document.createElement('div');card.className='person-card';
     card.innerHTML=`
       <div class="person-card-head">
         <div style="display:flex;align-items:center;flex:1">
           <div class="person-avatar" style="background:${color}">${initials(person.name)}</div>
-          <div class="person-name-big">${escapeHtml(person.name)}</div>
+          <div class="person-name-big">${esc(person.name)}</div>
         </div>
         <div style="text-align:right">
           <div style="font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--ink-faint)">Subtotal</div>
           <div class="person-subtotal">${money(personTotal(person))}</div>
         </div>
       </div>
-      <div class="person-items" id="personItems_${person.id}"></div>
-      <button class="person-add-btn" style="margin-top:12px;width:100%" data-addfor="${person.id}">+ Agregar productos</button>
+      <div id="personItems_${person.id}"></div>
+      <button class="person-add-btn" style="margin-top:12px;width:100%">+ Agregar productos</button>
     `;
     const itemsDiv=card.querySelector('#personItems_'+person.id);
-    if(!person.items||!person.items.length){
-      itemsDiv.innerHTML=`<div class="empty-person">Sin productos aún</div>`;
-    } else {
-      person.items.forEach(it=>{
-        const line=document.createElement('div');line.className='pi-line';
-        line.innerHTML=`
-          <span class="pi-name">${escapeHtml(it.n)}${it.note?`<span class="pi-note">"${escapeHtml(it.note)}"</span>`:''}</span>
-          <span class="pi-qty">${it.q}×</span>
-          <span class="pi-price">${money(it.p*it.q)}</span>
-          <button class="pi-del" data-iid="${it.id}" data-pid="${person.id}" title="Eliminar">×</button>
-        `;
-        line.querySelector('.pi-del').onclick=async(e)=>{
-          const pid=e.currentTarget.dataset.pid,iid=e.currentTarget.dataset.iid;
-          const pr=orders[currentTable].persons.find(x=>x.id===pid);
-          if(pr)pr.items=pr.items.filter(x=>x.id!==iid);
-          await saveOrders(orders);renderPersonsView();
-        };
-        itemsDiv.appendChild(line);
-      });
-    }
-    card.querySelector('[data-addfor]').onclick=()=>{
-      currentPersonId=person.id;
-      $('personMenuName').textContent=person.name;
-      personMenuCat=MENU[0].cat;
-      showScreen('person-menu');
-      renderPersonCatTabs();renderPersonMenu();
-    };
+    if(!person.items||!person.items.length)itemsDiv.innerHTML=`<div class="empty-person">Sin productos aún</div>`;
+    else person.items.forEach(it=>{
+      const line=document.createElement('div');line.className='pi-line';
+      line.innerHTML=`<span class="pi-name">${esc(it.n)}${it.note?`<span class="pi-note">"${esc(it.note)}"</span>`:''}</span><span class="pi-qty">${it.q}×</span><span class="pi-price">${money(it.p*it.q)}</span><button class="pi-del" data-iid="${it.id}" data-pid="${person.id}">×</button>`;
+      line.querySelector('.pi-del').onclick=async e=>{
+        const pid=e.currentTarget.dataset.pid,iid=e.currentTarget.dataset.iid;
+        const pr=orders[currentTable].persons.find(x=>x.id===pid);if(pr)pr.items=pr.items.filter(x=>x.id!==iid);
+        await saveOrders(orders);renderPersonsView();
+      };
+      itemsDiv.appendChild(line);
+    });
+    card.querySelector('.person-add-btn').onclick=()=>{currentPersonId=person.id;$('personMenuName').textContent=person.name;personMenuCat=MENU[0].cat;showScreen('person-menu');renderPersonCatTabs();renderPersonMenu()};
     content.appendChild(card);
   }
-
-  // summary
   const hasAny=persons.some(p=>personCount(p)>0)||(o.items&&o.items.length>0);
   if(hasAny){
     $('personsSummary').style.display='block';
-    const rows=$('psSummaryRows');rows.innerHTML='';
-    let total=0;
-    persons.forEach((p,idx)=>{
-      const sub=personTotal(p);total+=sub;
-      const row=document.createElement('div');row.className='ps-row';
-      row.innerHTML=`
-        <div class="ps-avatar" style="background:${personColor(idx)}">${initials(p.name)}</div>
-        <span class="ps-name">${escapeHtml(p.name)}</span>
-        <span class="ps-count">${personCount(p)} prod.</span>
-        <span class="ps-amount">${money(sub)}</span>
-      `;
-      rows.appendChild(row);
-    });
-    if(o.items&&o.items.length){
-      const gen=o.items.reduce((s,it)=>s+it.p*it.q,0);total+=gen;
-      const row=document.createElement('div');row.className='ps-row';
-      row.innerHTML=`<div class="ps-avatar" style="background:var(--ink-faint)">G</div><span class="ps-name" style="font-style:italic">Cuenta general</span><span class="ps-count">${o.items.reduce((s,it)=>s+it.q,0)} prod.</span><span class="ps-amount">${money(gen)}</span>`;
-      rows.appendChild(row);
-    }
+    const rows=$('psSummaryRows');rows.innerHTML='';let total=0;
+    persons.forEach((p,idx)=>{const sub=personTotal(p);total+=sub;const row=document.createElement('div');row.className='ps-row';row.innerHTML=`<div class="ps-avatar" style="background:${pColor(idx)}">${initials(p.name)}</div><span class="ps-name">${esc(p.name)}</span><span class="ps-count">${personCount(p)} prod.</span><span class="ps-amount">${money(sub)}</span>`;rows.appendChild(row)});
+    if(o.items&&o.items.length){const gen=o.items.reduce((s,it)=>s+it.p*it.q,0);total+=gen;const row=document.createElement('div');row.className='ps-row';row.innerHTML=`<div class="ps-avatar" style="background:var(--ink-faint)">G</div><span class="ps-name" style="font-style:italic">Cuenta general</span><span class="ps-count">${o.items.reduce((s,it)=>s+it.q,0)} prod.</span><span class="ps-amount">${money(gen)}</span>`;rows.appendChild(row)}
     $('psTotalAmount').textContent=money(total);
-  } else {
-    $('personsSummary').style.display='none';
-  }
-
-  $('personsCartActions').style.display=hasAny?'flex':'none';
+  } else $('personsSummary').style.display='none';
 }
-
-$('personsGoMenu').onclick=()=>{
-  $('currentTableLbl').textContent=(currentTable||'').toString().padStart(2,'0');
-  showScreen('menu');currentCat=MENU[0].cat;renderCatTabs();renderMenu();renderTableNoteStrip();updateCartBar();
-};
+$('personsGoMenu').onclick=()=>{showScreen('menu');updateMenuBadges();updateCartBar()};
 $('personsCloseTable').onclick=async()=>{
-  if(!currentTable)return;
-  const o=orders[currentTable];if(!o)return;
+  if(!currentTable)return;const o=orders[currentTable];if(!o)return;
   const total=tableTotal(currentTable);if(!total)return;
-  const ok=await showConfirm('Cobrar mesa '+currentTable,'Total: '+money(total)+'. Se guardará en historial.','Cobrar y cerrar');
-  if(!ok)return;
-  await closeAndSaveTable(currentTable,total,o);
-  showScreen('tables');currentTable=null;currentPersonId=null;renderTables();
+  const ok=await showConfirm('Cobrar mesa '+currentTable,'Total: '+money(total),'Cobrar y cerrar');if(!ok)return;
+  await closeAndSaveTable(currentTable,total,o);showScreen('tables');currentTable=null;currentPersonId=null;renderTables();
 };
-
 $('backToPersons').onclick=()=>{showScreen('persons');renderPersonsView()};
 
 // ===== KITCHEN =====
 function renderKitchen(){
   const g=$('kitchenGrid');g.innerHTML='';
   const active=Object.keys(orders).filter(t=>orders[t]&&tableCount(parseInt(t))>0);
-  if(!active.length){$('kitchenEmpty').style.display='block';return}
-  $('kitchenEmpty').style.display='none';
+  $('kitchenEmpty').style.display=active.length?'none':'block';
   active.sort((a,b)=>(orders[a].openedAt||0)-(orders[b].openedAt||0));
   active.forEach(t=>{
-    const o=orders[t];
-    const allItems=[];
-    if(o.items)o.items.forEach(it=>allItems.push({...it,_personLabel:null}));
-    if(o.persons)o.persons.forEach((p,idx)=>{if(p.items)p.items.forEach(it=>allItems.push({...it,_personLabel:p.name,_pcolor:personColor(idx),_pid:p.id}))});
+    const o=orders[t];const allItems=[];
+    if(o.items)o.items.forEach(it=>allItems.push({...it,_pl:null}));
+    if(o.persons)o.persons.forEach((p,idx)=>{if(p.items)p.items.forEach(it=>allItems.push({...it,_pl:p.name,_pc:pColor(idx),_pid:p.id}))});
     if(!allItems.length)return;
     const total=allItems.reduce((s,it)=>s+it.p*it.q,0);
-    const time=new Date(o.openedAt||Date.now());
-    const hh=time.getHours().toString().padStart(2,'0'),mm=time.getMinutes().toString().padStart(2,'0');
+    const time=new Date(o.openedAt||Date.now()),hh=time.getHours().toString().padStart(2,'0'),mm=time.getMinutes().toString().padStart(2,'0');
     const min=Math.floor((Date.now()-(o.openedAt||Date.now()))/60000);
-    const pending=allItems.filter(it=>(it.status||'pending')==='pending').length;
-    const delivered=allItems.filter(it=>it.status==='delivered').length;
-    const ticketKey=t+':'+allItems.map(it=>it.id+':'+it.q).join(',');
-    const isNew=!lastSeenTickets.has(ticketKey);lastSeenTickets.add(ticketKey);
-    const ticket=document.createElement('div');
-    ticket.className='ticket'+(isNew?' new':'');
-    const noteHtml=o.tableNote?`<div class="ticket-note">↳ ${escapeHtml(o.tableNote)}</div>`:'';
+    const pend=allItems.filter(it=>(it.status||'pending')==='pending').length,deliv=allItems.filter(it=>it.status==='delivered').length;
+    const key=t+':'+allItems.map(it=>it.id+':'+it.q).join(',');const isNew=!lastSeenTickets.has(key);lastSeenTickets.add(key);
+    const ticket=document.createElement('div');ticket.className='ticket'+(isNew?' new':'');
     ticket.innerHTML=`
       <div class="ticket-head">
-        <div><div class="ticket-table">Mesa ${t.toString().padStart(2,'0')}</div>${noteHtml}</div>
-        <div style="text-align:right">
-          <div class="ticket-time">${hh}:${mm} · ${min}min</div>
-          <div class="ticket-progress">
-            ${pending>0?`<span class="badge-pending">${pending} pend.</span>`:''}
-            ${delivered>0?`<span class="badge-delivered">${delivered} ✓</span>`:''}
-          </div>
-        </div>
+        <div><div class="ticket-table">Mesa ${t.toString().padStart(2,'0')}</div>${o.tableNote?`<div class="ticket-note">↳ ${esc(o.tableNote)}</div>`:''}</div>
+        <div style="text-align:right"><div class="ticket-time">${hh}:${mm} · ${min}min</div><div class="ticket-progress">${pend>0?`<span class="badge-pending">${pend} pend.</span>`:''}${deliv>0?`<span class="badge-delivered">${deliv} ✓</span>`:''}</div></div>
       </div>
-      <div class="ticket-items">
+      <div style="margin:8px 0 4px">
         <div class="ticket-headrow"><span>Cant</span><span>Producto</span><span>Status</span></div>
-        ${allItems.map(it=>{
-          const st=it.status||'pending';
-          const personLabel=it._personLabel?`<span class="tl-person" style="color:${it._pcolor}">${escapeHtml(it._personLabel)}</span>`:'';
-          return `<div class="ticket-line ${st}" data-table="${t}" data-id="${it.id}" data-pid="${it._pid||''}">
-            <span class="tl-q">${it.q}×</span>
-            <span class="tl-name">${escapeHtml(it.n)}${it.note?`<span class="tl-note">↳ ${escapeHtml(it.note)}</span>`:''}${personLabel}</span>
-            <span class="tl-status">${st==='pending'?`<button class="status-btn pending" data-act="deliver">Entregar</button>`:`<button class="status-btn delivered" data-act="undeliver">✓ Entregado</button>`}</span>
-          </div>`;
-        }).join('')}
+        ${allItems.map(it=>{const st=it.status||'pending';return`<div class="ticket-line ${st}" data-table="${t}" data-id="${it.id}" data-pid="${it._pid||''}"><span class="tl-q">${it.q}×</span><span class="tl-name">${esc(it.n)}${it.note?`<span class="tl-note">↳ ${esc(it.note)}</span>`:''}${it._pl?`<span class="tl-person" style="color:${it._pc}">↳ ${esc(it._pl)}</span>`:''}</span><span class="tl-status">${st==='pending'?`<button class="status-btn pending" data-act="deliver">Entregar</button>`:`<button class="status-btn delivered" data-act="undeliver">✓ Entregado</button>`}</span></div>`}).join('')}
       </div>
-      <div class="ticket-foot">
-        <span style="font-size:10px;letter-spacing:.25em;color:var(--ink-faint);text-transform:uppercase">${allItems.reduce((s,it)=>s+it.q,0)} productos</span>
-        <span class="ticket-total">${money(total)}</span>
-      </div>
+      <div class="ticket-foot"><span style="font-size:10px;letter-spacing:.25em;color:var(--ink-faint);text-transform:uppercase">${allItems.reduce((s,it)=>s+it.q,0)} productos</span><span class="ticket-total">${money(total)}</span></div>
     `;
     ticket.querySelectorAll('.status-btn').forEach(btn=>{
-      btn.onclick=async(e)=>{
-        e.stopPropagation();
-        const line=btn.closest('.ticket-line');
-        const tbl=parseInt(line.dataset.table),itemId=line.dataset.id,pid=line.dataset.pid;
+      btn.onclick=async e=>{
+        e.stopPropagation();const line=btn.closest('.ticket-line');const tbl=parseInt(line.dataset.table),iid=line.dataset.id,pid=line.dataset.pid;
         const o2=orders[tbl];if(!o2)return;
-        let targetItem=null;
-        if(pid){const per=o2.persons&&o2.persons.find(x=>x.id===pid);targetItem=per&&per.items&&per.items.find(x=>x.id===itemId)}
-        else targetItem=o2.items&&o2.items.find(x=>x.id===itemId);
-        if(!targetItem)return;
-        targetItem.status=targetItem.status==='delivered'?'pending':'delivered';
-        await saveOrders(orders);renderKitchen();
-        toast(targetItem.status==='delivered'?'✓ Entregado':'Marcado como pendiente');
+        let item=null;if(pid){const per=o2.persons?.find(x=>x.id===pid);item=per?.items?.find(x=>x.id===iid)}else item=o2.items?.find(x=>x.id===iid);
+        if(!item)return;item.status=item.status==='delivered'?'pending':'delivered';await saveOrders(orders);renderKitchen();
+        toast(item.status==='delivered'?'✓ Entregado':'Marcado como pendiente');
       };
     });
     g.appendChild(ticket);
   });
-  const currentKeys=new Set(active.map(t=>{const o=orders[t];const all=[];if(o.items)o.items.forEach(it=>all.push(it));if(o.persons)o.persons.forEach(p=>{if(p.items)p.items.forEach(it=>all.push(it))});return t+':'+all.map(it=>it.id+':'+it.q).join(',')}));
-  lastSeenTickets=new Set([...lastSeenTickets].filter(k=>currentKeys.has(k)));
+  const cur=new Set(active.map(t=>{const o=orders[t];const all=[];if(o.items)o.items.forEach(it=>all.push(it));if(o.persons)o.persons.forEach(p=>{if(p.items)p.items.forEach(it=>all.push(it))});return t+':'+all.map(it=>it.id+':'+it.q).join(',')}));
+  lastSeenTickets=new Set([...lastSeenTickets].filter(k=>cur.has(k)));
 }
 
-// ===== STATS =====
+// ===== CAJA =====
+function periodRange(p){
+  const now=new Date(),s=new Date(now);
+  if(p==='day')s.setHours(0,0,0,0);
+  else if(p==='week'){const d=s.getDay();s.setDate(s.getDate()-(d===0?6:d-1));s.setHours(0,0,0,0)}
+  else if(p==='month'){s.setDate(1);s.setHours(0,0,0,0)}
+  else if(p==='year'){s.setMonth(0,1);s.setHours(0,0,0,0)}
+  return{from:s.getTime(),to:now.getTime()}
+}
+function periodLabel(p){return{day:'Hoy',week:'Esta semana',month:'Este mes',year:'Este año'}[p]}
+function filteredHistory(p){const{from,to}=periodRange(p);return history.filter(h=>h.closedAt>=from&&h.closedAt<=to)}
+
 function renderStats(){
-  const today=new Date();today.setHours(0,0,0,0);
-  const todayT=history.filter(h=>h.closedAt>=today.getTime());
-  const todayTotal=todayT.reduce((s,h)=>s+h.total,0);
-  const allTotal=history.reduce((s,h)=>s+h.total,0);
-  $('statToday').textContent=money(todayTotal);
-  $('statTodayCount').textContent=todayT.length+' cuentas cerradas hoy';
-  $('statAll').textContent=money(allTotal);
-  $('statAllCount').textContent=history.length+' cuentas en total';
+  document.querySelectorAll('.period-tab').forEach(b=>b.classList.toggle('active',b.dataset.period===currentPeriod));
+  const filtered=filteredHistory(currentPeriod);
+  const total=filtered.reduce((s,h)=>s+h.total,0);
+  $('statPeriodLabel').textContent=periodLabel(currentPeriod);
+  $('statPeriodTotal').textContent=money(total);
+  $('statPeriodCount').textContent=filtered.length+' cuenta'+(filtered.length!==1?'s':'');
   const list=$('historyList');list.innerHTML='';
-  if(!history.length){list.innerHTML=`<div class="empty"><div class="serif crescent">Sin historial aún</div><p>Las cuentas cerradas aparecerán aquí</p></div>`;return}
-  history.slice(0,50).forEach(h=>{
+  if(!filtered.length){list.innerHTML=`<div class="empty"><div class="serif crescent">Sin registros</div><p>No hay cuentas en este período</p></div>`;return}
+  const isDay=currentPeriod==='day';
+  filtered.forEach(h=>{
     const d=new Date(h.closedAt);
-    const dateStr=d.toLocaleDateString('es-MX',{day:'2-digit',month:'short'})+' · '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+    const dateStr=d.toLocaleDateString('es-MX',{day:'2-digit',month:'short'})+' '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
     const el=document.createElement('div');el.className='history-item';
-    el.innerHTML=`<div class="hi-left"><div class="table">Mesa ${h.table.toString().padStart(2,'0')}</div><div class="date">${dateStr}</div></div><div class="hi-right"><div class="hi-total">${money(h.total)}</div><div class="hi-items">${h.itemCount} productos</div></div>`;
-    el.onclick=()=>showHistoryDetail(h);
+    el.innerHTML=`
+      <div class="hi-top">
+        <div><div class="hi-table">Mesa ${h.table.toString().padStart(2,'0')}${h.tableNote?` <span style="font-size:12px;font-weight:400;color:var(--ink-faint)">· ${esc(h.tableNote)}</span>`:''}</div><div class="hi-date">${dateStr}</div></div>
+        <div><div class="hi-total">${money(h.total)}</div><div class="hi-items">${h.itemCount} prod.${h.editNote?` · <em style="color:var(--gold)">${esc(h.editNote)}</em>`:''}</div></div>
+      </div>
+      ${isDay?`<div class="hi-actions"><button class="hi-edit-btn" data-id="${h.id}">Editar</button><button class="hi-del-btn" data-id="${h.id}">Eliminar</button></div>`:''}
+    `;
+    if(isDay){
+      el.querySelector('.hi-edit-btn').onclick=async()=>{const ok=await askPassword('Contraseña para editar venta');if(!ok)return;openEditSale(h)};
+      el.querySelector('.hi-del-btn').onclick=async()=>{
+        const ok=await askPassword('Contraseña para eliminar venta');if(!ok)return;
+        const conf=await showConfirm('Eliminar venta','Mesa '+h.table+' · '+money(h.total)+'. No se puede deshacer.','Eliminar');if(!conf)return;
+        await deleteHistoryRecord(h.id);history=history.filter(x=>x.id!==h.id);renderStats();toast('Venta eliminada');
+      };
+    } else el.onclick=()=>showHistoryDetail(h);
     list.appendChild(el);
   });
 }
 
+let editingSaleId=null;
+function openEditSale(h){
+  editingSaleId=h.id;$('editSaleDesc').textContent=`Mesa ${h.table} · ${new Date(h.closedAt).toLocaleString('es-MX')}`;
+  $('editSaleTotal').value=h.total;$('editSaleNote').value=h.editNote||'';
+  $('editSaleModal').classList.add('show');setTimeout(()=>$('editSaleTotal').focus(),250);
+}
+$('editSaleCancel').onclick=()=>{$('editSaleModal').classList.remove('show');editingSaleId=null};
+$('editSaleSave').onclick=async()=>{
+  if(!editingSaleId)return;const newTotal=parseFloat($('editSaleTotal').value);
+  if(isNaN(newTotal)||newTotal<0){toast('Total inválido');return}
+  const note=$('editSaleNote').value.trim();
+  await updateHistoryRecord(editingSaleId,newTotal,note);
+  const rec=history.find(x=>x.id===editingSaleId);if(rec){rec.total=newTotal;rec.editNote=note}
+  $('editSaleModal').classList.remove('show');editingSaleId=null;renderStats();toast('✓ Venta actualizada');
+};
+
 function showHistoryDetail(h){
   let msg=`Mesa ${h.table} · ${new Date(h.closedAt).toLocaleString('es-MX')}\n`;
   if(h.persons&&h.persons.length){msg+='\nPor persona:\n';h.persons.forEach(p=>{msg+=`  ${p.name}: ${money(p.total)}\n`})}
-  msg+='\nProductos:\n';
-  h.items.forEach(it=>msg+=`  ${it.q}× ${it.n}${it.person?' ('+it.person+')':''}${it.note?' – '+it.note:''} · ${money(it.p*it.q)}\n`);
-  msg+=`\nTotal: ${money(h.total)}`;
-  alert(msg);
+  msg+='\nProductos:\n';h.items.forEach(it=>msg+=`  ${it.q}× ${it.n}${it.person?' ('+it.person+')':''}${it.note?' – '+it.note:''} · ${money(it.p*it.q)}\n`);
+  msg+=`\nTotal: ${money(h.total)}`;alert(msg);
 }
 
-$('exportCSV').onclick=()=>{
-  if(!history.length){toast('Sin datos');return}
+document.querySelectorAll('.period-tab').forEach(btn=>{
+  btn.onclick=async()=>{
+    const period=btn.dataset.period;
+    if(period!=='day'){const ok=await askPassword('Contraseña para ver '+periodLabel(period).toLowerCase());if(!ok)return}
+    currentPeriod=period;renderStats();
+  };
+});
+
+$('exportCSV').onclick=async()=>{
+  const ok=await askPassword('Contraseña para exportar CSV');if(!ok)return;
+  const filtered=filteredHistory(currentPeriod);if(!filtered.length){toast('Sin datos en este período');return}
   let csv='fecha,hora,mesa,persona,producto,nota,cantidad,precio_unitario,subtotal,total_cuenta\n';
-  history.forEach(h=>{
-    const d=new Date(h.closedAt),fecha=d.toISOString().slice(0,10),hora=d.toTimeString().slice(0,5);
-    h.items.forEach(it=>{
-      const note=(it.note||'').replace(/"/g,'""'),person=(it.person||'').replace(/"/g,'""');
-      csv+=`${fecha},${hora},${h.table},"${person}","${it.n}","${note}",${it.q},${it.p},${it.p*it.q},${h.total}\n`;
-    });
-  });
+  filtered.forEach(h=>{const d=new Date(h.closedAt),fecha=d.toISOString().slice(0,10),hora=d.toTimeString().slice(0,5);h.items.forEach(it=>{const note=(it.note||'').replace(/"/g,'""'),person=(it.person||'').replace(/"/g,'""');csv+=`${fecha},${hora},${h.table},"${person}","${it.n}","${note}",${it.q},${it.p},${it.p*it.q},${h.total}\n`})});
   dlFile('terraza_luna_'+Date.now()+'.csv',csv,'text/csv');toast('CSV descargado');
 };
-$('exportJSON').onclick=()=>{if(!history.length){toast('Sin datos');return}dlFile('terraza_luna_'+Date.now()+'.json',JSON.stringify(history,null,2),'application/json');toast('JSON descargado')};
-$('clearHistory').onclick=async()=>{const ok=await showConfirm('Borrar historial','Se perderán todas las ventas. Sin retorno.','Borrar');if(!ok)return;await deleteHistory();history=[];renderStats();toast('Historial borrado')};
+$('exportJSON').onclick=async()=>{
+  const ok=await askPassword('Contraseña para exportar JSON');if(!ok)return;
+  const filtered=filteredHistory(currentPeriod);if(!filtered.length){toast('Sin datos en este período');return}
+  dlFile('terraza_luna_'+Date.now()+'.json',JSON.stringify(filtered,null,2),'application/json');toast('JSON descargado');
+};
+$('clearHistory').onclick=async()=>{
+  const ok=await askPassword('Contraseña para borrar historial');if(!ok)return;
+  const conf=await showConfirm('Borrar TODO el historial','Esta acción no se puede deshacer.','Borrar todo');if(!conf)return;
+  await deleteAllHistory();history=[];renderStats();toast('Historial borrado');
+};
 function dlFile(name,content,type){const b=new Blob([content],{type}),url=URL.createObjectURL(b),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 
 // ===== ROLES =====
 function setRole(role){
   document.querySelectorAll('.role-switch button').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  if(role==='mesero'){
-    $('roleMesero').classList.add('active');$('view-mesero').classList.add('active');
-    $('cartBar').classList.toggle('show',!!currentTable&&tableCount(currentTable)>0);
-  } else if(role==='cocina'){
-    $('roleCocina').classList.add('active');$('view-cocina').classList.add('active');$('cartBar').classList.remove('show');renderKitchen();
-  } else {
-    $('roleStats').classList.add('active');$('view-stats').classList.add('active');$('cartBar').classList.remove('show');renderStats();
-  }
+  if(role==='mesero'){$('roleMesero').classList.add('active');$('view-mesero').classList.add('active');$('cartBar').classList.toggle('show',!!currentTable&&tableCount(currentTable)>0)}
+  else if(role==='cocina'){$('roleCocina').classList.add('active');$('view-cocina').classList.add('active');$('cartBar').classList.remove('show');renderKitchen()}
+  else{$('roleStats').classList.add('active');$('view-stats').classList.add('active');$('cartBar').classList.remove('show');renderStats()}
 }
 $('roleMesero').onclick=()=>setRole('mesero');
 $('roleCocina').onclick=()=>setRole('cocina');
@@ -1163,7 +1034,7 @@ $('roleStats').onclick=()=>setRole('stats');
 
 // ===== SYNC =====
 async function syncFromStorage(){
-  const [o,h]=await Promise.all([loadOrders(),loadHistory()]);
+  const[o,h]=await Promise.all([loadOrders(),loadHistory()]);
   const oc=JSON.stringify(o)!==JSON.stringify(orders),hc=JSON.stringify(h)!==JSON.stringify(history);
   orders=o;history=h;
   if(oc){
@@ -1171,7 +1042,7 @@ async function syncFromStorage(){
       if($('screen-tables').style.display!=='none')renderTables();
       else if($('screen-cart').style.display!=='none')renderCart();
       else if($('screen-persons').style.display!=='none')renderPersonsView();
-      updateCartBar();
+      updateCartBar();updateMenuBadges();
     }
     if($('view-cocina').classList.contains('active'))renderKitchen();
   }
@@ -1182,7 +1053,7 @@ async function syncFromStorage(){
 (async function init(){
   orders=await loadOrders();history=await loadHistory();
   renderTables();renderCatTabs();renderMenu();
-  setInterval(syncFromStorage,2500);
+  setInterval(syncFromStorage,3000);
 })();
 </script>
 </body>
