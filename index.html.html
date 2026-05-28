@@ -1218,12 +1218,13 @@ gid('payModalClose').addEventListener('click',closePayModal);
 gid('payModalCancel').addEventListener('click',closePayModal);
 gid('payModal').addEventListener('click',function(e){if(e.target===gid('payModal'))closePayModal();});
 gid('payModalConfirm').addEventListener('click',async function(){
-  if(_payModalCb){
+  var cb=_payModalCb;
+  if(cb){
     var given=parseFloat(gid('payClientAmt').value)||0;
     var total=parseFloat(gid('payClientAmt').getAttribute('data-total'))||0;
     if(given>0&&given<total){showToast('El pago es menor al total');return;}
     closePayModal();
-    await _payModalCb();
+    await cb();
   }
 });
 
@@ -1361,16 +1362,12 @@ function renderPersonsView(){
     if(payBtn){
       payBtn.addEventListener('click',function(){
         if(!per.items||!per.items.length){showToast('Sin productos para cobrar');return;}
-        openPayModal('Cobrar a '+per.name,'','Cobrar',function(){},null);
-        // Custom: use per-person flow
-        gid('payModalTotal').textContent=money(subtotal);
-        gid('payModalSub').textContent='';
-        gid('payClientAmt').setAttribute('data-total',subtotal);
-        gid('payModalConfirm').textContent='Cobrar';
-        _payModalCb=async function(){
-          for(var ii=0;ii<orders[curTable].persons.length;ii++){if(orders[curTable].persons[ii].id===per.id){orders[curTable].persons[ii].paid=true;break;}}
-          await saveOrders(orders);renderPersonsView();updateCartBar();showToast('✓ '+per.name+' pagó '+money(subtotal));
-        };
+        (function(person,amt){
+          openPayModal('Cobrar a '+person.name,'',amt,'Cobrar',async function(){
+            for(var ii=0;ii<orders[curTable].persons.length;ii++){if(orders[curTable].persons[ii].id===person.id){orders[curTable].persons[ii].paid=true;break;}}
+            await saveOrders(orders);renderPersonsView();updateCartBar();showToast('✓ '+person.name+' pagó '+money(amt));
+          });
+        })(per,subtotal);
       });
     }
     // Undo pay button
