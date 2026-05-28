@@ -399,11 +399,11 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
       <div class="s-sub" id="statSub">0 cuentas</div>
     </div>
     <h2 class="sec">Historial</h2>
-    <div id="historyList"></div>
+    <div id="appappappHistoryList"></div>
     <div class="act-bar">
       <button class="btn btn-g" id="exportCSV">Exportar CSV</button>
       <button class="btn btn-g" id="exportJSON">Exportar JSON</button>
-      <button class="btn btn-d" id="clearHistory">Borrar historial</button>
+      <button class="btn btn-d" id="clearappappappHistory">Borrar historial</button>
     </div>
   </div>
 
@@ -557,16 +557,16 @@ function sdel(path) {
 }
 function loadOrders(){return sfetch('/rest/v1/orders?id=eq.current&select=data').then(function(r){return(r&&r[0])?r[0].data:{};})}
 function saveOrders(o){return spatch('/rest/v1/orders?id=eq.current',{data:o,updated_at:new Date().toISOString()});}
-function loadHistory(){
-  return sfetch('/rest/v1/history?select=*&order=closed_at.desc&limit=500').then(function(rows){
+function loadappappappHistory(){
+  return sfetch('/rest/v1/appappappHistory?select=*&order=closed_at.desc&limit=500').then(function(rows){
     if(!Array.isArray(rows))return[];
     return rows.map(function(h){return{id:h.id,table:h.table_num,tableNote:h.table_note||'',openedAt:+new Date(h.opened_at),closedAt:+new Date(h.closed_at),total:+h.total,itemCount:h.item_count,items:h.items||[],persons:h.persons||[],editNote:h.edit_note||''};});
   });
 }
-function insertHist(rec){return spost('/rest/v1/history',{id:rec.id,table_num:rec.table,table_note:rec.tableNote||'',opened_at:new Date(rec.openedAt).toISOString(),closed_at:new Date(rec.closedAt).toISOString(),total:rec.total,item_count:rec.itemCount,items:rec.items||[],persons:rec.persons||[]});}
-function updateHist(id,total,note){return spatch('/rest/v1/history?id=eq.'+id,{total:total,edit_note:note});}
-function deleteHist(id){return sdel('/rest/v1/history?id=eq.'+id);}
-function deleteAllHist(){return sdel('/rest/v1/history?closed_at=gte.2000-01-01');}
+function insertHist(rec){return spost('/rest/v1/appappappHistory',{id:rec.id,table_num:rec.table,table_note:rec.tableNote||'',opened_at:new Date(rec.openedAt).toISOString(),closed_at:new Date(rec.closedAt).toISOString(),total:rec.total,item_count:rec.itemCount,items:rec.items||[],persons:rec.persons||[]});}
+function updateHist(id,total,note){return spatch('/rest/v1/appappappHistory?id=eq.'+id,{total:total,edit_note:note});}
+function deleteHist(id){return sdel('/rest/v1/appappappHistory?id=eq.'+id);}
+function deleteAllHist(){return sdel('/rest/v1/appappappHistory?closed_at=gte.2000-01-01');}
 function loadUsers(){return sfetch('/rest/v1/app_users?select=*&order=created_at.asc').then(function(r){return Array.isArray(r)?r:[];});}
 function loadConfig(k){return sfetch('/rest/v1/app_config?key=eq.'+k+'&select=value').then(function(r){return(r&&r[0])?r[0].value:null;});}
 function saveConfig(k,v){return spatch('/rest/v1/app_config?key=eq.'+k,{value:v,updated_at:new Date().toISOString()});}
@@ -605,7 +605,7 @@ var MENU=[
 
 var PC=['#8a6420','#1d6b7a','#6b3a7a','#3a7a3a','#7a3a3a','#4a6b2d','#2d3a7a','#7a5a1d'];
 var NT=12;
-var orders={},history=[],appUsers=[],adminPass='Unwell06$';
+var orders={},appappappHistory=[],appUsers=[],adminPass='Unwell06$';
 var curTable=null,curCat=MENU[0].cat,curPersonId=null,pMenuCat=MENU[0].cat;
 var pendItem=null,noteTarget='general',curPeriod='day',editSaleId=null;
 var editingUserId=null,loggedUser=null,lastSeen={};
@@ -737,7 +737,7 @@ async function doLogin(){
     if(!found.active){gid('loginErr').textContent='Usuario bloqueado. Contacta al administrador.';return;}
     loggedUser=found;appUsers=users;
     var ap=await loadConfig('admin_password');if(ap)adminPass=ap;
-    orders=await loadOrders();history=await loadHistory();
+    orders=await loadOrders();appappappHistory=await loadappappappHistory();
     gid('loginScreen').style.display='none';gid('appShell').style.display='block';
     renderTables();renderCatTabs();renderMenu();
     setInterval(sync,3000);
@@ -940,7 +940,7 @@ function doCloseTable(t){
     var pb=o.persons?o.persons.map(function(p){return{name:p.name,total:pTotal(p),count:pCount(p)};}):[];
     var rec={id:uid(),table:t,tableNote:o.tableNote||'',openedAt:o.openedAt||Date.now(),closedAt:Date.now(),total:tot,itemCount:all.length,items:all,persons:pb};
     
-    history.unshift(rec);
+    appappappHistory.unshift(rec);
     delete orders[t];
     
     // 2. Await the database operations
@@ -1183,12 +1183,12 @@ function renderKitchen(){
 // ══ CAJA ══
 function pRange(p){var n=new Date(),s=new Date(n);if(p==='day')s.setHours(0,0,0,0);else if(p==='week'){var d=s.getDay();s.setDate(s.getDate()-(d===0?6:d-1));s.setHours(0,0,0,0);}else if(p==='month'){s.setDate(1);s.setHours(0,0,0,0);}else{s.setMonth(0,1);s.setHours(0,0,0,0);}return{from:s.getTime(),to:n.getTime()};}
 function pLabel(p){return{day:'Hoy',week:'Esta semana',month:'Este mes',year:'Este año'}[p];}
-function filtHist(p){var r=pRange(p);return history.filter(function(h){return h.closedAt>=r.from&&h.closedAt<=r.to;});}
+function filtHist(p){var r=pRange(p);return appappappHistory.filter(function(h){return h.closedAt>=r.from&&h.closedAt<=r.to;});}
 function renderStats(){
   document.querySelectorAll('.per-tab').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-period')===curPeriod);});
   var f=filtHist(curPeriod),tot=f.reduce(function(s,h){return s+h.total;},0);
   gid('statLbl').textContent=pLabel(curPeriod);gid('statVal').textContent=money(tot);gid('statSub').textContent=f.length+' cuenta'+(f.length!==1?'s':'');
-  var list=gid('historyList');list.innerHTML='';
+  var list=gid('appappappHistoryList');list.innerHTML='';
   if(!f.length){list.innerHTML='<div class="empty"><div class="etit crescent">Sin registros</div><div class="esub">No hay cuentas en este período</div></div>';return;}
   var isDay=curPeriod==='day';
   f.forEach(function(h){
@@ -1200,7 +1200,7 @@ function renderStats(){
         el.querySelector('.hi-eb').addEventListener('click',async function(){var ok=await askPass('Contraseña para editar');if(!ok)return;openEditSale(rec);});
         el.querySelector('.hi-db').addEventListener('click',async function(){
           var ok=await askPass('Contraseña para eliminar');if(!ok)return;
-          openConfirm('Eliminar venta','Mesa '+rec.table+' · '+money(rec.total)+'. No se puede deshacer.','Eliminar',async function(){await deleteHist(rec.id);history=history.filter(function(x){return x.id!==rec.id;});renderStats();showToast('Venta eliminada');});
+          openConfirm('Eliminar venta','Mesa '+rec.table+' · '+money(rec.total)+'. No se puede deshacer.','Eliminar',async function(){await deleteHist(rec.id);appappappHistory=appappappHistory.filter(function(x){return x.id!==rec.id;});renderStats();showToast('Venta eliminada');});
         });
       })(h);
     }else{(function(rec){el.addEventListener('click',function(){showHistDetail(rec);});})(h);}
@@ -1210,11 +1210,11 @@ function renderStats(){
 function showHistDetail(h){var m='Mesa '+h.table+' · '+new Date(h.closedAt).toLocaleString('es-MX')+'\n';if(h.persons&&h.persons.length){m+='\nPor persona:\n';h.persons.forEach(function(p){m+='  '+p.name+': '+money(p.total)+'\n';});}m+='\nProductos:\n';h.items.forEach(function(it){m+='  '+it.q+'× '+it.n+(it.person?' ('+it.person+')':'')+(it.note?' – '+it.note:'')+' · '+money(it.p*it.q)+'\n';});m+='\nTotal: '+money(h.total);alert(m);}
 function openEditSale(h){editSaleId=h.id;gid('esSaleDesc').textContent='Mesa '+h.table+' · '+new Date(h.closedAt).toLocaleString('es-MX');gid('esTotal').value=h.total;gid('esNote').value=h.editNote||'';gid('editSaleModal').classList.add('show');setTimeout(function(){gid('esTotal').focus();},250);}
 gid('esCancel').addEventListener('click',function(){gid('editSaleModal').classList.remove('show');editSaleId=null;});
-gid('esSave').addEventListener('click',async function(){if(!editSaleId)return;var nt=parseFloat(gid('esTotal').value);if(isNaN(nt)||nt<0){showToast('Total inválido');return;}var note=gid('esNote').value.trim();await updateHist(editSaleId,nt,note);var r=null;for(var i=0;i<history.length;i++){if(history[i].id===editSaleId){r=history[i];break;}}if(r){r.total=nt;r.editNote=note;}gid('editSaleModal').classList.remove('show');editSaleId=null;renderStats();showToast('✓ Venta actualizada');});
+gid('esSave').addEventListener('click',async function(){if(!editSaleId)return;var nt=parseFloat(gid('esTotal').value);if(isNaN(nt)||nt<0){showToast('Total inválido');return;}var note=gid('esNote').value.trim();await updateHist(editSaleId,nt,note);var r=null;for(var i=0;i<appappappHistory.length;i++){if(appappappHistory[i].id===editSaleId){r=appappappHistory[i];break;}}if(r){r.total=nt;r.editNote=note;}gid('editSaleModal').classList.remove('show');editSaleId=null;renderStats();showToast('✓ Venta actualizada');});
 document.querySelectorAll('.per-tab').forEach(function(btn){btn.addEventListener('click',async function(){var p=btn.getAttribute('data-period');if(p!=='day'){var ok=await askPass('Contraseña para ver '+pLabel(p).toLowerCase());if(!ok)return;}curPeriod=p;renderStats();});});
 gid('exportCSV').addEventListener('click',async function(){var ok=await askPass('Contraseña para exportar CSV');if(!ok)return;var f=filtHist(curPeriod);if(!f.length){showToast('Sin datos');return;}var csv='fecha,hora,mesa,persona,producto,nota,cantidad,precio_unitario,subtotal,total_cuenta\n';f.forEach(function(h){var d=new Date(h.closedAt),fe=d.toISOString().slice(0,10),ho=d.toTimeString().slice(0,5);h.items.forEach(function(it){var nt=(it.note||'').replace(/"/g,'""'),ps=(it.person||'').replace(/"/g,'""');csv+=fe+','+ho+','+h.table+',"'+ps+'","'+it.n+'","'+nt+'",'+it.q+','+it.p+','+it.p*it.q+','+h.total+'\n';});});dlFile('terraza_luna_'+Date.now()+'.csv',csv,'text/csv');showToast('CSV descargado');});
 gid('exportJSON').addEventListener('click',async function(){var ok=await askPass('Contraseña para exportar JSON');if(!ok)return;var f=filtHist(curPeriod);if(!f.length){showToast('Sin datos');return;}dlFile('terraza_luna_'+Date.now()+'.json',JSON.stringify(f,null,2),'application/json');showToast('JSON descargado');});
-gid('clearHistory').addEventListener('click',async function(){var ok=await askPass('Contraseña para borrar historial');if(!ok)return;openConfirm('Borrar TODO el historial','Sin retorno.','Borrar todo',async function(){await deleteAllHist();history=[];renderStats();showToast('Historial borrado');});});
+gid('clearappappappHistory').addEventListener('click',async function(){var ok=await askPass('Contraseña para borrar historial');if(!ok)return;openConfirm('Borrar TODO el historial','Sin retorno.','Borrar todo',async function(){await deleteAllHist();appappappHistory=[];renderStats();showToast('Historial borrado');});});
 function dlFile(n,c,t){var b=new Blob([c],{type:t}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=n;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u);},1000);}
 
 // ══ ADMIN USUARIOS ══
@@ -1263,9 +1263,9 @@ gid('roleStats').addEventListener('click',function(){setRole('stats');});
 // ══ SYNC ══
 async function sync(){
   if(!loggedUser)return;
-  var o=await loadOrders(),h=await loadHistory();
-  var oc=JSON.stringify(o)!==JSON.stringify(orders),hc=JSON.stringify(h)!==JSON.stringify(history);
-  orders=o;history=h;
+  var o=await loadOrders(),h=await loadappappappHistory();
+  var oc=JSON.stringify(o)!==JSON.stringify(orders),hc=JSON.stringify(h)!==JSON.stringify(appappappHistory);
+  orders=o;appappappHistory=h;
   if(oc){
     if(gid('view-mesero').classList.contains('active')){if(gid('sc-tables').style.display!=='none')renderTables();else if(gid('sc-cart').style.display!=='none')renderCart();else if(gid('sc-persons').style.display!=='none')renderPersonsView();updateCartBar();updateBadges();}
     if(gid('view-cocina').classList.contains('active'))renderKitchen();
