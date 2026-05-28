@@ -290,6 +290,32 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
 .empty .etit{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--dim);margin-bottom:5px}
 .empty .esub{font-size:11px;letter-spacing:.1em}
 .crescent::before{content:'☾';color:var(--gold);margin-right:6px;font-size:.85em}
+
+/* ── Recetario admin lista compacta ── */
+.rec-admin-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:6px}
+.rec-admin-name{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;flex:1;min-width:0}
+.rec-admin-acts{display:flex;gap:6px;flex-shrink:0}
+
+/* ── Vista receta detalle ── */
+.recipe-view{padding:4px 0 20px}
+.rv-header{padding:18px 0 16px;border-bottom:1px solid var(--line);margin-bottom:0}
+.rv-cat{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--faint);font-weight:600;margin-bottom:4px}
+.rv-name{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;line-height:1.15;margin-bottom:8px}
+.rv-base{font-size:12px;color:var(--dim);font-weight:500;margin-bottom:4px}
+.rv-glass{font-size:12px;color:var(--faint)}
+.rv-ings{padding:18px 0 14px;border-bottom:1px solid var(--line)}
+.rv-ing-row{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px;padding:7px 0;border-bottom:1px dashed var(--line)}
+.rv-ing-row:last-child{border-bottom:0}
+.rv-ing-dot{color:var(--gold);font-size:16px;line-height:1;flex-shrink:0}
+.rv-ing-name{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;flex:1;min-width:0}
+.rv-ing-meas{font-size:11px;color:var(--gold);font-weight:600;white-space:nowrap}
+.rv-med{font-size:11px}
+.rv-ing-note{font-size:10px;color:var(--faint);font-style:italic;width:100%;padding-left:18px}
+.rv-prep-block{padding:18px 0}
+.rv-step{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;font-size:13px;line-height:1.55;color:var(--ink)}
+.rv-step:last-child{margin-bottom:0}
+.rv-step-num{width:22px;height:22px;border-radius:50%;background:var(--gold);color:#fff;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.rv-step-single{font-size:13px;line-height:1.6;color:var(--ink)}
 </style>
 </head>
 <body>
@@ -1232,6 +1258,13 @@ function renderKitchen(){
         if(!item)return;item.status=item.status==='delivered'?'pending':'delivered';await saveOrders(orders);renderKitchen();showToast(item.status==='delivered'?'✓ Entregado':'Marcado pendiente');
       });
     });
+    ticket.querySelectorAll('.rec-btn').forEach(function(btn){
+      btn.addEventListener('click',function(e){
+        e.stopPropagation();
+        var itemName=btn.getAttribute('data-item-name');
+        showRecipeFromKitchen(itemName);
+      });
+    });
     g.appendChild(ticket);
   });
   gid('kitchenEmpty').style.display=visible===0?'block':'none';
@@ -1492,19 +1525,14 @@ async function renderRecipeAdminList(){
   list.innerHTML='';
   if(!recipes.length){list.innerHTML='<div class="empty"><div class="etit crescent">Sin recetas</div><div class="esub">Agrega la primera receta</div></div>';return;}
   recipes.forEach(function(rec){
-    var el=document.createElement('div');el.className='rec-card';
-    el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:flex-start">'+
-      '<div style="flex:1;min-width:0">'+
-        '<div class="rec-cat">'+esc(rec.category_name)+'</div>'+
-        '<div class="rec-name">'+esc(rec.item_name)+'</div>'+
-        '<div class="rec-base">Base: '+esc(rec.base_spirit||'—')+'</div>'+
-        '<div class="rec-price">'+money(rec.price)+' · '+esc(rec.glass||'—')+'</div>'+
-      '</div>'+
-      '<div class="rec-acts">'+
+    var el=document.createElement('div');el.className='rec-admin-row';
+    el.innerHTML=
+      '<div class="rec-admin-name">'+esc(rec.item_name)+'</div>'+
+      '<div class="rec-admin-acts">'+
         '<button class="ai-btn ai-edit">Editar</button>'+
         '<button class="ai-btn" style="border:1px solid var(--gold);color:var(--gold)">Ver</button>'+
         '<button class="ai-btn ai-del">Eliminar</button>'+
-      '</div></div>';
+      '</div>';
     (function(recipe){
       el.querySelectorAll('.ai-btn')[0].addEventListener('click',function(e){e.stopPropagation();openRecipeForm(recipe);});
       el.querySelectorAll('.ai-btn')[1].addEventListener('click',function(e){e.stopPropagation();showRecipeDetail(recipe.id,'recipe-admin');});
@@ -1526,35 +1554,47 @@ async function showRecipeDetail(recipeId, fromRole){
   var rec=await loadRecipeById(recipeId);
   if(!rec){showToast('Receta no encontrada');return;}
   var ings=await loadIngredients(recipeId);
+
+  // Header: categoría, nombre, base y vaso — sin precio
   var html='<div class="rv-header">'+
     '<div class="rv-cat">'+esc(rec.category_name)+'</div>'+
     '<div class="rv-name">'+esc(rec.item_name)+'</div>'+
-    '<div class="rv-base">Base: '+esc(rec.base_spirit||'—')+'</div>'+
-    '<div class="rv-glass">🥃 '+esc(rec.glass||'—')+'</div>'+
-    '<div class="rv-price">'+money(rec.price)+'</div>'+
+    (rec.base_spirit?'<div class="rv-base">'+esc(rec.base_spirit)+'</div>':'')+
+    (rec.glass?'<div class="rv-glass">🥃 '+esc(rec.glass)+'</div>':'')+
     '</div>';
+
+  // Ingredientes como lista limpia con medidas inline
   if(ings.length){
-    html+='<div class="rv-section"><div class="rv-section-title">Ingredientes</div>'+
-      '<table class="rv-ing-table"><thead><tr><th>Ingrediente</th><th style="text-align:right">oz</th><th style="text-align:right">ml</th><th style="text-align:right">Notas</th></tr></thead><tbody>';
+    html+='<div class="rv-ings">';
     ings.forEach(function(ing){
-      html+='<tr>'+
-        '<td>'+esc(ing.ingredient)+'</td>'+
-        '<td class="meas">'+(ing.oz!=null?ing.oz:'—')+'</td>'+
-        '<td class="meas">'+(ing.ml!=null?ing.ml:'—')+'</td>'+
-        '<td class="notes">'+(ing.notes?esc(ing.notes):'')+'</td>'+
-        '</tr>';
+      var meds=[];
+      if(ing.oz!=null&&ing.oz!=='')meds.push('<span class="rv-med">'+ing.oz+' oz</span>');
+      if(ing.ml!=null&&ing.ml!=='')meds.push('<span class="rv-med">'+ing.ml+' ml</span>');
+      var medStr=meds.length?meds.join(' / '):'';
+      html+='<div class="rv-ing-row">'+
+        '<span class="rv-ing-dot">·</span>'+
+        '<span class="rv-ing-name">'+esc(ing.ingredient)+'</span>'+
+        (medStr?'<span class="rv-ing-meas">'+medStr+'</span>':'')+
+        (ing.notes?'<span class="rv-ing-note">'+esc(ing.notes)+'</span>':'')+
+        '</div>';
     });
-    html+='</tbody></table></div>';
+    html+='</div>';
   }
+
+  // Preparación numerada
   if(rec.preparation){
-    // Split by sentences and number them
     var steps=rec.preparation.split(/(?<=[.!])\s+/).filter(function(s){return s.trim().length>0;});
-    html+='<div class="rv-section"><div class="rv-section-title">Preparación</div><div class="rv-prep">';
+    html+='<div class="rv-prep-block">';
     if(steps.length>1){
-      steps.forEach(function(s,i){html+='<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:10px"><span class="rv-step-num">'+(i+1)+'</span><span>'+esc(s.trim())+'</span></div>';});
-    }else{html+=esc(rec.preparation);}
-    html+='</div></div>';
+      steps.forEach(function(s,i){
+        html+='<div class="rv-step"><span class="rv-step-num">'+(i+1)+'</span><span>'+esc(s.trim())+'</span></div>';
+      });
+    }else{
+      html+='<div class="rv-step-single">'+esc(rec.preparation)+'</div>';
+    }
+    html+='</div>';
   }
+
   gid('recipeDetailContent').innerHTML=html;
   setRole('recipe-detail');
 }
@@ -1581,6 +1621,14 @@ function openRecipeForm(rec){
   gid('recFGlass').value=rec?(rec.glass||''):'';
   gid('recFPrep').value=rec?(rec.preparation||''):'';
   gid('recFErr').textContent='';
+  // En modo edición ocultar campos que no se editan (nombre, cat, precio, base)
+  var editMode=!!rec;
+  var topGrid=gid('recipeFormModal').querySelectorAll('[style*="grid-template-columns:1fr 1fr"]');
+  if(topGrid[0])topGrid[0].style.display=editMode?'none':'grid';
+  if(topGrid[1])topGrid[1].style.display=editMode?'none':'grid';
+  var glassLabel=gid('recFGlass').previousElementSibling;
+  if(glassLabel)glassLabel.style.display=editMode?'':'block';
+  gid('recFGlass').style.display=editMode?'':'';
   // Load ingredients if editing
   gid('recFIngList').innerHTML='';
   if(rec){
