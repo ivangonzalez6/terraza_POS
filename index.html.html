@@ -929,7 +929,9 @@ function doCloseTable(t){
   if(!o){showToast('Mesa sin productos');return;}
   var tot=tblTotal(t);
   if(!tot||tot<=0){showToast('La cuenta está vacía');return;}
-  openConfirm('Cobrar mesa '+t,'Total: '+money(tot),'Cobrar y cerrar',function(){
+  
+  // 1. Make the callback function async
+  openConfirm('Cobrar mesa '+t,'Total: '+money(tot),'Cobrar y cerrar', async function(){
     // Build record
     var all=[];
     if(o.items){o.items.forEach(function(it){all.push({n:it.n,p:it.p,q:it.q,note:it.note||''});});}
@@ -937,40 +939,21 @@ function doCloseTable(t){
     if(o.discounts&&o.discounts.length){o.discounts.forEach(function(d){all.push({n:d.label,p:d.amount,q:1,note:'Descuento 2×1'});});}
     var pb=o.persons?o.persons.map(function(p){return{name:p.name,total:pTotal(p),count:pCount(p)};}):[];
     var rec={id:uid(),table:t,tableNote:o.tableNote||'',openedAt:o.openedAt||Date.now(),closedAt:Date.now(),total:tot,itemCount:all.length,items:all,persons:pb};
+    
     history.unshift(rec);
     delete orders[t];
-    saveOrders(orders);
-    insertHist(rec);
+    
+    // 2. Await the database operations
+    await saveOrders(orders);
+    await insertHist(rec);
+    
+    // 3. UI updates happen ONLY after data is safely saved
     showToast('✓ Cuenta cerrada · '+money(tot));
     curTable=null;curPersonId=null;
     showSc('tables');gid('cartBar').classList.remove('show');
     renderTables();
   });
 }
-gid('clearTableBtn').addEventListener('click',function(){
-  if(!curTable)return;var t=curTable;
-  openConfirm('Vaciar mesa '+t,'Se eliminarán todos los productos.','Vaciar',function(){
-    delete orders[t];saveOrders(orders);renderCart();updateCartBar();showToast('Cuenta vaciada');
-  });
-});
-gid('closeTableBtn').addEventListener('click', function () {
-  if (curTable === null || curTable === undefined) {
-    showToast('No hay una mesa seleccionada');
-    return;
-  }
-
-  doCloseTable(curTable);
-});
-
-gid('persCloseTable').addEventListener('click', function () {
-  if (curTable === null || curTable === undefined) {
-    showToast('No hay una mesa seleccionada');
-    return;
-  }
-
-  doCloseTable(curTable);
-});
-console.log('Mesa actual:', curTable);
 // ══ PROMO 2x1 ══
 var promoSelected={};
 function getEligibleItems(){
