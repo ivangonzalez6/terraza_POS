@@ -651,7 +651,7 @@ function deleteUser(id){return sdel('/rest/v1/app_users?id=eq.'+id);}
 var CATS_2X1=['Mojitos','Gin & Tonic','Caipiroska (Vodka)','Daiquirí (Ron)','Margarita (Tequila)','Frozen (Vodka)','Coctelería Clásica','Alta Coctelería'];
 var SF=[{n:'Clásico',p:50},{n:'Frutos rojos',p:60},{n:'Fresa',p:60},{n:'Mora',p:60},{n:'Arándano',p:60},{n:'Maracuyá',p:60}];
 var SFF=[{n:'Coco',p:60},{n:'Piña',p:60},{n:'Mango',p:60},{n:'Clásico',p:50},{n:'Frutos rojos',p:60},{n:'Fresa',p:60},{n:'Mora',p:60},{n:'Arándano',p:60},{n:'Maracuyá',p:60}];
-var MENU=[
+var MENU=[  // se sobreescribe desde BD al iniciar
   {cat:'Alitas',items:[{n:'Alitas Mango Habanero',p:70,d:'Con papas'},{n:'Alitas BBQ',p:70,d:'Con papas'},{n:'Alitas Tamarindo',p:70,d:'Con papas'},{n:'Alitas Tamarindo Habanero',p:70,d:'Con papas'},{n:'Alitas Piña Coco Habanero',p:70,d:'Con papas'},{n:'Alitas Chiltepín',p:70,d:'Con papas'},{n:'Alitas Clásicas',p:70,d:'Con papas'}]},
   {cat:'Boneless',items:[{n:'Boneless Mango Habanero',p:70,d:'Con papas'},{n:'Boneless BBQ',p:70,d:'Con papas'},{n:'Boneless Tamarindo',p:70,d:'Con papas'},{n:'Boneless Tamarindo Habanero',p:70,d:'Con papas'},{n:'Boneless Piña Coco Habanero',p:70,d:'Con papas'},{n:'Boneless Chiltepín',p:70,d:'Con papas'},{n:'Boneless Clásicos',p:70,d:'Con papas'}]},
   {cat:'Mojitos',items:SF.map(function(s){return{n:'Mojito '+s.n,p:s.p};})},
@@ -779,6 +779,7 @@ async function doLogin(){
     loggedUser=found;appUsers=users;
     var ap=await loadConfig('admin_password');if(ap)adminPass=ap;
     orders=await loadOrders();appHistory=await loadHistory();
+    await rebuildMenuFromDB();
     gid('loginScreen').style.display='none';gid('appShell').style.display='block';
     renderTables();renderCatTabs();renderMenu();
     setInterval(sync,3000);
@@ -1204,6 +1205,26 @@ gid('exportJSON').addEventListener('click',async function(){var ok=await askPass
 gid('clearHistory').addEventListener('click',async function(){var ok=await askPass('Contraseña para borrar historial');if(!ok)return;openConfirm('Borrar TODO el historial','Sin retorno.','Borrar todo',async function(){await deleteAllHist();appHistory=[];renderStats();showToast('Historial borrado');});});
 function dlFile(n,c,t){var b=new Blob([c],{type:t}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=n;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u);},1000);}
 
+// ══ RECONSTRUIR MENU DESDE BD ══
+async function rebuildMenuFromDB(){
+  var cats=await loadMenuCategories();
+  var newMenu=[];
+  for(var i=0;i<cats.length;i++){
+    var cat=cats[i];
+    if(!cat.active)continue;
+    var items=await loadMenuItems(cat.id);
+    var activeItems=items.filter(function(it){return it.active;}).map(function(it){
+      return{n:it.name,p:Number(it.price),d:it.description||''};
+    });
+    if(activeItems.length){
+      newMenu.push({cat:cat.name,items:activeItems});
+    }
+  }
+  MENU=newMenu;
+  // Reset current category to first
+  if(MENU.length)curCat=MENU[0].cat;
+}
+
 // ══ SUPABASE MENÚ ══
 function loadMenuCategories(){return sfetch('/rest/v1/menu_categories?select=*&order=sort_order.asc').then(function(r){return Array.isArray(r)?r:[];});}
 function loadMenuItems(catId){return sfetch('/rest/v1/menu_items?category_id=eq.'+catId+'&select=*&order=sort_order.asc').then(function(r){return Array.isArray(r)?r:[];});}
@@ -1243,7 +1264,8 @@ async function renderMenuAdmin(){
         await deleteMenuCat(cat.id);
         menuAdminCats=menuAdminCats.filter(function(c){return c.id!==cat.id;});
         if(menuAdminActiveCat===cat.id)menuAdminActiveCat=menuAdminCats[0]?menuAdminCats[0].id:null;
-        await renderMenuAdmin();showToast('Categoría eliminada');
+        await renderMenuAdmin();await rebuildMenuFromDB();renderCatTabs();renderMenu();
+        showToast('Categoría eliminada');
       });
     });
     ct.appendChild(b);
@@ -1271,11 +1293,15 @@ async function renderMenuAdmin(){
       '</div>';
     el.querySelector('.ai-edit').addEventListener('click',function(){openItemForm(item);});
     el.querySelector('.ai-toggle').addEventListener('click',async function(){
-      var na=!item.active;await updateMenuItem(item.id,{active:na});item.active=na;await renderMenuAdmin();showToast(na?'Producto visible':'Producto oculto');
+      var na=!item.active;await updateMenuItem(item.id,{active:na});item.active=na;
+      await renderMenuAdmin();await rebuildMenuFromDB();renderCatTabs();renderMenu();
+      showToast(na?'Producto visible':'Producto oculto');
     });
     el.querySelector('.ai-del').addEventListener('click',function(){
       openConfirm('Eliminar "'+item.name+'"','Esta acción no se puede deshacer.','Eliminar',async function(){
-        await deleteMenuItem(item.id);await renderMenuAdmin();showToast('Producto eliminado');
+        await deleteMenuItem(item.id);
+        await renderMenuAdmin();await rebuildMenuFromDB();renderCatTabs();renderMenu();
+        showToast('Producto eliminado');
       });
     });
     il.appendChild(el);
@@ -1303,7 +1329,10 @@ gid('catFSave').addEventListener('click',async function(){
     var newCat={id:'cat-'+uid(),name:name,sort_order:maxOrder+1,active:true};
     await insertMenuCat(newCat);menuAdminCats.push(newCat);menuAdminActiveCat=newCat.id;
   }
-  gid('catFormModal').classList.remove('show');editingCatId=null;await renderMenuAdmin();showToast('✓ Categoría guardada');
+  gid('catFormModal').classList.remove('show');editingCatId=null;
+  await renderMenuAdmin();
+  await rebuildMenuFromDB();renderCatTabs();renderMenu();
+  showToast('✓ Categoría guardada');
 });
 
 // ── Item form ──
@@ -1334,7 +1363,10 @@ gid('itemFSave').addEventListener('click',async function(){
     var newItem={id:'itm-'+uid(),category_id:menuAdminActiveCat,name:name,description:desc,price:price,active:true,sort_order:maxOrd+1};
     await insertMenuItem(newItem);
   }
-  gid('itemFormModal').classList.remove('show');editingItemId=null;await renderMenuAdmin();showToast('✓ Producto guardado');
+  gid('itemFormModal').classList.remove('show');editingItemId=null;
+  await renderMenuAdmin();
+  await rebuildMenuFromDB();renderCatTabs();renderMenu();
+  showToast('✓ Producto guardado');
 });
 
 // ══ ADMIN USUARIOS ══
