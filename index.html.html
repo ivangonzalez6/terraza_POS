@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Terraza Luna · POS</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -49,6 +49,34 @@ textarea{resize:none}
 .logout-btn:active{color:var(--danger);border-color:var(--danger)}
 
 .app{padding:14px 14px 120px;max-width:560px;margin:0 auto}
+/* ── Responsive breakpoints ── */
+@media(min-width:768px){
+  .app{max-width:700px;padding:18px 24px 100px}
+  .tables{grid-template-columns:repeat(4,1fr);gap:12px}
+  .tc .num{font-size:32px}
+  .menu-list{gap:10px}
+  .mi{padding:14px 16px}
+  .mi-n{font-size:18px}
+  .k-grid{grid-template-columns:repeat(2,1fr)}
+  .modal{max-width:600px}
+  .topbar{padding:14px 24px 12px}
+  .role-sw button{padding:7px 14px;font-size:11px}
+}
+@media(min-width:1100px){
+  .app{max-width:1060px;padding:20px 32px 80px}
+  .tables{grid-template-columns:repeat(6,1fr);gap:12px}
+  .k-grid{grid-template-columns:repeat(3,1fr)}
+  .menu-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .cat-tabs{padding:10px 2px 14px}
+  .topbar{padding:14px 32px 12px}
+  .cart-bar .ci{max-width:1060px}
+}
+@media(min-width:1400px){
+  .app{max-width:1360px}
+  .tables{grid-template-columns:repeat(6,1fr)}
+  .k-grid{grid-template-columns:repeat(4,1fr)}
+  .menu-list{grid-template-columns:repeat(3,1fr)}
+}
 .view{display:none;animation:fade .3s ease}
 .view.active{display:block}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -253,6 +281,8 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
 .admin-item-desc{font-size:11px;color:var(--faint);margin-top:2px;line-height:1.3}
 .admin-item-price{font-size:13px;color:var(--gold);font-weight:600;margin-top:3px}
 .admin-item-acts{display:flex;flex-direction:column;gap:5px;flex-shrink:0}
+@media(min-width:480px){.admin-item-acts{flex-direction:row;flex-wrap:wrap;align-items:flex-start;max-width:220px}}
+@media(min-width:768px){.admin-item-acts{flex-direction:row;flex-wrap:wrap}}
 .ai-btn{padding:5px 10px;border-radius:7px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;white-space:nowrap}
 .ai-edit{border:1px solid var(--gold);color:var(--gold)}
 .ai-edit:active{background:var(--gold);color:#fff}
@@ -296,12 +326,51 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
 
 
 /* ── Drag & Drop admin ── */
-.drag-handle{width:32px;height:40px;display:flex;align-items:center;justify-content:center;cursor:grab;color:var(--faint);font-size:18px;flex-shrink:0;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-ms-user-select:none}
+.drag-handle{width:32px;height:40px;display:flex;align-items:center;justify-content:center;cursor:grab;color:var(--line2);font-size:18px;flex-shrink:0;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-ms-user-select:none;transition:color .15s}
+.drag-handle:hover{color:var(--faint)}
 .drag-handle:active,.drag-handle:focus{cursor:grabbing;color:var(--gold);outline:none}
-.admin-item.dragging{opacity:.4;border-color:var(--gold);background:#fff8e8}
-.admin-item.drag-over{border-color:var(--gold);border-style:dashed;background:#fffbf0;transform:scale(1.01)}
-.admin-cat-tab.dragging{opacity:.4}
-.admin-cat-tab.drag-over{outline:2px dashed var(--gold);outline-offset:2px}
+
+/* Lifted state — element floats above siblings */
+.admin-item.dragging{
+  opacity:.92;
+  border-color:var(--gold)!important;
+  background:#fff8e8!important;
+  box-shadow:0 8px 28px rgba(138,100,32,.22),0 2px 8px rgba(0,0,0,.08);
+  transform:scale(1.03) rotate(0.5deg);
+  z-index:10;
+  position:relative;
+}
+.admin-cat-tab.dragging{
+  opacity:.9;
+  border-color:var(--gold)!important;
+  background:#fff8e8!important;
+  box-shadow:0 6px 20px rgba(138,100,32,.2);
+  transform:translateY(-2px) scale(1.04);
+  z-index:10;
+  position:relative;
+}
+
+/* Drop-zone indicator — golden top/bottom bar, NO background change */
+.admin-item.drag-over-above{
+  box-shadow:inset 0 3px 0 0 var(--gold);
+  border-top-color:var(--gold)!important;
+}
+.admin-item.drag-over-below{
+  box-shadow:inset 0 -3px 0 0 var(--gold);
+  border-bottom-color:var(--gold)!important;
+}
+.admin-cat-tab.drag-over-above{
+  box-shadow:inset 3px 0 0 0 var(--gold);
+  border-left-color:var(--gold)!important;
+}
+.admin-cat-tab.drag-over-below{
+  box-shadow:inset -3px 0 0 0 var(--gold);
+  border-right-color:var(--gold)!important;
+}
+
+/* Legacy fallback kept for compatibility */
+.admin-item.drag-over,.admin-cat-tab.drag-over{}
+
 .drag-hint{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--faint);text-align:center;padding:6px 0 2px;font-weight:500}
 /* ── Recetario admin lista compacta ── */
 .rec-admin-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:6px}
@@ -964,6 +1033,8 @@ gid('noteSave').addEventListener('click',async function(){
     if(!per)return;if(!per.items)per.items=[];
     var ex=null;for(var j=0;j<per.items.length;j++){if(per.items[j].n===pendItem.n&&(per.items[j].note||'')===note){ex=per.items[j];break;}}
     if(ex)ex.q+=1;else per.items.push({id:uid(),n:pendItem.n,p:pendItem.p,q:1,note:note,addedAt:Date.now(),status:'pending'});
+    // If this table had everything delivered, new item resets the order clock
+    _resetOrderTimeIfNeeded(curTable);
     gid('noteModal').classList.remove('show');pendItem=null;
     await saveOrders(orders);showToast('✓ Agregado a '+getPName());
     if(gid('sc-pmenu').style.display!=='none'){showSc('persons');renderPersonsView();}
@@ -971,6 +1042,8 @@ gid('noteSave').addEventListener('click',async function(){
     var items=orders[curTable].items,exG=null;
     for(var k=0;k<items.length;k++){if(items[k].n===pendItem.n&&(items[k].note||'')===note){exG=items[k];break;}}
     if(exG)exG.q+=1;else items.push({id:uid(),n:pendItem.n,p:pendItem.p,q:1,note:note,addedAt:Date.now(),status:'pending'});
+    // If this table had everything delivered, new item resets the order clock
+    _resetOrderTimeIfNeeded(curTable);
     gid('noteModal').classList.remove('show');pendItem=null;
     await saveOrders(orders);updateCartBar();updateBadges();showToast('✓ Agregado a mesa '+curTable);
   }
@@ -1231,6 +1304,27 @@ function renderPersonsView(){
   }else gid('personsSumm').style.display='none';
 }
 
+
+// ── Reset order timer when new items arrive at a "done" table ──
+function _resetOrderTimeIfNeeded(tableNum){
+  var o=orders[tableNum];if(!o)return;
+  var allItems=[];
+  if(o.items)o.items.forEach(function(it){allItems.push(it);});
+  if(o.persons)o.persons.forEach(function(p){if(p.items)p.items.forEach(function(it){allItems.push(it);});});
+  // Count delivered items BEFORE the new one was pushed (all existing items)
+  // If all of them are delivered (excluding the newly added pending ones) → reset clock
+  var existingDelivered=allItems.filter(function(it){return it.status==='delivered';});
+  var existingPending=allItems.filter(function(it){return(it.status||'pending')==='pending';});
+  // If the only pending items are brand new (addedAt within last 2s) and everything else is delivered
+  var now=Date.now();
+  var brandNewPending=existingPending.filter(function(it){return now-it.addedAt<2000;});
+  var olderPending=existingPending.filter(function(it){return now-it.addedAt>=2000;});
+  if(olderPending.length===0&&existingDelivered.length>0){
+    // All prior items were delivered — this is a new round → reset clock
+    o.openedAt=Date.now();
+  }
+}
+
 // ══ KITCHEN ══
 var kitchenRecipeNames={};
 async function refreshKitchenRecipeNames(){
@@ -1379,10 +1473,9 @@ gid('backToStatsFromMenu').addEventListener('click',function(){setRole('stats');
 
 
 // ══ DRAG & DROP HELPERS ══
-// Uses pointer events — works on both touch and mouse without long-press delay.
-// The drag handle (.drag-handle) is the only trigger zone, preventing
-// accidental activation and iOS text-selection menus.
-var dragSrc=null,dragType=null;
+// Pointer-events based drag: instant response, no long-press delay.
+// Shows a directional drop indicator (above/below) and lifts the element visually.
+var dragSrc=null;
 var _dragScrollInterval=null;
 
 function _getDraggableParent(el){
@@ -1390,109 +1483,121 @@ function _getDraggableParent(el){
   return el||null;
 }
 
+// Determine if pointer is in top or bottom half of target
+function _halfOf(target,clientY){
+  var r=target.getBoundingClientRect();
+  return clientY<r.top+r.height/2?'above':'below';
+}
+
+function _clearDropIndicators(){
+  document.querySelectorAll('.drag-over-above,.drag-over-below').forEach(function(x){
+    x.classList.remove('drag-over-above','drag-over-below');
+  });
+}
+
 function makeDraggable(el,onDrop){
   el.setAttribute('data-draggable','true');
   var handle=el.querySelector('.drag-handle')||el;
-
-  // ── Pointer events (unified mouse + touch, no delay) ──
-  var startX=0,startY=0,dragging=false,moved=false,indicator=null;
+  var startX=0,startY=0,dragging=false,dropTarget=null,dropSide=null;
 
   function cancelDrag(){
-    dragging=false;moved=false;
+    dragging=false;
     el.classList.remove('dragging');
-    document.querySelectorAll('[data-draggable].drag-over').forEach(function(x){x.classList.remove('drag-over');});
-    dragSrc=null;
-    if(indicator&&indicator.parentNode)indicator.parentNode.removeChild(indicator);
-    indicator=null;
+    _clearDropIndicators();
+    dragSrc=null;dropTarget=null;dropSide=null;
     clearInterval(_dragScrollInterval);_dragScrollInterval=null;
   }
 
   handle.addEventListener('pointerdown',function(e){
-    // Only main button or touch
     if(e.pointerType==='mouse'&&e.button!==0)return;
     e.stopPropagation();
-    handle.setPointerCapture(e.pointerId);
+    try{handle.setPointerCapture(e.pointerId);}catch(err){}
     startX=e.clientX;startY=e.clientY;
-    dragging=false;moved=false;
-    dragSrc=el;
+    dragging=false;dragSrc=el;dropTarget=null;dropSide=null;
   },{passive:true});
 
   handle.addEventListener('pointermove',function(e){
     if(!dragSrc||dragSrc!==el)return;
     var dx=e.clientX-startX,dy=e.clientY-startY;
-    if(!dragging&&Math.sqrt(dx*dx+dy*dy)>6){
+    if(!dragging&&Math.sqrt(dx*dx+dy*dy)>5){
       dragging=true;
       el.classList.add('dragging');
-      if(navigator.vibrate)navigator.vibrate(20);
+      if(navigator.vibrate)navigator.vibrate(18);
     }
     if(!dragging)return;
-    e.preventDefault&&e.preventDefault();
-    moved=true;
-    // Auto-scroll when near viewport edges
+    // Auto-scroll near edges
     clearInterval(_dragScrollInterval);
-    var edgeZone=60;
-    if(e.clientY<edgeZone){_dragScrollInterval=setInterval(function(){window.scrollBy(0,-8);},16);}
-    else if(e.clientY>window.innerHeight-edgeZone){_dragScrollInterval=setInterval(function(){window.scrollBy(0,8);},16);}
-    // Find drop target
+    var ez=55;
+    if(e.clientY<ez){_dragScrollInterval=setInterval(function(){window.scrollBy(0,-10);},16);}
+    else if(e.clientY>window.innerHeight-ez){_dragScrollInterval=setInterval(function(){window.scrollBy(0,10);},16);}
+    // Find target under pointer (hide self first)
     el.style.pointerEvents='none';
-    var rawTarget=document.elementFromPoint(e.clientX,e.clientY);
+    var raw=document.elementFromPoint(e.clientX,e.clientY);
     el.style.pointerEvents='';
-    var target=_getDraggableParent(rawTarget);
-    document.querySelectorAll('[data-draggable].drag-over').forEach(function(x){x.classList.remove('drag-over');});
-    if(target&&target!==el)target.classList.add('drag-over');
+    var tgt=_getDraggableParent(raw);
+    _clearDropIndicators();
+    if(tgt&&tgt!==el){
+      var side=_halfOf(tgt,e.clientY);
+      tgt.classList.add(side==='above'?'drag-over-above':'drag-over-below');
+      dropTarget=tgt;dropSide=side;
+    }else{dropTarget=null;dropSide=null;}
   },{passive:false});
 
   handle.addEventListener('pointerup',function(e){
     if(!dragSrc||dragSrc!==el){cancelDrag();return;}
     clearInterval(_dragScrollInterval);_dragScrollInterval=null;
-    el.style.pointerEvents='none';
-    var rawTarget=document.elementFromPoint(e.clientX,e.clientY);
-    el.style.pointerEvents='';
-    var target=_getDraggableParent(rawTarget);
-    var hadTarget=target&&target!==el&&target.classList.contains('drag-over');
+    var tgt=dropTarget,side=dropSide;
     cancelDrag();
-    if(hadTarget)onDrop(el,target);
+    if(tgt&&tgt!==el)onDrop(el,tgt,side);
   },{passive:true});
 
   handle.addEventListener('pointercancel',function(){cancelDrag();},{passive:true});
 
-  // ── Mouse fallback (desktop drag API) ──
+  // Desktop HTML5 drag fallback (mouse only, no touch)
   el.setAttribute('draggable','true');
+  var usingPointer=false;
+  handle.addEventListener('pointerdown',function(){usingPointer=true;},{passive:true,capture:true});
   el.addEventListener('dragstart',function(e){
-    if(e.pointerType==='touch')return; // pointer events handle touch
+    if(usingPointer){e.preventDefault();usingPointer=false;return;}
     dragSrc=el;
     e.dataTransfer.effectAllowed='move';
     setTimeout(function(){el.classList.add('dragging');},0);
   });
   el.addEventListener('dragend',function(){
     el.classList.remove('dragging');
-    document.querySelectorAll('[data-draggable].drag-over').forEach(function(x){x.classList.remove('drag-over');});
-    dragSrc=null;
+    _clearDropIndicators();dragSrc=null;
   });
   el.addEventListener('dragover',function(e){
     e.preventDefault();e.dataTransfer.dropEffect='move';
-    if(dragSrc&&dragSrc!==el)el.classList.add('drag-over');
+    if(!dragSrc||dragSrc===el)return;
+    _clearDropIndicators();
+    var side=_halfOf(el,e.clientY);
+    el.classList.add(side==='above'?'drag-over-above':'drag-over-below');
+    dropTarget=el;dropSide=side;
   });
   el.addEventListener('dragleave',function(e){
-    if(!el.contains(e.relatedTarget))el.classList.remove('drag-over');
+    if(!el.contains(e.relatedTarget)){el.classList.remove('drag-over-above','drag-over-below');dropTarget=null;}
   });
   el.addEventListener('drop',function(e){
-    e.preventDefault();el.classList.remove('drag-over');
-    if(dragSrc&&dragSrc!==el)onDrop(dragSrc,el);
+    e.preventDefault();
+    var tgt=dropTarget,side=dropSide;
+    _clearDropIndicators();dragSrc=null;dropTarget=null;dropSide=null;
+    if(tgt&&tgt!==el)onDrop(el,tgt,side);
   });
 }
 
 // ── Reorder categories ──
-async function reorderCats(srcEl,dstEl){
+async function reorderCats(srcEl,dstEl,side){
   var srcId=srcEl.getAttribute('data-cid');
   var dstId=dstEl.getAttribute('data-cid');
   var srcIdx=menuAdminCats.findIndex(function(c){return c.id===srcId;});
   var dstIdx=menuAdminCats.findIndex(function(c){return c.id===dstId;});
   if(srcIdx<0||dstIdx<0)return;
-  // Reorder array
   var moved=menuAdminCats.splice(srcIdx,1)[0];
-  menuAdminCats.splice(dstIdx,0,moved);
-  // Assign new sort_order values and persist
+  // Recalculate dstIdx after removal
+  dstIdx=menuAdminCats.findIndex(function(c){return c.id===dstId;});
+  var insertAt=(side==='below')?dstIdx+1:dstIdx;
+  menuAdminCats.splice(insertAt,0,moved);
   for(var i=0;i<menuAdminCats.length;i++){
     menuAdminCats[i].sort_order=i+1;
     await updateMenuCat(menuAdminCats[i].id,{sort_order:i+1});
@@ -1503,14 +1608,16 @@ async function reorderCats(srcEl,dstEl){
 }
 
 // ── Reorder items ──
-async function reorderItems(srcEl,dstEl){
+async function reorderItems(srcEl,dstEl,side){
   var srcId=srcEl.getAttribute('data-item-id');
   var dstId=dstEl.getAttribute('data-item-id');
   var srcIdx=menuAdminItems.findIndex(function(x){return x.id===srcId;});
   var dstIdx=menuAdminItems.findIndex(function(x){return x.id===dstId;});
   if(srcIdx<0||dstIdx<0)return;
   var moved=menuAdminItems.splice(srcIdx,1)[0];
-  menuAdminItems.splice(dstIdx,0,moved);
+  dstIdx=menuAdminItems.findIndex(function(x){return x.id===dstId;});
+  var insertAt=(side==='below')?dstIdx+1:dstIdx;
+  menuAdminItems.splice(insertAt,0,moved);
   for(var i=0;i<menuAdminItems.length;i++){
     menuAdminItems[i].sort_order=i+1;
     await updateMenuItem(menuAdminItems[i].id,{sort_order:i+1});
