@@ -806,25 +806,36 @@ function askPass(desc) {
     gid('pwDesc').textContent = desc || 'Ingresa la contraseña para continuar';
     gid('pwInput').value = '';
     gid('pwErr').textContent = '';
+
+    // Clone to remove all previous listeners
+    var oldOk = gid('pwOk');
+    var oldCancel = gid('pwCancel');
+    var newOk = oldOk.cloneNode(true);
+    var newCancel = oldCancel.cloneNode(true);
+    oldOk.parentNode.replaceChild(newOk, oldOk);
+    oldCancel.parentNode.replaceChild(newCancel, oldCancel);
+
     gid('pwModal').classList.add('show');
     setTimeout(function() { gid('pwInput').focus(); }, 250);
-    function cleanup() {
-      gid('pwModal').classList.remove('show');
-      gid('pwOk').onclick = null;
-      gid('pwCancel').onclick = null;
-      gid('pwInput').onkeydown = null;
-    }
-    gid('pwOk').onclick = function() {
+
+    function doCheck() {
       if (gid('pwInput').value === adminPass) {
-        cleanup(); resolve(true);
+        gid('pwModal').classList.remove('show');
+        resolve(true);
       } else {
         gid('pwErr').textContent = 'Contraseña incorrecta';
         gid('pwInput').value = '';
         gid('pwInput').focus();
       }
-    };
-    gid('pwCancel').onclick = function() { cleanup(); resolve(false); };
-    gid('pwInput').onkeydown = function(e) { if (e.key === 'Enter') gid('pwOk').click(); };
+    }
+    gid('pwOk').addEventListener('click', doCheck);
+    gid('pwCancel').addEventListener('click', function() {
+      gid('pwModal').classList.remove('show');
+      resolve(false);
+    });
+    gid('pwInput').addEventListener('keydown', function handler(e) {
+      if (e.key === 'Enter') { doCheck(); }
+    });
   });
 }
 function confirm2(title, body, okTxt) {
@@ -832,14 +843,22 @@ function confirm2(title, body, okTxt) {
     gid('cfTitle').textContent = title;
     gid('cfBody').textContent = body || '';
     gid('cfOk').textContent = okTxt || 'Confirmar';
+
+    // Clone nodes to remove ALL previous listeners
+    var oldOk = gid('cfOk');
+    var oldCancel = gid('cfCancel');
+    var newOk = oldOk.cloneNode(true);
+    var newCancel = oldCancel.cloneNode(true);
+    oldOk.parentNode.replaceChild(newOk, oldOk);
+    oldCancel.parentNode.replaceChild(newCancel, oldCancel);
+
     gid('confirmModal').classList.add('show');
+
     function cleanup() {
       gid('confirmModal').classList.remove('show');
-      gid('cfOk').onclick = null;
-      gid('cfCancel').onclick = null;
     }
-    gid('cfOk').onclick = function() { cleanup(); resolve(true); };
-    gid('cfCancel').onclick = function() { cleanup(); resolve(false); };
+    gid('cfOk').addEventListener('click', function() { cleanup(); resolve(true); });
+    gid('cfCancel').addEventListener('click', function() { cleanup(); resolve(false); });
   });
 }
 
