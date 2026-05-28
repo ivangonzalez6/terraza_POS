@@ -954,6 +954,36 @@ function doCloseTable(t){
     renderTables();
   });
 }
+
+// ══ ACCIONES DE LA CUENTA (Botones) ══
+
+// Botón "Cobrar y cerrar" en la vista normal de la cuenta
+gid('closeTableBtn').addEventListener('click', function() {
+  if (curTable) doCloseTable(curTable);
+});
+
+// Botón "Cobrar y cerrar" en la vista por personas
+gid('persCloseTable').addEventListener('click', function() {
+  if (curTable) doCloseTable(curTable);
+});
+
+// Botón "Vaciar"
+gid('clearTableBtn').addEventListener('click', function() {
+  if (!curTable) return;
+  openConfirm('Vaciar mesa ' + curTable, '¿Eliminar todos los productos de esta mesa?', 'Vaciar', async function() {
+    // Reseteamos la mesa a un estado vacío
+    orders[curTable] = {items: [], persons: [], discounts: [], openedAt: Date.now()};
+    
+    await saveOrders(orders);
+    showToast('✓ Mesa vaciada');
+    
+    // Actualizamos la interfaz
+    renderCart();
+    updateCartBar();
+    updateBadges();
+  });
+});
+
 // ══ PROMO 2x1 ══
 var promoSelected={};
 function getEligibleItems(){
