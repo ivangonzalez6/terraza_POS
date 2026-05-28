@@ -442,6 +442,10 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
       <span class="admin-link-txt">🍽 Administrar menú</span>
       <span class="admin-link-arr">›</span>
     </div>
+    <div class="admin-link" id="adminRecipeBtn" style="margin-top:8px">
+      <span class="admin-link-txt">📖 Administrar recetario</span>
+      <span class="admin-link-arr">›</span>
+    </div>
   </div>
 
   <!-- MENÚ ADMIN -->
@@ -464,6 +468,28 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
       <button class="btn btn-p" style="flex:0;padding:8px 14px;font-size:10px" id="addItemBtn">+ Producto</button>
     </div>
     <div id="adminItemsList"></div>
+  </div>
+
+  <!-- RECETARIO ADMIN -->
+  <div class="view" id="view-recipe-admin">
+    <div style="display:flex;align-items:center;gap:7px;margin:6px 0 0">
+      <button class="btn btn-g" style="flex:0;padding:7px 12px;font-size:10px" id="backToStatsFromRecipe">← Caja</button>
+      <h2 class="sec" style="margin:7px 0;flex:1;font-size:22px">Recetario</h2>
+      <button class="btn btn-p" style="flex:0;padding:8px 14px;font-size:10px" id="addRecipeBtn">+ Receta</button>
+    </div>
+    <div class="sep"></div>
+    <!-- Filtro por categoría -->
+    <div class="cat-tabs" id="recipeCatFilter" style="margin-bottom:4px"></div>
+    <div id="recipeAdminList"></div>
+  </div>
+
+  <!-- VISTA RECETA (cocina + admin) -->
+  <div class="view" id="view-recipe-detail">
+    <div style="display:flex;align-items:center;gap:7px;margin:6px 0 0">
+      <button class="btn btn-g" style="flex:0;padding:7px 12px;font-size:10px" id="backFromRecipeDetail">← Volver</button>
+      <h2 class="sec" style="margin:7px 0;flex:1;font-size:22px">Receta</h2>
+    </div>
+    <div class="recipe-view" id="recipeDetailContent"></div>
   </div>
 
   <!-- USUARIOS -->
@@ -615,6 +641,46 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
     <input id="itemFPrice" type="number" min="0" step="5" placeholder="0" style="margin-top:5px">
     <div style="font-size:11px;color:var(--danger);margin-top:6px;min-height:15px" id="itemFErr"></div>
     <div class="ma"><button class="btn btn-g" id="itemFCancel">Cancelar</button><button class="btn btn-p" id="itemFSave">Guardar</button></div>
+  </div>
+</div>
+
+<!-- MODAL RECETA FORM -->
+<div class="mb" id="recipeFormModal" style="z-index:110">
+  <div class="modal" style="max-height:90vh;overflow-y:auto;padding-bottom:32px">
+    <h3 id="recFTitle">Nueva receta</h3>
+    <div class="msub" id="recFSub"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div>
+        <label class="flbl">Nombre del cóctel</label>
+        <input id="recFName" type="text" placeholder="Mojito Clásico" style="margin-top:4px">
+      </div>
+      <div>
+        <label class="flbl">Categoría</label>
+        <input id="recFCat" type="text" placeholder="Mojitos" style="margin-top:4px">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div>
+        <label class="flbl">Base / Destilado</label>
+        <input id="recFBase" type="text" placeholder="Ron blanco" style="margin-top:4px">
+      </div>
+      <div>
+        <label class="flbl">Precio ($)</label>
+        <input id="recFPrice" type="number" min="0" step="5" placeholder="50" style="margin-top:4px">
+      </div>
+    </div>
+    <label class="flbl">Vaso recomendado</label>
+    <input id="recFGlass" type="text" placeholder="Highball / Vaso largo" style="margin-top:4px;margin-bottom:10px">
+    <label class="flbl" style="margin-bottom:6px;display:block">Ingredientes</label>
+    <div class="ing-header">
+      <span>Ingrediente</span><span style="text-align:right">oz</span><span style="text-align:right">ml</span><span>Notas</span><span></span>
+    </div>
+    <div id="recFIngList"></div>
+    <button class="btn btn-g" style="width:100%;margin-top:6px;padding:9px;font-size:10px" id="addIngRowBtn">+ Agregar ingrediente</button>
+    <label class="flbl" style="margin-top:12px">Preparación</label>
+    <textarea id="recFPrep" placeholder="Describe la preparación paso a paso…" rows="5" style="margin-top:4px"></textarea>
+    <div style="font-size:11px;color:var(--danger);margin-top:6px;min-height:15px" id="recFErr"></div>
+    <div class="ma"><button class="btn btn-g" id="recFCancel">Cancelar</button><button class="btn btn-p" id="recFSave">Guardar receta</button></div>
   </div>
 </div>
 
@@ -1155,7 +1221,7 @@ function renderKitchen(){
     var key=t+':'+allItems.map(function(it){return it.id+':'+it.q+':'+it.status;}).join(',');
     var isNew=!lastSeen[key];lastSeen[key]=true;
     var ticket=document.createElement('div');ticket.className='ticket'+(isNew?' new-t':'');
-    var linesHTML=allItems.map(function(it){var st=it.status||'pending';return'<div class="tl '+(st==='delivered'?'del':'')+'" data-table="'+t+'" data-id="'+it.id+'" data-pid="'+(it._pid||'')+'"><span class="tl-q">'+it.q+'×</span><span class="tl-n">'+esc(it.n)+(it.note?'<span class="tl-note">↳ '+esc(it.note)+'</span>':'')+(it._pl?'<span class="tl-per" style="color:'+it._pc+'">↳ '+esc(it._pl)+'</span>':'')+'</span><span class="tl-st">'+(st==='pending'?'<button class="sb pend">Entregar</button>':'<button class="sb deld">✓ Entregado</button>')+'</span></div>';}).join('');
+    var linesHTML=allItems.map(function(it){var st=it.status||'pending';return'<div class="tl '+(st==='delivered'?'del':'')+'" data-table="'+t+'" data-id="'+it.id+'" data-pid="'+(it._pid||'')+'"><span class="tl-q">'+it.q+'×</span><span class="tl-n">'+esc(it.n)+(it.note?'<span class="tl-note">↳ '+esc(it.note)+'</span>':'')+(it._pl?'<span class="tl-per" style="color:'+it._pc+'">↳ '+esc(it._pl)+'</span>':'')+'</span><span class="tl-st" style="display:flex;flex-direction:column;gap:4px">'+(st==='pending'?'<button class="sb pend">Entregar</button>':'<button class="sb deld">✓ Entregado</button>')+'<button class="rec-btn" data-item-name="'+esc(it.n)+'">📖 Receta</button></span></div>';}).join('');
     ticket.innerHTML='<div class="t-head"><div><div class="t-tbl">Mesa '+t.toString().padStart(2,'0')+'</div>'+(o.tableNote?'<div class="t-note">↳ '+esc(o.tableNote)+'</div>':'')+'</div><div style="text-align:right"><div class="t-time">'+hh+':'+mm+' · '+min+'min</div><div class="t-prog">'+(pend>0?'<span class="bp">'+pend+' pend.</span>':'')+(del>0?'<span class="bd">'+del+' ✓</span>':'')+'</div></div></div><div><div class="t-hrow"><span>Cant</span><span>Producto</span><span>Status</span></div>'+linesHTML+'</div><div class="t-foot"><span style="font-size:9px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase">'+allItems.reduce(function(s,it){return s+it.q;},0)+' productos</span><span class="t-tot">'+money(tot)+'</span></div>';
     ticket.querySelectorAll('.sb').forEach(function(btn){
       btn.addEventListener('click',async function(e){
@@ -1369,6 +1435,217 @@ gid('itemFSave').addEventListener('click',async function(){
   showToast('✓ Producto guardado');
 });
 
+// ══ SUPABASE RECETARIO ══
+function loadRecipes(catFilter){
+  var q='/rest/v1/recipes?select=*&order=category_name.asc,item_name.asc&active=eq.true';
+  if(catFilter)q+='&category_name=eq.'+encodeURIComponent(catFilter);
+  return sfetch(q).then(function(r){return Array.isArray(r)?r:[];});
+}
+function loadRecipeById(id){return sfetch('/rest/v1/recipes?id=eq.'+id+'&select=*').then(function(r){return(r&&r[0])?r[0]:null;});}
+function loadRecipeByItemName(name){return sfetch('/rest/v1/recipes?item_name=eq.'+encodeURIComponent(name)+'&select=*&active=eq.true&limit=1').then(function(r){return(r&&r[0])?r[0]:null;});}
+function loadIngredients(recipeId){return sfetch('/rest/v1/recipe_ingredients?recipe_id=eq.'+recipeId+'&select=*&order=sort_order.asc').then(function(r){return Array.isArray(r)?r:[];});}
+function insertRecipe(rec){return spost('/rest/v1/recipes',rec);}
+function updateRecipe(id,data){return spatch('/rest/v1/recipes?id=eq.'+id,data);}
+function deleteRecipeDB(id){return sdel('/rest/v1/recipes?id=eq.'+id);}
+function deleteIngredients(recipeId){return sdel('/rest/v1/recipe_ingredients?recipe_id=eq.'+recipeId);}
+function insertIngredient(ing){return spost('/rest/v1/recipe_ingredients',ing);}
+
+var recipeAdminCatFilter=null, recipeAllCats=[], editingRecipeId=null, recipeBackRole='stats';
+
+// ── Abrir admin recetario ──
+gid('adminRecipeBtn').addEventListener('click',async function(){
+  var ok=await askPass('Contraseña de administrador');if(!ok)return;
+  await openRecipeAdmin();
+});
+gid('backToStatsFromRecipe').addEventListener('click',function(){setRole('stats');});
+
+async function openRecipeAdmin(){
+  var all=await loadRecipes(null);
+  // Build unique category list
+  var catSet={};all.forEach(function(r){catSet[r.category_name]=true;});
+  recipeAllCats=Object.keys(catSet).sort();
+  recipeAdminCatFilter=null;
+  renderRecipeCatFilter();
+  await renderRecipeAdminList();
+  setRole('recipe-admin');
+}
+
+function renderRecipeCatFilter(){
+  var c=gid('recipeCatFilter');c.innerHTML='';
+  var all=document.createElement('button');
+  all.className='cat-tab'+(recipeAdminCatFilter===null?' active':'');
+  all.textContent='Todas';
+  all.addEventListener('click',async function(){recipeAdminCatFilter=null;renderRecipeCatFilter();await renderRecipeAdminList();});
+  c.appendChild(all);
+  recipeAllCats.forEach(function(cat){
+    var b=document.createElement('button');
+    b.className='cat-tab'+(recipeAdminCatFilter===cat?' active':'');
+    b.textContent=cat;
+    b.addEventListener('click',async function(){recipeAdminCatFilter=cat;renderRecipeCatFilter();await renderRecipeAdminList();});
+    c.appendChild(b);
+  });
+}
+
+async function renderRecipeAdminList(){
+  var list=gid('recipeAdminList');list.innerHTML='<div class="empty"><div class="etit">Cargando…</div></div>';
+  var recipes=await loadRecipes(recipeAdminCatFilter);
+  list.innerHTML='';
+  if(!recipes.length){list.innerHTML='<div class="empty"><div class="etit crescent">Sin recetas</div><div class="esub">Agrega la primera receta</div></div>';return;}
+  recipes.forEach(function(rec){
+    var el=document.createElement('div');el.className='rec-card';
+    el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:flex-start">'+
+      '<div style="flex:1;min-width:0">'+
+        '<div class="rec-cat">'+esc(rec.category_name)+'</div>'+
+        '<div class="rec-name">'+esc(rec.item_name)+'</div>'+
+        '<div class="rec-base">Base: '+esc(rec.base_spirit||'—')+'</div>'+
+        '<div class="rec-price">'+money(rec.price)+' · '+esc(rec.glass||'—')+'</div>'+
+      '</div>'+
+      '<div class="rec-acts">'+
+        '<button class="ai-btn ai-edit">Editar</button>'+
+        '<button class="ai-btn" style="border:1px solid var(--gold);color:var(--gold)">Ver</button>'+
+        '<button class="ai-btn ai-del">Eliminar</button>'+
+      '</div></div>';
+    (function(recipe){
+      el.querySelectorAll('.ai-btn')[0].addEventListener('click',function(e){e.stopPropagation();openRecipeForm(recipe);});
+      el.querySelectorAll('.ai-btn')[1].addEventListener('click',function(e){e.stopPropagation();showRecipeDetail(recipe.id,'recipe-admin');});
+      el.querySelectorAll('.ai-btn')[2].addEventListener('click',function(e){
+        e.stopPropagation();
+        openConfirm('Eliminar receta "'+recipe.item_name+'"','Esta acción no se puede deshacer.','Eliminar',async function(){
+          await deleteIngredients(recipe.id);await deleteRecipeDB(recipe.id);await renderRecipeAdminList();showToast('Receta eliminada');
+        });
+      });
+    })(rec);
+    list.appendChild(el);
+  });
+}
+
+// ── Ver receta detalle ──
+var recipeDetailBackRole='stats';
+async function showRecipeDetail(recipeId, fromRole){
+  recipeDetailBackRole=fromRole||'cocina';
+  var rec=await loadRecipeById(recipeId);
+  if(!rec){showToast('Receta no encontrada');return;}
+  var ings=await loadIngredients(recipeId);
+  var html='<div class="rv-header">'+
+    '<div class="rv-cat">'+esc(rec.category_name)+'</div>'+
+    '<div class="rv-name">'+esc(rec.item_name)+'</div>'+
+    '<div class="rv-base">Base: '+esc(rec.base_spirit||'—')+'</div>'+
+    '<div class="rv-glass">🥃 '+esc(rec.glass||'—')+'</div>'+
+    '<div class="rv-price">'+money(rec.price)+'</div>'+
+    '</div>';
+  if(ings.length){
+    html+='<div class="rv-section"><div class="rv-section-title">Ingredientes</div>'+
+      '<table class="rv-ing-table"><thead><tr><th>Ingrediente</th><th style="text-align:right">oz</th><th style="text-align:right">ml</th><th style="text-align:right">Notas</th></tr></thead><tbody>';
+    ings.forEach(function(ing){
+      html+='<tr>'+
+        '<td>'+esc(ing.ingredient)+'</td>'+
+        '<td class="meas">'+(ing.oz!=null?ing.oz:'—')+'</td>'+
+        '<td class="meas">'+(ing.ml!=null?ing.ml:'—')+'</td>'+
+        '<td class="notes">'+(ing.notes?esc(ing.notes):'')+'</td>'+
+        '</tr>';
+    });
+    html+='</tbody></table></div>';
+  }
+  if(rec.preparation){
+    // Split by sentences and number them
+    var steps=rec.preparation.split(/(?<=[.!])\s+/).filter(function(s){return s.trim().length>0;});
+    html+='<div class="rv-section"><div class="rv-section-title">Preparación</div><div class="rv-prep">';
+    if(steps.length>1){
+      steps.forEach(function(s,i){html+='<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:10px"><span class="rv-step-num">'+(i+1)+'</span><span>'+esc(s.trim())+'</span></div>';});
+    }else{html+=esc(rec.preparation);}
+    html+='</div></div>';
+  }
+  gid('recipeDetailContent').innerHTML=html;
+  setRole('recipe-detail');
+}
+gid('backFromRecipeDetail').addEventListener('click',function(){setRole(recipeDetailBackRole);});
+
+// ── Botón receta en cocina ──
+// Se llama desde renderKitchen con el nombre del producto
+async function showRecipeFromKitchen(itemName){
+  var rec=await loadRecipeByItemName(itemName);
+  if(!rec){showToast('Sin receta para: '+itemName);return;}
+  showRecipeDetail(rec.id,'cocina');
+}
+
+// ── Formulario receta ──
+gid('addRecipeBtn').addEventListener('click',function(){openRecipeForm(null);});
+function openRecipeForm(rec){
+  editingRecipeId=rec?rec.id:null;
+  gid('recFTitle').textContent=rec?'Editar receta':'Nueva receta';
+  gid('recFSub').textContent=rec?rec.item_name:'';
+  gid('recFName').value=rec?rec.item_name:'';
+  gid('recFCat').value=rec?rec.category_name:'';
+  gid('recFBase').value=rec?(rec.base_spirit||''):'';
+  gid('recFPrice').value=rec?rec.price:'';
+  gid('recFGlass').value=rec?(rec.glass||''):'';
+  gid('recFPrep').value=rec?(rec.preparation||''):'';
+  gid('recFErr').textContent='';
+  // Load ingredients if editing
+  gid('recFIngList').innerHTML='';
+  if(rec){
+    loadIngredients(rec.id).then(function(ings){
+      ings.forEach(function(ing){addIngRow(ing.ingredient,ing.oz,ing.ml,ing.notes);});
+      if(!ings.length)addIngRow();
+    });
+  }else{addIngRow();}
+  gid('recipeFormModal').classList.add('show');
+  setTimeout(function(){gid('recFName').focus();},250);
+}
+function addIngRow(ingredient,oz,ml,notes){
+  var row=document.createElement('div');row.className='ing-row';
+  var ozVal=oz!=null?oz:'';
+  var mlVal=ml!=null?ml:'';
+  row.innerHTML='<input type="text" placeholder="Ingrediente" value="'+esc(ingredient||'')+'">'+
+    '<input type="number" step="0.25" min="0" placeholder="oz" value="'+ozVal+'" class="oz-inp" style="text-align:right">'+
+    '<input type="number" step="1" min="0" placeholder="ml" value="'+mlVal+'" class="ml-inp" style="text-align:right">'+
+    '<input type="text" placeholder="notas / c.s." value="'+esc(notes||'')+'">'+
+    '<button class="ing-del-btn" type="button">×</button>';
+  // Auto-convert oz ↔ ml
+  var ozInp=row.querySelector('.oz-inp');
+  var mlInp=row.querySelector('.ml-inp');
+  ozInp.addEventListener('input',function(){if(ozInp.value)mlInp.value=Math.round(parseFloat(ozInp.value)*29.5735);else mlInp.value='';});
+  mlInp.addEventListener('input',function(){if(mlInp.value)ozInp.value=Math.round(parseFloat(mlInp.value)/29.5735*100)/100;else ozInp.value='';});
+  row.querySelector('.ing-del-btn').addEventListener('click',function(){row.remove();});
+  gid('recFIngList').appendChild(row);
+}
+gid('addIngRowBtn').addEventListener('click',function(){addIngRow();});
+gid('recFCancel').addEventListener('click',function(){gid('recipeFormModal').classList.remove('show');editingRecipeId=null;});
+gid('recFSave').addEventListener('click',async function(){
+  var name=gid('recFName').value.trim();
+  var cat=gid('recFCat').value.trim();
+  var base=gid('recFBase').value.trim();
+  var price=parseFloat(gid('recFPrice').value)||0;
+  var glass=gid('recFGlass').value.trim();
+  var prep=gid('recFPrep').value.trim();
+  if(!name||!cat){gid('recFErr').textContent='Nombre y categoría son obligatorios';return;}
+  var recId=editingRecipeId||('rec-'+uid());
+  var recData={id:recId,category_name:cat,item_name:name,base_spirit:base,price:price,glass:glass,preparation:prep,active:true,updated_at:new Date().toISOString()};
+  if(editingRecipeId){
+    await updateRecipe(editingRecipeId,{category_name:cat,item_name:name,base_spirit:base,price:price,glass:glass,preparation:prep,updated_at:new Date().toISOString()});
+    await deleteIngredients(editingRecipeId);
+  }else{
+    await insertRecipe(recData);
+  }
+  // Save ingredients
+  var rows=gid('recFIngList').querySelectorAll('.ing-row');
+  var sortOrder=0;
+  for(var i=0;i<rows.length;i++){
+    var inputs=rows[i].querySelectorAll('input');
+    var ingName=inputs[0].value.trim();
+    if(!ingName)continue;
+    var ozV=inputs[1].value!==''?parseFloat(inputs[1].value):null;
+    var mlV=inputs[2].value!==''?parseFloat(inputs[2].value):null;
+    var notesV=inputs[3].value.trim();
+    await insertIngredient({id:'ri-'+uid(),recipe_id:recId,ingredient:ingName,oz:ozV,ml:mlV,notes:notesV,sort_order:++sortOrder});
+  }
+  gid('recipeFormModal').classList.remove('show');editingRecipeId=null;
+  // Update category list
+  var allR=await loadRecipes(null);var catSet={};allR.forEach(function(r){catSet[r.category_name]=true;});recipeAllCats=Object.keys(catSet).sort();
+  renderRecipeCatFilter();await renderRecipeAdminList();
+  showToast('✓ Receta guardada');
+});
+
 // ══ ADMIN USUARIOS ══
 gid('adminUsersBtn').addEventListener('click',async function(){var ok=await askPass('Contraseña de administrador');if(!ok)return;appUsers=await loadUsers();var ap=await loadConfig('admin_password');if(ap)adminPass=ap;gid('newAdminPass').value='';renderUserList();setRole('users');});
 gid('backToStats').addEventListener('click',function(){setRole('stats');});
@@ -1408,6 +1685,8 @@ function setRole(role){
   else if(role==='stats'){gid('roleStats').classList.add('active');gid('view-stats').classList.add('active');gid('cartBar').classList.remove('show');renderStats();}
   else if(role==='users'){gid('view-users').classList.add('active');gid('cartBar').classList.remove('show');}
   else if(role==='menu-admin'){gid('view-menu-admin').classList.add('active');gid('cartBar').classList.remove('show');}
+  else if(role==='recipe-admin'){gid('view-recipe-admin').classList.add('active');gid('cartBar').classList.remove('show');}
+  else if(role==='recipe-detail'){gid('view-recipe-detail').classList.add('active');gid('cartBar').classList.remove('show');}
 }
 gid('roleMesero').addEventListener('click',function(){setRole('mesero');});
 gid('roleCocina').addEventListener('click',function(){setRole('cocina');});
