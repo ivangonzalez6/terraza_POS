@@ -683,32 +683,27 @@ function askPass(desc){
 }
 
 // ══ MODAL HELPER (sin async) ══
-function openConfirm(title, msg, okText, onOk) {
+function openConfirm(title,body,okTxt,onOk,onCancel){
 
-  gid('confirmTitle').textContent = title || 'Confirmar';
-  gid('confirmMsg').textContent = msg || '';
-  gid('confirmOk').textContent = okText || 'Aceptar';
+  gid('cfTitle').textContent = title || 'Confirmar';
+  gid('cfBody').textContent = body || '';
+  gid('cfOk').textContent = okTxt || 'Confirmar';
 
   var modal = gid('confirmModal');
-  var okBtn = gid('confirmOk');
-  var cancelBtn = gid('confirmCancel');
 
-  // Limpiar eventos viejos
-  var newOk = okBtn.cloneNode(true);
-  okBtn.parentNode.replaceChild(newOk, okBtn);
+  var oldOk = gid('cfOk');
+  var oldCancel = gid('cfCancel');
 
-  var newCancel = cancelBtn.cloneNode(true);
-  cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+  // limpiar listeners viejos
+  var newOk = oldOk.cloneNode(true);
+  var newCancel = oldCancel.cloneNode(true);
 
-  // Abrir modal
+  oldOk.parentNode.replaceChild(newOk, oldOk);
+  oldCancel.parentNode.replaceChild(newCancel, oldCancel);
+
   modal.classList.add('show');
 
-  // Cancelar
-  newCancel.addEventListener('click', function () {
-    modal.classList.remove('show');
-  });
-
-  // Confirmar
+  // confirmar
   newOk.addEventListener('click', function () {
     modal.classList.remove('show');
 
@@ -716,7 +711,17 @@ function openConfirm(title, msg, okText, onOk) {
       onOk();
     }
   });
+
+  // cancelar
+  newCancel.addEventListener('click', function () {
+    modal.classList.remove('show');
+
+    if (typeof onCancel === 'function') {
+      onCancel();
+    }
+  });
 }
+
 // ══ LOGIN ══
 async function doLogin(){
   var u=gid('loginUser').value.trim(),p=gid('loginPass').value;
