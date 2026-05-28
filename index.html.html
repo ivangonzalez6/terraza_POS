@@ -605,6 +605,18 @@ var SFF = [
   {n:'Frutos rojos',p:60},{n:'Fresa',p:60},{n:'Mora',p:60},{n:'Arándano',p:60},{n:'Maracuyá',p:60}
 ];
 var MENU = [
+  {cat:'Alitas', items:[
+    {n:'Alitas Mango Habanero',p:70,d:'Con papas'},{n:'Alitas BBQ',p:70,d:'Con papas'},
+    {n:'Alitas Tamarindo',p:70,d:'Con papas'},{n:'Alitas Tamarindo Habanero',p:70,d:'Con papas'},
+    {n:'Alitas Piña Coco Habanero',p:70,d:'Con papas'},{n:'Alitas Chiltepín',p:70,d:'Con papas'},
+    {n:'Alitas Clásicas',p:70,d:'Con papas'}
+  ]},
+  {cat:'Boneless', items:[
+    {n:'Boneless Mango Habanero',p:70,d:'Con papas'},{n:'Boneless BBQ',p:70,d:'Con papas'},
+    {n:'Boneless Tamarindo',p:70,d:'Con papas'},{n:'Boneless Tamarindo Habanero',p:70,d:'Con papas'},
+    {n:'Boneless Piña Coco Habanero',p:70,d:'Con papas'},{n:'Boneless Chiltepín',p:70,d:'Con papas'},
+    {n:'Boneless Clásicos',p:70,d:'Con papas'}
+  ]},
   {cat:'Mojitos', items: SF.map(function(s){return{n:'Mojito '+s.n,p:s.p}})},
   {cat:'Gin & Tonic', items: SF.map(function(s){return{n:'Gin Tonic '+s.n,p:s.p}})},
   {cat:'Caipiroska (Vodka)', items: SF.map(function(s){return{n:'Caipiroska '+s.n,p:s.p}})},
@@ -680,18 +692,6 @@ var MENU = [
     {n:'Española 1 litro',p:100,d:'Con clamato'},
     {n:'Cantarito 1 litro',p:80},
     {n:'Whisky Challenge',p:150,d:'Degusta premium vs comercial a ciegas'}
-  ]},
-  {cat:'Alitas', items:[
-    {n:'Alitas Mango Habanero',p:70,d:'Con papas'},{n:'Alitas BBQ',p:70,d:'Con papas'},
-    {n:'Alitas Tamarindo',p:70,d:'Con papas'},{n:'Alitas Tamarindo Habanero',p:70,d:'Con papas'},
-    {n:'Alitas Piña Coco Habanero',p:70,d:'Con papas'},{n:'Alitas Chiltepín',p:70,d:'Con papas'},
-    {n:'Alitas Clásicas',p:70,d:'Con papas'}
-  ]},
-  {cat:'Boneless', items:[
-    {n:'Boneless Mango Habanero',p:70,d:'Con papas'},{n:'Boneless BBQ',p:70,d:'Con papas'},
-    {n:'Boneless Tamarindo',p:70,d:'Con papas'},{n:'Boneless Tamarindo Habanero',p:70,d:'Con papas'},
-    {n:'Boneless Piña Coco Habanero',p:70,d:'Con papas'},{n:'Boneless Chiltepín',p:70,d:'Con papas'},
-    {n:'Boneless Clásicos',p:70,d:'Con papas'}
   ]},
   {cat:'Snacks', items:[
     {n:'Papas a la Francesa',p:60,d:'Con queso amarillo, catsup y valentina'},
@@ -1198,12 +1198,16 @@ gid('clearTableBtn').addEventListener('click', async function() {
 });
 gid('closeTableBtn').addEventListener('click', async function() {
   if (!curTable) return;
-  var o = orders[curTable]; if (!o) return;
-  var tot = tblTotal(curTable); if (!tot) return;
-  var ok = await confirm2('Cobrar mesa ' + curTable, 'Total: ' + money(tot), 'Cobrar y cerrar');
+  var t = curTable;
+  var o = orders[t]; if (!o) return;
+  var tot = tblTotal(t); if (!tot) return;
+  var ok = await confirm2('Cobrar mesa ' + t, 'Total: ' + money(tot), 'Cobrar y cerrar');
   if (!ok) return;
-  await closeTable(curTable, tot, o);
-  gid('backToTables').click();
+  await closeTable(t, tot, o);
+  curTable = null;
+  showSc('tables');
+  gid('cartBar').classList.remove('show');
+  renderTables();
 });
 async function closeTable(t, tot, o) {
   var all = [];
@@ -1345,12 +1349,16 @@ function renderPersonsView() {
 }
 gid('persCloseTable').addEventListener('click', async function() {
   if (!curTable) return;
-  var o = orders[curTable]; if (!o) return;
-  var tot = tblTotal(curTable); if (!tot) return;
-  var ok = await confirm2('Cobrar mesa ' + curTable, 'Total: ' + money(tot), 'Cobrar y cerrar');
+  var t = curTable;
+  var o = orders[t]; if (!o) return;
+  var tot = tblTotal(t); if (!tot) return;
+  var ok = await confirm2('Cobrar mesa ' + t, 'Total: ' + money(tot), 'Cobrar y cerrar');
   if (!ok) return;
-  await closeTable(curTable, tot, o);
-  showSc('tables'); curTable = null; curPersonId = null; renderTables();
+  await closeTable(t, tot, o);
+  curTable = null; curPersonId = null;
+  showSc('tables');
+  gid('cartBar').classList.remove('show');
+  renderTables();
 });
 
 // ══ KITCHEN ══
