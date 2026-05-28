@@ -683,19 +683,40 @@ function askPass(desc){
 }
 
 // ══ MODAL HELPER (sin async) ══
-function openConfirm(title,body,okTxt,onOk,onCancel){
-  gid('cfTitle').textContent=title;
-  gid('cfBody').textContent=body||'';
-  gid('cfOk').textContent=okTxt||'Confirmar';
-  var oldOk=gid('cfOk'),oldCancel=gid('cfCancel');
-  var newOk=oldOk.cloneNode(true),newCancel=oldCancel.cloneNode(true);
-  oldOk.parentNode.replaceChild(newOk,oldOk);
-  oldCancel.parentNode.replaceChild(newCancel,oldCancel);
-  gid('confirmModal').classList.add('show');
-  gid('cfOk').addEventListener('click',function(){gid('confirmModal').classList.remove('show');if(onOk)onOk();});
-  gid('cfCancel').addEventListener('click',function(){gid('confirmModal').classList.remove('show');if(onCancel)onCancel();});
-}
+function openConfirm(title, msg, okText, onOk) {
 
+  gid('confirmTitle').textContent = title || 'Confirmar';
+  gid('confirmMsg').textContent = msg || '';
+  gid('confirmOk').textContent = okText || 'Aceptar';
+
+  var modal = gid('confirmModal');
+  var okBtn = gid('confirmOk');
+  var cancelBtn = gid('confirmCancel');
+
+  // Limpiar eventos viejos
+  var newOk = okBtn.cloneNode(true);
+  okBtn.parentNode.replaceChild(newOk, okBtn);
+
+  var newCancel = cancelBtn.cloneNode(true);
+  cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+
+  // Abrir modal
+  modal.classList.add('show');
+
+  // Cancelar
+  newCancel.addEventListener('click', function () {
+    modal.classList.remove('show');
+  });
+
+  // Confirmar
+  newOk.addEventListener('click', function () {
+    modal.classList.remove('show');
+
+    if (typeof onOk === 'function') {
+      onOk();
+    }
+  });
+}
 // ══ LOGIN ══
 async function doLogin(){
   var u=gid('loginUser').value.trim(),p=gid('loginPass').value;
