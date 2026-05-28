@@ -291,6 +291,15 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
 .empty .esub{font-size:11px;letter-spacing:.1em}
 .crescent::before{content:'☾';color:var(--gold);margin-right:6px;font-size:.85em}
 
+
+/* ── Drag & Drop admin ── */
+.drag-handle{width:28px;height:36px;display:flex;align-items:center;justify-content:center;cursor:grab;color:var(--faint);font-size:16px;flex-shrink:0;touch-action:none;user-select:none;-webkit-user-select:none}
+.drag-handle:active{cursor:grabbing;color:var(--gold)}
+.admin-item.dragging{opacity:.4;border-color:var(--gold);background:#fff8e8}
+.admin-item.drag-over{border-color:var(--gold);border-style:dashed;background:#fffbf0;transform:scale(1.01)}
+.admin-cat-tab.dragging{opacity:.4}
+.admin-cat-tab.drag-over{outline:2px dashed var(--gold);outline-offset:2px}
+.drag-hint{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--faint);text-align:center;padding:6px 0 2px;font-weight:500}
 /* ── Recetario admin lista compacta ── */
 .rec-admin-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:6px}
 .rec-admin-name{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;flex:1;min-width:0}
@@ -523,15 +532,6 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
     <div style="display:flex;align-items:center;gap:7px;margin:6px 0 0">
       <button class="btn btn-g" style="flex:0;padding:7px 12px;font-size:10px" id="backToStats">← Caja</button>
       <h2 class="sec" style="margin:7px 0;flex:1;font-size:22px">Usuarios</h2>
-    </div>
-    <div class="sep"></div>
-    <h2 class="sec" style="font-size:18px">Contraseña de administrador</h2>
-    <div style="display:flex;gap:8px;margin-bottom:6px">
-      <div class="pw-wrap" style="flex:1">
-        <input id="newAdminPass" type="password" placeholder="Nueva contraseña de admin">
-        <button class="pw-eye" id="toggleAdminPass" type="button">👁</button>
-      </div>
-      <button class="btn btn-p" style="flex:0;padding:10px 14px;font-size:10px" id="saveAdminPass">Guardar</button>
     </div>
     <div class="sep"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
@@ -824,10 +824,13 @@ function persItemCount(t){var o=orders[t];if(!o||!o.persons)return 0;return o.pe
 
 // ══ PASSWORD EYE ══
 function setupEye(eyeId,inputId){var btn=gid(eyeId);if(!btn)return;btn.addEventListener('click',function(){var inp=gid(inputId);if(!inp)return;inp.type=inp.type==='password'?'text':'password';btn.textContent=inp.type==='password'?'👁':'🙈';});}
-setupEye('togglePass','loginPass');setupEye('toggleAdminPass','newAdminPass');setupEye('togglePwModal','pwInput');setupEye('toggleUfPass','ufPass');
+setupEye('togglePass','loginPass');setupEye('togglePwModal','pwInput');setupEye('toggleUfPass','ufPass');
 
 // ══ PASSWORD GATE ══
+function isAdmin(){return loggedUser&&(loggedUser.role==='admin');}
 function askPass(desc){
+  // Admin role bypasses all password prompts
+  if(isAdmin())return Promise.resolve(true);
   return new Promise(function(resolve){
     gid('pwDesc').textContent=desc||'Ingresa la contraseña';
     gid('pwInput').value='';gid('pwErr').textContent='';
@@ -1353,13 +1356,118 @@ gid('adminMenuBtn').addEventListener('click',async function(){
 });
 gid('backToStatsFromMenu').addEventListener('click',function(){setRole('stats');});
 
+
+// ══ DRAG & DROP HELPERS ══
+var dragSrc=null,dragType=null;
+
+function makeDraggable(el,onDrop){
+  el.setAttribute('draggable','true');
+  el.addEventListener('dragstart',function(e){
+    dragSrc=el;
+    e.dataTransfer.effectAllowed='move';
+    setTimeout(function(){el.classList.add('dragging');},0);
+  });
+  el.addEventListener('dragend',function(){
+    el.classList.remove('dragging');
+    document.querySelectorAll('.drag-over').forEach(function(x){x.classList.remove('drag-over');});
+    dragSrc=null;
+  });
+  el.addEventListener('dragover',function(e){
+    e.preventDefault();e.dataTransfer.dropEffect='move';
+    if(dragSrc&&dragSrc!==el)el.classList.add('drag-over');
+  });
+  el.addEventListener('dragleave',function(){el.classList.remove('drag-over');});
+  el.addEventListener('drop',function(e){
+    e.preventDefault();el.classList.remove('drag-over');
+    if(dragSrc&&dragSrc!==el)onDrop(dragSrc,el);
+  });
+  // Touch support (long-press → drag simulation)
+  var touchTimeout=null,touchStartY=0,touchStartX=0,ghost=null;
+  el.addEventListener('touchstart',function(e){
+    touchStartX=e.touches[0].clientX;touchStartY=e.touches[0].clientY;
+    touchTimeout=setTimeout(function(){
+      dragSrc=el;
+      el.classList.add('dragging');
+      // haptic if available
+      if(navigator.vibrate)navigator.vibrate(30);
+    },380);
+  },{passive:true});
+  el.addEventListener('touchmove',function(e){
+    if(!dragSrc){clearTimeout(touchTimeout);touchTimeout=null;return;}
+    e.preventDefault();
+    var touch=e.touches[0];
+    // Find element under touch
+    el.style.pointerEvents='none';
+    var target=document.elementFromPoint(touch.clientX,touch.clientY);
+    el.style.pointerEvents='';
+    // Find the draggable ancestor
+    while(target&&!target.hasAttribute('draggable'))target=target.parentElement;
+    document.querySelectorAll('.drag-over').forEach(function(x){x.classList.remove('drag-over');});
+    if(target&&target!==el&&target.hasAttribute('draggable'))target.classList.add('drag-over');
+  },{passive:false});
+  el.addEventListener('touchend',function(e){
+    clearTimeout(touchTimeout);touchTimeout=null;
+    if(!dragSrc){return;}
+    var touch=e.changedTouches[0];
+    el.style.pointerEvents='none';
+    var target=document.elementFromPoint(touch.clientX,touch.clientY);
+    el.style.pointerEvents='';
+    while(target&&!target.hasAttribute('draggable'))target=target.parentElement;
+    document.querySelectorAll('.drag-over').forEach(function(x){x.classList.remove('drag-over');});
+    el.classList.remove('dragging');
+    if(target&&target!==el&&target.hasAttribute('draggable'))onDrop(dragSrc,target);
+    dragSrc=null;
+  },{passive:true});
+}
+
+// ── Reorder categories ──
+async function reorderCats(srcEl,dstEl){
+  var srcId=srcEl.getAttribute('data-cid');
+  var dstId=dstEl.getAttribute('data-cid');
+  var srcIdx=menuAdminCats.findIndex(function(c){return c.id===srcId;});
+  var dstIdx=menuAdminCats.findIndex(function(c){return c.id===dstId;});
+  if(srcIdx<0||dstIdx<0)return;
+  // Reorder array
+  var moved=menuAdminCats.splice(srcIdx,1)[0];
+  menuAdminCats.splice(dstIdx,0,moved);
+  // Assign new sort_order values and persist
+  for(var i=0;i<menuAdminCats.length;i++){
+    menuAdminCats[i].sort_order=i+1;
+    await updateMenuCat(menuAdminCats[i].id,{sort_order:i+1});
+  }
+  await renderMenuAdmin();
+  await rebuildMenuFromDB();renderCatTabs();renderMenu();
+  showToast('✓ Categoría movida');
+}
+
+// ── Reorder items ──
+async function reorderItems(srcEl,dstEl){
+  var srcId=srcEl.getAttribute('data-item-id');
+  var dstId=dstEl.getAttribute('data-item-id');
+  var srcIdx=menuAdminItems.findIndex(function(x){return x.id===srcId;});
+  var dstIdx=menuAdminItems.findIndex(function(x){return x.id===dstId;});
+  if(srcIdx<0||dstIdx<0)return;
+  var moved=menuAdminItems.splice(srcIdx,1)[0];
+  menuAdminItems.splice(dstIdx,0,moved);
+  for(var i=0;i<menuAdminItems.length;i++){
+    menuAdminItems[i].sort_order=i+1;
+    await updateMenuItem(menuAdminItems[i].id,{sort_order:i+1});
+  }
+  await renderMenuAdmin();
+  await rebuildMenuFromDB();renderCatTabs();renderMenu();
+  showToast('✓ Producto movido');
+}
+
 async function renderMenuAdmin(){
-  // Render category tabs
+  // Render category tabs with drag support
   var ct=gid('adminCatTabs');ct.innerHTML='';
+  // hint
+  if(menuAdminCats.length>1){var hint=document.createElement('div');hint.className='drag-hint';hint.textContent='Mantén presionado para reordenar';ct.appendChild(hint);}
   menuAdminCats.forEach(function(cat){
     var b=document.createElement('button');
     b.className='admin-cat-tab'+(cat.id===menuAdminActiveCat?' active':'');
-    b.innerHTML=esc(cat.name)+'<span class="cat-del-btn" data-cid="'+cat.id+'" title="Eliminar categoría">×</span>';
+    b.setAttribute('data-cid',cat.id);
+    b.innerHTML='<span style="font-size:12px;opacity:.4;margin-right:4px">⠿</span>'+esc(cat.name)+'<span class="cat-del-btn" data-cid="'+cat.id+'" title="Eliminar categoría">×</span>';
     b.addEventListener('click',function(e){
       if(e.target.classList.contains('cat-del-btn'))return;
       menuAdminActiveCat=cat.id;renderMenuAdmin();
@@ -1374,6 +1482,7 @@ async function renderMenuAdmin(){
         showToast('Categoría eliminada');
       });
     });
+    makeDraggable(b,reorderCats);
     ct.appendChild(b);
   });
   // Title
@@ -1393,7 +1502,8 @@ async function renderMenuAdmin(){
     (function(item,hasRecipe){
     var el=document.createElement('div');
     el.className='admin-item'+(item.active?'':' inactive');
-    el.innerHTML='<div class="admin-item-info">'+
+    el.setAttribute('data-item-id',item.id);
+    el.innerHTML='<div class="drag-handle" title="Mantén presionado para mover">⠿</div>'+'<div class="admin-item-info">'+
       '<div class="admin-item-name">'+esc(item.name)+'</div>'+
       (item.description?'<div class="admin-item-desc">'+esc(item.description)+'</div>':'')+
       '<div class="admin-item-price">'+money(item.price)+(item.active?'':' · <span style="color:var(--faint)">Oculto</span>')+'</div>'+
@@ -1430,8 +1540,14 @@ async function renderMenuAdmin(){
         openRecipeForm(newRec);
       }
     });}
+    makeDraggable(el,reorderItems);
     il.appendChild(el);
     })(item,hasRecipe);
+  }
+  // Show drag hint for items
+  if(menuAdminItems.length>1){
+    var iHint=document.createElement('div');iHint.className='drag-hint';iHint.textContent='Arrastra ⠿ para reordenar productos';
+    il.insertBefore(iHint,il.firstChild);
   }
 }
 
@@ -1841,9 +1957,8 @@ gid('recFSave').addEventListener('click',async function(){
 });
 
 // ══ ADMIN USUARIOS ══
-gid('adminUsersBtn').addEventListener('click',async function(){var ok=await askPass('Contraseña de administrador');if(!ok)return;appUsers=await loadUsers();var ap=await loadConfig('admin_password');if(ap)adminPass=ap;gid('newAdminPass').value='';renderUserList();setRole('users');});
+gid('adminUsersBtn').addEventListener('click',async function(){var ok=await askPass('Contraseña de administrador');if(!ok)return;appUsers=await loadUsers();var ap=await loadConfig('admin_password');if(ap)adminPass=ap;renderUserList();setRole('users');});
 gid('backToStats').addEventListener('click',function(){setRole('stats');});
-gid('saveAdminPass').addEventListener('click',async function(){var np=gid('newAdminPass').value.trim();if(!np||np.length<4){showToast('Mínimo 4 caracteres');return;}await saveConfig('admin_password',np);adminPass=np;gid('newAdminPass').value='';showToast('✓ Contraseña actualizada');});
 gid('addUserBtn').addEventListener('click',function(){editingUserId=null;gid('ufTitle').textContent='Nuevo usuario';gid('ufSub').textContent='';gid('ufUser').value='';gid('ufPass').value='';gid('ufRole').value='mesero';gid('ufErr').textContent='';gid('userFormModal').classList.add('show');setTimeout(function(){gid('ufUser').focus();},250);});
 gid('ufCancel').addEventListener('click',function(){gid('userFormModal').classList.remove('show');editingUserId=null;});
 gid('ufSave').addEventListener('click',async function(){
