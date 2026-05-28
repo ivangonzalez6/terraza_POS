@@ -333,11 +333,11 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
         <div class="sr" id="discRow" style="display:none;color:var(--ok)"><span>Descuento 2×1</span><span id="sumDisc"></span></div>
         <div class="sr tot"><span>Total</span><b id="sumTot">$0</b></div>
       </div>
-      <div class="ma" id="cartActions" style="margin-top:10px; display:none;">
-  <button class="btn btn-g" id="clearTableBtn">Vaciar</button>
-  <button class="btn btn-g" style="border-color:#3a7a3a;color:#3a7a3a" id="promo2x1Btn">2×1</button>
-  <button class="btn btn-p" id="closeTableBtn">Cobrar y cerrar</button>
-</div>
+      <div class="ma" id="cartActions" style="margin-top:10px;display:none">
+        <button class="btn btn-g" id="clearTableBtn">Vaciar</button>
+        <button class="btn btn-g" style="border-color:#3a7a3a;color:#3a7a3a" id="promo2x1Btn">2×1</button>
+        <button class="btn btn-p" id="closeTableBtn">Cobrar y cerrar</button>
+      </div>
     </div>
     <div id="sc-persons" style="display:none">
       <div style="display:flex;align-items:center;gap:7px;margin:6px 0 0">
@@ -898,108 +898,53 @@ function findIt(it){var o=orders[curTable];if(!o)return null;if(it._src==='p'){v
 function removeIt(it){var o=orders[curTable];if(!o)return;if(it._src==='p'){var per=null;for(var i=0;i<o.persons.length;i++){if(o.persons[i].id===it._pid){per=o.persons[i];break;}}if(per&&per.items)per.items=per.items.filter(function(x){return x.id!==it.id;});}else if(o.items)o.items=o.items.filter(function(x){return x.id!==it.id;});}
 
 // ══ COBRAR Y CERRAR (sin async/await) ══
-// ══ COBRAR Y CERRAR (CORREGIDO CON ASYNC/AWAIT) ══
-async function doCloseTable(t) {
-  var o = orders[t];
-  if (!o) {
-    showToast('Mesa sin productos');
-    return;
-  }
-  var tot = tblTotal(t);
-  if (!tot || tot <= 0) {
-    showToast('La cuenta está vacía');
-    return;
-  }
-  
-  openConfirm('Cobrar mesa ' + t, 'Total: ' + money(tot), 'Cobrar y cerrar', async function() {
-    try {
-      // Construir el registro del historial
-      var all = [];
-      if (o.items) {
-        o.items.forEach(function(it) {
-          all.push({ n: it.n, p: it.p, q: it.q, note: it.note || '' });
-        });
-      }
-      if (o.persons) {
-        o.persons.forEach(function(p) {
-          if (p.items) {
-            p.items.forEach(function(it) {
-              all.push({ n: it.n, p: it.p, q: it.q, note: it.note || '', person: p.name });
-            });
-          }
-        });
-      }
-      if (o.discounts && o.discounts.length) {
-        o.discounts.forEach(function(d) {
-          all.push({ n: d.label, p: d.amount, q: 1, note: 'Descuento 2×1' });
-        });
-      }
-      
-      var pb = [];
-      if (o.persons && Array.isArray(o.persons)) {
-        pb = o.persons.map(function(p) {
-          return { name: p.name, total: pTotal(p), count: pCount(p) };
-        });
-      }
-      
-      var rec = {
-        id: uid(),
-        table: t,
-        tableNote: o.tableNote || '',
-        openedAt: o.openedAt || Date.now(),
-        closedAt: Date.now(),
-        total: tot,
-        itemCount: all.length,
-        items: all,
-        persons: pb
-      };
-      
-      // Operaciones en la base de datos (Supabase)
-      await insertHist(rec); 
-      
-      // Eliminar la mesa localmente y guardar el estado limpio
-      delete orders[t];
-      await saveOrders(orders);
-      
-      // Actualizar el historial en memoria
-      history.unshift(rec);
-      
-      showToast('✓ Cuenta cerrada · ' + money(tot));
-      curTable = null;
-      curPersonId = null;
-      
-      // Regresar a la vista de mesas y limpiar UI
-      showSc('tables');
-      gid('cartBar').classList.remove('show');
-      renderTables();
-    } catch (err) {
-      console.error(err);
-      showToast('Error al cerrar la cuenta');
-    }
+function doCloseTable(t){
+  var o=orders[t];
+  if(!o){showToast('Mesa sin productos');return;}
+  var tot=tblTotal(t);
+  if(!tot||tot<=0){showToast('La cuenta está vacía');return;}
+  openConfirm('Cobrar mesa '+t,'Total: '+money(tot),'Cobrar y cerrar',function(){
+    // Build record
+    var all=[];
+    if(o.items){o.items.forEach(function(it){all.push({n:it.n,p:it.p,q:it.q,note:it.note||''});});}
+    if(o.persons){o.persons.forEach(function(p){if(p.items){p.items.forEach(function(it){all.push({n:it.n,p:it.p,q:it.q,note:it.note||'',person:p.name});});}});}
+    if(o.discounts&&o.discounts.length){o.discounts.forEach(function(d){all.push({n:d.label,p:d.amount,q:1,note:'Descuento 2×1'});});}
+    var pb=o.persons?o.persons.map(function(p){return{name:p.name,total:pTotal(p),count:pCount(p)};}):[];
+    var rec={id:uid(),table:t,tableNote:o.tableNote||'',openedAt:o.openedAt||Date.now(),closedAt:Date.now(),total:tot,itemCount:all.length,items:all,persons:pb};
+    history.unshift(rec);
+    delete orders[t];
+    saveOrders(orders);
+    insertHist(rec);
+    showToast('✓ Cuenta cerrada · '+money(tot));
+    curTable=null;curPersonId=null;
+    showSc('tables');gid('cartBar').classList.remove('show');
+    renderTables();
   });
 }
-
-// Vinculación de eventos (Asegurarse de que llamen correctamente a la función)
-gid('closeTableBtn').addEventListener('click', function() {
-  if (curTable) doCloseTable(curTable);
-});
-
-gid('persCloseTable').addEventListener('click', function() {
-  if (curTable) doCloseTable(curTable);
-});
-
-gid('clearTableBtn').addEventListener('click', function() {
-  if (!curTable) return;
-  var t = curTable;
-  openConfirm('Vaciar mesa ' + t, 'Se eliminarán todos los productos.', 'Vaciar', async function() {
-    delete orders[t];
-    await saveOrders(orders);
-    renderCart();
-    updateCartBar();
-    showToast('Cuenta vaciada');
+gid('clearTableBtn').addEventListener('click',function(){
+  if(!curTable)return;var t=curTable;
+  openConfirm('Vaciar mesa '+t,'Se eliminarán todos los productos.','Vaciar',function(){
+    delete orders[t];saveOrders(orders);renderCart();updateCartBar();showToast('Cuenta vaciada');
   });
 });
+gid('closeTableBtn').addEventListener('click', function () {
+  if (curTable === null || curTable === undefined) {
+    showToast('No hay una mesa seleccionada');
+    return;
+  }
 
+  doCloseTable(curTable);
+});
+
+gid('persCloseTable').addEventListener('click', function () {
+  if (curTable === null || curTable === undefined) {
+    showToast('No hay una mesa seleccionada');
+    return;
+  }
+
+  doCloseTable(curTable);
+});
+console.log('Mesa actual:', curTable);
 // ══ PROMO 2x1 ══
 var promoSelected={};
 function getEligibleItems(){
