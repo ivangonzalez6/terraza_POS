@@ -1199,29 +1199,58 @@ gid('clearTableBtn').addEventListener('click', async function() {
 gid('closeTableBtn').addEventListener('click', async function() {
   if (!curTable) return;
   var t = curTable;
-  var o = orders[t]; if (!o) return;
-  var tot = tblTotal(t); if (!tot) return;
+  var o = orders[t];
+  if (!o) { showToast('Esta mesa no tiene productos'); return; }
+  var tot = tblTotal(t);
+  if (!tot) { showToast('La cuenta está vacía'); return; }
   var ok = await confirm2('Cobrar mesa ' + t, 'Total: ' + money(tot), 'Cobrar y cerrar');
   if (!ok) return;
-  await closeTable(t, tot, o);
+  closeTable(t, tot, o);
   curTable = null;
   showSc('tables');
   gid('cartBar').classList.remove('show');
   renderTables();
 });
-async function closeTable(t, tot, o) {
+function closeTable(t, tot, o) {
   var all = [];
-  if (o.items) { o.items.forEach(function(it) { all.push({n:it.n,p:it.p,q:it.q,note:it.note||''}); }); }
-  if (o.persons) {
-    o.persons.forEach(function(p) {
-      if (p.items) { p.items.forEach(function(it) { all.push({n:it.n,p:it.p,q:it.q,note:it.note||'',person:p.name}); }); }
+  if (o.items) {
+    o.items.forEach(function(it) {
+      all.push({n:it.n, p:it.p, q:it.q, note:it.note||''});
     });
   }
-  var pb = o.persons ? o.persons.map(function(p) { return {name:p.name,total:pTotal(p),count:pCount(p)}; }) : [];
-  var rec = {id:uid(),table:t,tableNote:o.tableNote||'',openedAt:o.openedAt||Date.now(),closedAt:Date.now(),total:tot,itemCount:all.length,items:all,persons:pb};
-  history.unshift(rec); delete orders[t];
-  await saveOrders(orders); await insertHist(rec);
+  if (o.persons) {
+    o.persons.forEach(function(p) {
+      if (p.items) {
+        p.items.forEach(function(it) {
+          all.push({n:it.n, p:it.p, q:it.q, note:it.note||'', person:p.name});
+        });
+      }
+    });
+  }
+  var pb = [];
+  if (o.persons) {
+    o.persons.forEach(function(p) {
+      pb.push({name:p.name, total:pTotal(p), count:pCount(p)});
+    });
+  }
+  var rec = {
+    id: uid(),
+    table: t,
+    tableNote: o.tableNote || '',
+    openedAt: o.openedAt || Date.now(),
+    closedAt: Date.now(),
+    total: tot,
+    itemCount: all.length,
+    items: all,
+    persons: pb
+  };
+  history.unshift(rec);
+  delete orders[t];
+  // Fire and forget — don't await, navigate immediately
+  saveOrders(orders);
+  insertHist(rec);
   showToast('✓ Cuenta cerrada · ' + money(tot));
+  return rec;
 }
 
 // ══ PERSONAS ══
@@ -1350,11 +1379,13 @@ function renderPersonsView() {
 gid('persCloseTable').addEventListener('click', async function() {
   if (!curTable) return;
   var t = curTable;
-  var o = orders[t]; if (!o) return;
-  var tot = tblTotal(t); if (!tot) return;
+  var o = orders[t];
+  if (!o) { showToast('Esta mesa no tiene productos'); return; }
+  var tot = tblTotal(t);
+  if (!tot) { showToast('La cuenta está vacía'); return; }
   var ok = await confirm2('Cobrar mesa ' + t, 'Total: ' + money(tot), 'Cobrar y cerrar');
   if (!ok) return;
-  await closeTable(t, tot, o);
+  closeTable(t, tot, o);
   curTable = null; curPersonId = null;
   showSc('tables');
   gid('cartBar').classList.remove('show');
