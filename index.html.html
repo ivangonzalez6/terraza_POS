@@ -22,7 +22,7 @@ textarea{resize:none}
 
 #loginScreen{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;background:radial-gradient(900px 500px at 90% -10%,rgba(138,100,32,.1),transparent 60%),radial-gradient(700px 400px at -10% 110%,rgba(138,100,32,.07),transparent 60%),var(--bg)}
 .lbox{width:100%;max-width:340px;padding:36px 28px 32px;background:#fff;border:1px solid var(--line2);border-radius:22px;box-shadow:0 20px 60px rgba(60,45,20,.12);margin:16px}
-.lmoon{width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff5d6,#c9a35b 70%,#6e4f1d);box-shadow:0 0 24px rgba(201,163,91,.5);margin:0 auto 12px}
+.lmoon{display:none}
 .ltitle{font-family:'Cormorant Garamond',serif;font-size:28px;letter-spacing:.18em;text-transform:uppercase;text-align:center;margin-bottom:4px}
 .lsub{font-size:10px;letter-spacing:.35em;color:var(--faint);text-transform:uppercase;text-align:center;margin-bottom:28px}
 .lfield{margin-bottom:14px}
@@ -38,7 +38,7 @@ textarea{resize:none}
 
 .topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;background:linear-gradient(180deg,rgba(245,241,232,.96),rgba(245,241,232,.78));backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .brand{display:flex;align-items:center;gap:8px}
-.brand .moon{width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff5d6,#c9a35b 70%,#6e4f1d);box-shadow:0 0 14px rgba(201,163,91,.4)}
+.brand .moon{display:none}
 .brand .name{font-family:'Cormorant Garamond',serif;font-size:18px;letter-spacing:.18em;text-transform:uppercase}
 .brand .sub{font-size:9px;letter-spacing:.3em;color:var(--faint);text-transform:uppercase;margin-top:-2px}
 .topbar-r{display:flex;align-items:center;gap:8px}
@@ -221,6 +221,9 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
 .sb.deld{background:#dceacf;color:#3d6b2e;border:1px solid #a8c995}
 .sb.deld:active{background:#3d6b2e;color:#fff}
 .t-foot{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line2);display:flex;justify-content:space-between;align-items:center}
+.ticket-done{opacity:.55;border-color:var(--line)!important;background:#fafaf8}
+.ticket-done .t-tbl{color:var(--faint)}
+.ticket-done-badge{display:block;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--ok);background:#f0f9ec;border:1px solid #c8e6b8;border-radius:6px;padding:4px 10px;margin:0 0 8px;font-weight:600}
 .t-tot{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold);font-weight:600}
 
 .per-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
@@ -289,12 +292,12 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
 .empty{text-align:center;padding:40px 20px;color:var(--faint)}
 .empty .etit{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--dim);margin-bottom:5px}
 .empty .esub{font-size:11px;letter-spacing:.1em}
-.crescent::before{content:'☾';color:var(--gold);margin-right:6px;font-size:.85em}
+.crescent::before{content:'';display:none}
 
 
 /* ── Drag & Drop admin ── */
-.drag-handle{width:28px;height:36px;display:flex;align-items:center;justify-content:center;cursor:grab;color:var(--faint);font-size:16px;flex-shrink:0;touch-action:none;user-select:none;-webkit-user-select:none}
-.drag-handle:active{cursor:grabbing;color:var(--gold)}
+.drag-handle{width:32px;height:40px;display:flex;align-items:center;justify-content:center;cursor:grab;color:var(--faint);font-size:18px;flex-shrink:0;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-ms-user-select:none}
+.drag-handle:active,.drag-handle:focus{cursor:grabbing;color:var(--gold);outline:none}
 .admin-item.dragging{opacity:.4;border-color:var(--gold);background:#fff8e8}
 .admin-item.drag-over{border-color:var(--gold);border-style:dashed;background:#fffbf0;transform:scale(1.01)}
 .admin-cat-tab.dragging{opacity:.4}
@@ -1239,15 +1242,30 @@ async function renderKitchen(){
   await refreshKitchenRecipeNames();
   var g=gid('kitchenGrid');g.innerHTML='';
   var keys=Object.keys(orders);
+  // Show ALL tables that have any items (pending OR delivered) — hide only truly empty/closed ones
   var active=keys.filter(function(t){return orders[t]&&tblCount(parseInt(t))>0;});
-  active.sort(function(a,b){return(orders[b].openedAt||0)-(orders[a].openedAt||0);});
+  // Sort: tables with pending items first (newest openedAt first), fully-delivered tables at bottom
+  active.sort(function(a,b){
+    var oa=orders[a],ob=orders[b];
+    var allItemsA=[];var allItemsB=[];
+    if(oa.items)oa.items.forEach(function(it){allItemsA.push(it);});
+    if(oa.persons)oa.persons.forEach(function(p){if(p.items)p.items.forEach(function(it){allItemsA.push(it);});});
+    if(ob.items)ob.items.forEach(function(it){allItemsB.push(it);});
+    if(ob.persons)ob.persons.forEach(function(p){if(p.items)p.items.forEach(function(it){allItemsB.push(it);});});
+    var pendA=allItemsA.some(function(it){return(it.status||'pending')==='pending';});
+    var pendB=allItemsB.some(function(it){return(it.status||'pending')==='pending';});
+    if(pendA&&!pendB)return -1;
+    if(!pendA&&pendB)return 1;
+    return(ob.openedAt||0)-(oa.openedAt||0);
+  });
   var visible=0;
   active.forEach(function(t){
     var o=orders[t];var allItems=[];
     if(o.items)o.items.forEach(function(it){allItems.push(Object.assign({},it,{_pl:null}));});
     if(o.persons)o.persons.forEach(function(p,idx){if(p.items)p.items.forEach(function(it){allItems.push(Object.assign({},it,{_pl:p.name,_pc:pCol(idx),_pid:p.id}));});});
     if(!allItems.length)return;
-    var allDel=allItems.every(function(it){return it.status==='delivered';});if(allDel)return;
+    // Always show the table — even if all delivered
+    var allDel=allItems.every(function(it){return it.status==='delivered';});
     visible++;
     var tot=allItems.reduce(function(s,it){return s+it.p*it.q;},0);
     var tm=new Date(o.openedAt||Date.now()),hh=tm.getHours().toString().padStart(2,'0'),mm=tm.getMinutes().toString().padStart(2,'0');
@@ -1256,9 +1274,12 @@ async function renderKitchen(){
     var del=allItems.filter(function(it){return it.status==='delivered';}).length;
     var key=t+':'+allItems.map(function(it){return it.id+':'+it.q+':'+it.status;}).join(',');
     var isNew=!lastSeen[key];lastSeen[key]=true;
-    var ticket=document.createElement('div');ticket.className='ticket'+(isNew?' new-t':'');
+    var ticket=document.createElement('div');
+    // Fully-delivered tables get a muted style but stay visible
+    ticket.className='ticket'+(isNew&&!allDel?' new-t':'')+(allDel?' ticket-done':'');
     var linesHTML=allItems.map(function(it){var st=it.status||'pending';var hasRec=!!kitchenRecipeNames[it.n.toLowerCase()];return'<div class="tl '+(st==='delivered'?'del':'')+'" data-table="'+t+'" data-id="'+it.id+'" data-pid="'+(it._pid||'')+'"><span class="tl-q">'+it.q+'×</span><span class="tl-n">'+esc(it.n)+(it.note?'<span class="tl-note">↳ '+esc(it.note)+'</span>':'')+(it._pl?'<span class="tl-per" style="color:'+it._pc+'">↳ '+esc(it._pl)+'</span>':'')+'</span><span class="tl-st" style="display:flex;flex-direction:column;gap:4px">'+(st==='pending'?'<button class="sb pend">Entregar</button>':'<button class="sb deld">✓ Entregado</button>')+(hasRec?'<button class="rec-btn" data-item-name="'+esc(it.n)+'">📖 Receta</button>':'')+'</span></div>';}).join('');
-    ticket.innerHTML='<div class="t-head"><div><div class="t-tbl">Mesa '+t.toString().padStart(2,'0')+'</div>'+(o.tableNote?'<div class="t-note">↳ '+esc(o.tableNote)+'</div>':'')+'</div><div style="text-align:right"><div class="t-time">'+hh+':'+mm+' · '+min+'min</div><div class="t-prog">'+(pend>0?'<span class="bp">'+pend+' pend.</span>':'')+(del>0?'<span class="bd">'+del+' ✓</span>':'')+'</div></div></div><div><div class="t-hrow"><span>Cant</span><span>Producto</span><span>Status</span></div>'+linesHTML+'</div><div class="t-foot"><span style="font-size:9px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase">'+allItems.reduce(function(s,it){return s+it.q;},0)+' productos</span><span class="t-tot">'+money(tot)+'</span></div>';
+    var doneLabel=allDel?'<span class="ticket-done-badge">Todo entregado · esperando cierre</span>':'';
+    ticket.innerHTML='<div class="t-head"><div><div class="t-tbl">Mesa '+t.toString().padStart(2,'0')+'</div>'+(o.tableNote?'<div class="t-note">↳ '+esc(o.tableNote)+'</div>':'')+'</div><div style="text-align:right"><div class="t-time">'+hh+':'+mm+' · '+min+'min</div><div class="t-prog">'+(pend>0?'<span class="bp">'+pend+' pend.</span>':'')+(del>0?'<span class="bd">'+del+' ✓</span>':'')+'</div></div></div>'+doneLabel+'<div><div class="t-hrow"><span>Cant</span><span>Producto</span><span>Status</span></div>'+linesHTML+'</div><div class="t-foot"><span style="font-size:9px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase">'+allItems.reduce(function(s,it){return s+it.q;},0)+' productos</span><span class="t-tot">'+money(tot)+'</span></div>';
     ticket.querySelectorAll('.sb').forEach(function(btn){
       btn.addEventListener('click',async function(e){
         e.stopPropagation();var line=btn.closest('.tl');var tbl=parseInt(line.getAttribute('data-table')),iid=line.getAttribute('data-id'),pid=line.getAttribute('data-pid');
@@ -1358,66 +1379,107 @@ gid('backToStatsFromMenu').addEventListener('click',function(){setRole('stats');
 
 
 // ══ DRAG & DROP HELPERS ══
+// Uses pointer events — works on both touch and mouse without long-press delay.
+// The drag handle (.drag-handle) is the only trigger zone, preventing
+// accidental activation and iOS text-selection menus.
 var dragSrc=null,dragType=null;
+var _dragScrollInterval=null;
+
+function _getDraggableParent(el){
+  while(el&&!el.hasAttribute('data-draggable'))el=el.parentElement;
+  return el||null;
+}
 
 function makeDraggable(el,onDrop){
+  el.setAttribute('data-draggable','true');
+  var handle=el.querySelector('.drag-handle')||el;
+
+  // ── Pointer events (unified mouse + touch, no delay) ──
+  var startX=0,startY=0,dragging=false,moved=false,indicator=null;
+
+  function cancelDrag(){
+    dragging=false;moved=false;
+    el.classList.remove('dragging');
+    document.querySelectorAll('[data-draggable].drag-over').forEach(function(x){x.classList.remove('drag-over');});
+    dragSrc=null;
+    if(indicator&&indicator.parentNode)indicator.parentNode.removeChild(indicator);
+    indicator=null;
+    clearInterval(_dragScrollInterval);_dragScrollInterval=null;
+  }
+
+  handle.addEventListener('pointerdown',function(e){
+    // Only main button or touch
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    e.stopPropagation();
+    handle.setPointerCapture(e.pointerId);
+    startX=e.clientX;startY=e.clientY;
+    dragging=false;moved=false;
+    dragSrc=el;
+  },{passive:true});
+
+  handle.addEventListener('pointermove',function(e){
+    if(!dragSrc||dragSrc!==el)return;
+    var dx=e.clientX-startX,dy=e.clientY-startY;
+    if(!dragging&&Math.sqrt(dx*dx+dy*dy)>6){
+      dragging=true;
+      el.classList.add('dragging');
+      if(navigator.vibrate)navigator.vibrate(20);
+    }
+    if(!dragging)return;
+    e.preventDefault&&e.preventDefault();
+    moved=true;
+    // Auto-scroll when near viewport edges
+    clearInterval(_dragScrollInterval);
+    var edgeZone=60;
+    if(e.clientY<edgeZone){_dragScrollInterval=setInterval(function(){window.scrollBy(0,-8);},16);}
+    else if(e.clientY>window.innerHeight-edgeZone){_dragScrollInterval=setInterval(function(){window.scrollBy(0,8);},16);}
+    // Find drop target
+    el.style.pointerEvents='none';
+    var rawTarget=document.elementFromPoint(e.clientX,e.clientY);
+    el.style.pointerEvents='';
+    var target=_getDraggableParent(rawTarget);
+    document.querySelectorAll('[data-draggable].drag-over').forEach(function(x){x.classList.remove('drag-over');});
+    if(target&&target!==el)target.classList.add('drag-over');
+  },{passive:false});
+
+  handle.addEventListener('pointerup',function(e){
+    if(!dragSrc||dragSrc!==el){cancelDrag();return;}
+    clearInterval(_dragScrollInterval);_dragScrollInterval=null;
+    el.style.pointerEvents='none';
+    var rawTarget=document.elementFromPoint(e.clientX,e.clientY);
+    el.style.pointerEvents='';
+    var target=_getDraggableParent(rawTarget);
+    var hadTarget=target&&target!==el&&target.classList.contains('drag-over');
+    cancelDrag();
+    if(hadTarget)onDrop(el,target);
+  },{passive:true});
+
+  handle.addEventListener('pointercancel',function(){cancelDrag();},{passive:true});
+
+  // ── Mouse fallback (desktop drag API) ──
   el.setAttribute('draggable','true');
   el.addEventListener('dragstart',function(e){
+    if(e.pointerType==='touch')return; // pointer events handle touch
     dragSrc=el;
     e.dataTransfer.effectAllowed='move';
     setTimeout(function(){el.classList.add('dragging');},0);
   });
   el.addEventListener('dragend',function(){
     el.classList.remove('dragging');
-    document.querySelectorAll('.drag-over').forEach(function(x){x.classList.remove('drag-over');});
+    document.querySelectorAll('[data-draggable].drag-over').forEach(function(x){x.classList.remove('drag-over');});
     dragSrc=null;
   });
   el.addEventListener('dragover',function(e){
     e.preventDefault();e.dataTransfer.dropEffect='move';
     if(dragSrc&&dragSrc!==el)el.classList.add('drag-over');
   });
-  el.addEventListener('dragleave',function(){el.classList.remove('drag-over');});
+  el.addEventListener('dragleave',function(e){
+    if(!el.contains(e.relatedTarget))el.classList.remove('drag-over');
+  });
   el.addEventListener('drop',function(e){
     e.preventDefault();el.classList.remove('drag-over');
     if(dragSrc&&dragSrc!==el)onDrop(dragSrc,el);
   });
-  // Touch support (long-press → drag simulation)
-  var touchTimeout=null,touchStartY=0,touchStartX=0,ghost=null;
-  el.addEventListener('touchstart',function(e){
-    touchStartX=e.touches[0].clientX;touchStartY=e.touches[0].clientY;
-    touchTimeout=setTimeout(function(){
-      dragSrc=el;
-      el.classList.add('dragging');
-      // haptic if available
-      if(navigator.vibrate)navigator.vibrate(30);
-    },380);
-  },{passive:true});
-  el.addEventListener('touchmove',function(e){
-    if(!dragSrc){clearTimeout(touchTimeout);touchTimeout=null;return;}
-    e.preventDefault();
-    var touch=e.touches[0];
-    // Find element under touch
-    el.style.pointerEvents='none';
-    var target=document.elementFromPoint(touch.clientX,touch.clientY);
-    el.style.pointerEvents='';
-    // Find the draggable ancestor
-    while(target&&!target.hasAttribute('draggable'))target=target.parentElement;
-    document.querySelectorAll('.drag-over').forEach(function(x){x.classList.remove('drag-over');});
-    if(target&&target!==el&&target.hasAttribute('draggable'))target.classList.add('drag-over');
-  },{passive:false});
-  el.addEventListener('touchend',function(e){
-    clearTimeout(touchTimeout);touchTimeout=null;
-    if(!dragSrc){return;}
-    var touch=e.changedTouches[0];
-    el.style.pointerEvents='none';
-    var target=document.elementFromPoint(touch.clientX,touch.clientY);
-    el.style.pointerEvents='';
-    while(target&&!target.hasAttribute('draggable'))target=target.parentElement;
-    document.querySelectorAll('.drag-over').forEach(function(x){x.classList.remove('drag-over');});
-    el.classList.remove('dragging');
-    if(target&&target!==el&&target.hasAttribute('draggable'))onDrop(dragSrc,target);
-    dragSrc=null;
-  },{passive:true});
 }
 
 // ── Reorder categories ──
