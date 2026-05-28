@@ -234,8 +234,8 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
 .t-prog{margin-top:3px;display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}
 .bp{font-size:9px;letter-spacing:.12em;text-transform:uppercase;background:#f6e6c0;color:#7a5a18;padding:3px 7px;border-radius:999px;font-weight:700}
 .bd{font-size:9px;letter-spacing:.12em;text-transform:uppercase;background:#dceacf;color:#3d6b2e;padding:3px 7px;border-radius:999px;font-weight:700}
-.t-hrow{display:grid;grid-template-columns:38px 1fr 100px;gap:6px;padding:5px 0;border-bottom:1px solid var(--line);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);font-weight:600}
-.tl{display:grid;grid-template-columns:38px 1fr 100px;gap:6px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12px;transition:opacity .25s}
+.t-hrow{display:grid;grid-template-columns:38px 1fr auto auto;gap:6px;padding:5px 0;border-bottom:1px solid var(--line);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);font-weight:600}
+.tl{display:grid;grid-template-columns:38px 1fr auto auto;gap:6px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12px;transition:opacity .25s}
 .tl:last-child{border-bottom:0}
 .tl.del{opacity:.5}
 .tl.del .tl-n{text-decoration:line-through;text-decoration-color:rgba(0,0,0,.3)}
@@ -248,6 +248,8 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
 .sb.pend:active{background:#7a5a18;color:#fff}
 .sb.deld{background:#dceacf;color:#3d6b2e;border:1px solid #a8c995}
 .sb.deld:active{background:#3d6b2e;color:#fff}
+.sb.recipe{background:#fff;color:var(--dim);border:1px solid var(--line);font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;padding:6px 8px;border-radius:7px;white-space:nowrap;transition:all .15s;width:100%}
+.sb.recipe:active{background:var(--gold);color:#fff;border-color:var(--gold)}
 .t-foot{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line2);display:flex;justify-content:space-between;align-items:center}
 .ticket-done{opacity:.55;border-color:var(--line)!important;background:#fafaf8}
 .ticket-done .t-tbl{color:var(--faint)}
@@ -316,6 +318,9 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
 .blocked-badge{font-size:9px;background:#eee;color:var(--faint);padding:2px 6px;border-radius:999px;margin-left:4px}
 .sep{height:1px;background:var(--line);margin:18px 0}
 
+/* ── Pay modal ── */
+#payChangeWrap{display:none}
+#payShortWrap{display:none}
 .toast{position:fixed;top:68px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--ink);border:1px solid var(--gold);border-radius:10px;padding:9px 16px;font-size:11px;letter-spacing:.1em;color:#c9a35b;opacity:0;pointer-events:none;transition:all .3s;z-index:500}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .nbadge{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:var(--gold);color:#fff;font-size:9px;font-weight:700;margin-left:5px}
@@ -686,7 +691,7 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
     <h3 id="ufTitle">Nuevo usuario</h3><div class="msub" id="ufSub"></div>
     <label class="flbl">Usuario</label>
     <input id="ufUser" type="text" placeholder="nombre de usuario" style="margin-top:5px" maxlength="30">
-    <label class="flbl" style="margin-top:10px">Contraseña <span style="color:var(--faint);font-size:9px">(vacío = no cambiar)</span></label>
+    <label class="flbl" style="margin-top:10px" id="ufPassLabel">Contraseña</label>
     <div class="pw-wrap" style="margin-top:5px">
       <input id="ufPass" type="password" placeholder="••••••••">
       <button class="pw-eye" id="toggleUfPass" type="button">👁</button>
@@ -702,6 +707,43 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
     <div class="ma"><button class="btn btn-g" id="ufCancel">Cancelar</button><button class="btn btn-p" id="ufSave">Guardar</button></div>
   </div>
 </div>
+<!-- MODAL COBRO con cambio -->
+<div class="mb" id="payModal">
+  <div class="modal" style="padding-bottom:32px">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2px">
+      <h3 id="payModalTitle">Cobrar</h3>
+      <button id="payModalClose" style="font-size:22px;color:var(--faint);padding:2px 6px;line-height:1;background:none;border:none;cursor:pointer">×</button>
+    </div>
+    <div class="msub" id="payModalSub"></div>
+    <!-- Total a cobrar -->
+    <div style="background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:14px 0 10px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--faint);font-weight:600">Total a cobrar</span>
+      <span id="payModalTotal" style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--gold)"></span>
+    </div>
+    <!-- Campo: pago del cliente -->
+    <label class="flbl">Pago del cliente</label>
+    <div style="position:relative;margin-top:5px">
+      <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--faint);font-size:14px;pointer-events:none">$</span>
+      <input id="payClientAmt" type="number" min="0" step="1" placeholder="0"
+        style="padding-left:26px;font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--ink)">
+    </div>
+    <!-- Cambio -->
+    <div id="payChangeWrap" style="margin-top:10px;padding:12px 16px;border-radius:12px;background:#f0f9ec;border:1px solid #a8c995;display:none;justify-content:space-between;align-items:center">
+      <span style="font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--ok);font-weight:600">Cambio</span>
+      <span id="payChangeAmt" style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--ok)"></span>
+    </div>
+    <div id="payShortWrap" style="margin-top:10px;padding:12px 16px;border-radius:12px;background:#fff0ed;border:1px solid #f0b8b0;display:none;justify-content:space-between;align-items:center">
+      <span style="font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--danger);font-weight:600">Falta</span>
+      <span id="payShortAmt" style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--danger)"></span>
+    </div>
+    <!-- Acciones -->
+    <div class="ma" style="margin-top:16px">
+      <button class="btn btn-g" id="payModalCancel">Cancelar</button>
+      <button class="btn btn-p" id="payModalConfirm">Cobrar y cerrar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL 2x1 -->
 <div class="mb" id="promoModal">
   <div class="modal">
@@ -1128,22 +1170,78 @@ function findIt(it){var o=orders[curTable];if(!o)return null;if(it._src==='p'){v
 function removeIt(it){var o=orders[curTable];if(!o)return;if(it._src==='p'){var per=null;for(var i=0;i<o.persons.length;i++){if(o.persons[i].id===it._pid){per=o.persons[i];break;}}if(per&&per.items)per.items=per.items.filter(function(x){return x.id!==it.id;});}else if(o.items)o.items=o.items.filter(function(x){return x.id!==it.id;});}
 
 // ══ COBRAR Y CERRAR ══
+
+// ══ PAY MODAL (cobro con cambio) ══
+var _payModalCb=null;
+
+function openPayModal(title, sub, total, confirmLabel, onConfirm){
+  gid('payModalTitle').textContent=title;
+  gid('payModalSub').textContent=sub||'';
+  gid('payModalTotal').textContent=money(total);
+  gid('payClientAmt').value='';
+  gid('payChangeWrap').style.display='none';
+  gid('payShortWrap').style.display='none';
+  gid('payModalConfirm').textContent=confirmLabel||'Cobrar y cerrar';
+  _payModalCb=onConfirm;
+  gid('payModal').classList.add('show');
+  setTimeout(function(){gid('payClientAmt').focus();},280);
+  // Store total for change calc
+  gid('payClientAmt').setAttribute('data-total', total);
+}
+
+function closePayModal(){
+  gid('payModal').classList.remove('show');
+  _payModalCb=null;
+  gid('payClientAmt').value='';
+  gid('payChangeWrap').style.display='none';
+  gid('payShortWrap').style.display='none';
+}
+
+// Change calculation
+gid('payClientAmt').addEventListener('input',function(){
+  var total=parseFloat(gid('payClientAmt').getAttribute('data-total'))||0;
+  var given=parseFloat(gid('payClientAmt').value)||0;
+  gid('payChangeWrap').style.display='none';
+  gid('payShortWrap').style.display='none';
+  if(given<=0||!total)return;
+  var diff=given-total;
+  if(diff>=0){
+    gid('payChangeAmt').textContent=money(diff);
+    gid('payChangeWrap').style.display='flex';
+  }else{
+    gid('payShortAmt').textContent=money(-diff);
+    gid('payShortWrap').style.display='flex';
+  }
+});
+
+gid('payModalClose').addEventListener('click',closePayModal);
+gid('payModalCancel').addEventListener('click',closePayModal);
+gid('payModal').addEventListener('click',function(e){if(e.target===gid('payModal'))closePayModal();});
+gid('payModalConfirm').addEventListener('click',async function(){
+  if(_payModalCb){
+    var given=parseFloat(gid('payClientAmt').value)||0;
+    var total=parseFloat(gid('payClientAmt').getAttribute('data-total'))||0;
+    if(given>0&&given<total){showToast('El pago es menor al total');return;}
+    closePayModal();
+    await _payModalCb();
+  }
+});
+
 function doCloseTable(t){
   var o=orders[t];
   if(!o){showToast('Mesa sin productos');return;}
   var tot=tblTotal(t);
   if(tot<=0&&tblSubtotal(t)<=0){showToast('La cuenta está vacía');return;}
   var remaining=tot;
-  var msg='Total restante: '+money(remaining);
   var paid=tblPaid(t);
-  if(paid>0)msg+=' (ya cobrado: '+money(paid)+')';
-  openConfirm('Cobrar mesa '+t,msg,'Cobrar y cerrar',async function(){
+  var sub=paid>0?'Ya cobrado: '+money(paid):' ';
+  openPayModal('Cobrar mesa '+t,sub,remaining,'Cobrar y cerrar',async function(){
     var all=[];
     if(o.items)o.items.forEach(function(it){all.push({n:it.n,p:it.p,q:it.q,note:it.note||'',paid:false});});
     if(o.persons)o.persons.forEach(function(p){if(p.items)p.items.forEach(function(it){all.push({n:it.n,p:it.p,q:it.q,note:it.note||'',person:p.name,paid:!!p.paid});});});
     if(o.discounts&&o.discounts.length)o.discounts.forEach(function(d){all.push({n:d.label,p:d.amount,q:1,note:'Descuento 2×1'});});
     var pb=o.persons?o.persons.map(function(p){return{name:p.name,total:pTotal(p),count:pCount(p),paid:!!p.paid};}):[];
-    var totalClosed=tblSubtotal(t)+tblDiscount(t); // Full amount (before partial payments)
+    var totalClosed=tblSubtotal(t)+tblDiscount(t);
     var rec={id:uid(),table:t,tableNote:o.tableNote||'',openedAt:o.openedAt||Date.now(),closedAt:Date.now(),total:totalClosed,itemCount:all.length,items:all,persons:pb};
     appHistory.unshift(rec);
     delete orders[t];
@@ -1263,11 +1361,16 @@ function renderPersonsView(){
     if(payBtn){
       payBtn.addEventListener('click',function(){
         if(!per.items||!per.items.length){showToast('Sin productos para cobrar');return;}
-        openConfirm('Cobrar a '+per.name,money(subtotal)+' — ¿confirmas el pago?','Cobrar',async function(){
-          // Mark person as paid
+        openPayModal('Cobrar a '+per.name,'','Cobrar',function(){},null);
+        // Custom: use per-person flow
+        gid('payModalTotal').textContent=money(subtotal);
+        gid('payModalSub').textContent='';
+        gid('payClientAmt').setAttribute('data-total',subtotal);
+        gid('payModalConfirm').textContent='Cobrar';
+        _payModalCb=async function(){
           for(var ii=0;ii<orders[curTable].persons.length;ii++){if(orders[curTable].persons[ii].id===per.id){orders[curTable].persons[ii].paid=true;break;}}
           await saveOrders(orders);renderPersonsView();updateCartBar();showToast('✓ '+per.name+' pagó '+money(subtotal));
-        });
+        };
       });
     }
     // Undo pay button
@@ -1371,9 +1474,9 @@ async function renderKitchen(){
     var ticket=document.createElement('div');
     // Fully-delivered tables get a muted style but stay visible
     ticket.className='ticket'+(isNew&&!allDel?' new-t':'')+(allDel?' ticket-done':'');
-    var linesHTML=allItems.map(function(it){var st=it.status||'pending';var hasRec=!!kitchenRecipeNames[it.n.toLowerCase()];return'<div class="tl '+(st==='delivered'?'del':'')+'" data-table="'+t+'" data-id="'+it.id+'" data-pid="'+(it._pid||'')+'"><span class="tl-q">'+it.q+'×</span><span class="tl-n">'+esc(it.n)+(it.note?'<span class="tl-note">↳ '+esc(it.note)+'</span>':'')+(it._pl?'<span class="tl-per" style="color:'+it._pc+'">↳ '+esc(it._pl)+'</span>':'')+'</span><span class="tl-st" style="display:flex;flex-direction:column;gap:4px">'+(st==='pending'?'<button class="sb pend">Entregar</button>':'<button class="sb deld">✓ Entregado</button>')+(hasRec?'<button class="rec-btn" data-item-name="'+esc(it.n)+'">📖 Receta</button>':'')+'</span></div>';}).join('');
+    var linesHTML=allItems.map(function(it){var st=it.status||'pending';var hasRec=!!kitchenRecipeNames[it.n.toLowerCase()];return'<div class="tl '+(st==='delivered'?'del ':'')+ '" data-table="'+t+'" data-id="'+it.id+'" data-pid="'+(it._pid||'')+'"><span class="tl-q">'+it.q+'×</span><span class="tl-n">'+esc(it.n)+(it.note?'<span class="tl-note">↳ '+esc(it.note)+'</span>':'')+( it._pl?'<span class="tl-per" style="color:'+it._pc+'">↳ '+esc(it._pl)+'</span>':'')+'</span>'+(hasRec?'<span class="tl-st"><button class="sb recipe" data-item-name="'+esc(it.n)+'">Receta</button></span>':'<span></span>')+(st==='pending'?'<span class="tl-st"><button class="sb pend">Entregar</button></span>':'<span class="tl-st"><button class="sb deld">✓ Listo</button></span>')+'</div>';}).join('');
     var doneLabel=allDel?'<span class="ticket-done-badge">Todo entregado · esperando cierre</span>':'';
-    ticket.innerHTML='<div class="t-head"><div><div class="t-tbl">Mesa '+t.toString().padStart(2,'0')+'</div>'+(o.tableNote?'<div class="t-note">↳ '+esc(o.tableNote)+'</div>':'')+'</div><div style="text-align:right"><div class="t-time">'+hh+':'+mm+' · '+min+'min</div><div class="t-prog">'+(pend>0?'<span class="bp">'+pend+' pend.</span>':'')+(del>0?'<span class="bd">'+del+' ✓</span>':'')+'</div></div></div>'+doneLabel+'<div><div class="t-hrow"><span>Cant</span><span>Producto</span><span>Status</span></div>'+linesHTML+'</div><div class="t-foot"><span style="font-size:9px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase">'+allItems.reduce(function(s,it){return s+it.q;},0)+' productos</span><span class="t-tot">'+money(tot)+'</span></div>';
+    ticket.innerHTML='<div class="t-head"><div><div class="t-tbl">Mesa '+t.toString().padStart(2,'0')+'</div>'+(o.tableNote?'<div class="t-note">↳ '+esc(o.tableNote)+'</div>':'')+'</div><div style="text-align:right"><div class="t-time">'+hh+':'+mm+' · '+min+'min</div><div class="t-prog">'+(pend>0?'<span class="bp">'+pend+' pend.</span>':'')+(del>0?'<span class="bd">'+del+' ✓</span>':'')+'</div></div></div>'+doneLabel+'<div><div class="t-hrow"><span>Cant</span><span>Producto</span><span></span><span>Status</span></div>'+linesHTML+'</div><div class="t-foot"><span style="font-size:9px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase">'+allItems.reduce(function(s,it){return s+it.q;},0)+' productos</span><span class="t-tot">'+money(tot)+'</span></div>';
     ticket.querySelectorAll('.sb').forEach(function(btn){
       btn.addEventListener('click',async function(e){
         e.stopPropagation();var line=btn.closest('.tl');var tbl=parseInt(line.getAttribute('data-table')),iid=line.getAttribute('data-id'),pid=line.getAttribute('data-pid');
@@ -1383,7 +1486,7 @@ async function renderKitchen(){
         if(!item)return;item.status=item.status==='delivered'?'pending':'delivered';await saveOrders(orders);renderKitchen();showToast(item.status==='delivered'?'✓ Entregado':'Marcado pendiente');
       });
     });
-    ticket.querySelectorAll('.rec-btn').forEach(function(btn){
+    ticket.querySelectorAll('.sb.recipe').forEach(function(btn){
       btn.addEventListener('click',function(e){
         e.stopPropagation();
         var itemName=btn.getAttribute('data-item-name');
@@ -2128,7 +2231,7 @@ gid('recFSave').addEventListener('click',async function(){
 // ══ ADMIN USUARIOS ══
 gid('adminUsersBtn').addEventListener('click',async function(){var ok=await askPass('Contraseña de administrador');if(!ok)return;appUsers=await loadUsers();var ap=await loadConfig('admin_password');if(ap)adminPass=ap;renderUserList();setRole('users');});
 gid('backToStats').addEventListener('click',function(){setRole('stats');});
-gid('addUserBtn').addEventListener('click',function(){editingUserId=null;gid('ufTitle').textContent='Nuevo usuario';gid('ufSub').textContent='';gid('ufUser').value='';gid('ufPass').value='';gid('ufRole').value='mesero';gid('ufErr').textContent='';gid('userFormModal').classList.add('show');setTimeout(function(){gid('ufUser').focus();},250);});
+gid('addUserBtn').addEventListener('click',function(){editingUserId=null;gid('ufTitle').textContent='Nuevo usuario';gid('ufSub').textContent='';gid('ufUser').value='';gid('ufPass').value='';gid('ufPassLabel').textContent='Contraseña';gid('ufRole').value='mesero';gid('ufErr').textContent='';gid('userFormModal').classList.add('show');setTimeout(function(){gid('ufUser').focus();},250);});
 gid('ufCancel').addEventListener('click',function(){gid('userFormModal').classList.remove('show');editingUserId=null;});
 gid('ufSave').addEventListener('click',async function(){
   var u=gid('ufUser').value.trim(),p=gid('ufPass').value,r=gid('ufRole').value;
@@ -2146,7 +2249,7 @@ function renderUserList(){
     var el=document.createElement('div');el.className='u-item';
     el.innerHTML='<div class="u-av '+(u.active?'':'blocked')+'">'+ini(u.username)+'</div><div class="u-info"><div class="u-name">'+esc(u.username)+(!u.active?'<span class="blocked-badge">Bloqueado</span>':'')+'</div><div class="u-role">'+(rl[u.role]||u.role)+'</div></div><div class="u-acts"><button class="u-btn u-edit">Editar</button><button class="u-btn u-block">'+(u.active?'Bloquear':'Desbloquear')+'</button>'+(u.id!=='user-admin-01'?'<button class="u-btn u-del">Eliminar</button>':'')+'</div>';
     (function(user){
-      el.querySelector('.u-edit').addEventListener('click',function(){editingUserId=user.id;gid('ufTitle').textContent='Editar usuario';gid('ufSub').textContent=user.username;gid('ufUser').value=user.username;gid('ufPass').value='';gid('ufRole').value=user.role;gid('ufErr').textContent='';gid('userFormModal').classList.add('show');setTimeout(function(){gid('ufUser').focus();},250);});
+      el.querySelector('.u-edit').addEventListener('click',function(){editingUserId=user.id;gid('ufTitle').textContent='Editar usuario';gid('ufSub').textContent=user.username;gid('ufUser').value=user.username;gid('ufPass').value=user.password||'';gid('ufPassLabel').textContent='Contraseña actual';gid('ufRole').value=user.role;gid('ufErr').textContent='';gid('userFormModal').classList.add('show');setTimeout(function(){gid('ufUser').focus();},250);});
       el.querySelector('.u-block').addEventListener('click',async function(){var na=!user.active;await updateUser(user.id,{active:na});user.active=na;renderUserList();showToast(na?'Usuario desbloqueado':'Usuario bloqueado');});
       var db=el.querySelector('.u-del');if(db)db.addEventListener('click',function(){openConfirm('Eliminar usuario','¿Eliminar a '+user.username+'?','Eliminar',async function(){await deleteUser(user.id);appUsers=appUsers.filter(function(x){return x.id!==user.id;});renderUserList();showToast('Usuario eliminado');});});
     })(u);
