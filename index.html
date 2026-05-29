@@ -2613,4 +2613,22 @@ gid('roleMesero').addEventListener('click',function(){setRole('mesero');});
 gid('roleCocina').addEventListener('click',function(){setRole('cocina');});
 gid('roleStats').addEventListener('click',function(){setRole('stats');});
 
-// ══ SYNC ═
+// ══ SYNC ══
+async function sync(){
+  try{
+    var fresh=await loadOrders();
+    if(fresh&&typeof fresh==='object'){
+      // Merge remote orders without overwriting local pending changes
+      Object.keys(fresh).forEach(function(t){
+        if(!orders[t]){orders[t]=fresh[t];}
+      });
+    }
+    var now=Date.now();
+    Object.keys(lastSeen).forEach(function(t){
+      if(now-lastSeen[t]>300000)delete lastSeen[t]; // clean stale
+    });
+  }catch(e){/* silent */}
+}
+</script>
+</body>
+</html>
