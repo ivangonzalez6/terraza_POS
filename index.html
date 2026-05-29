@@ -502,7 +502,6 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
       <div class="ns"><span class="nl">Mesa</span><span class="nv e" id="persNote">Sin identificación</span></div>
       <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
         <div class="p-tabs" id="personTabs" style="flex:1"></div>
-        <button class="add-p-btn" id="addPersonBtn">+ Persona</button>
       </div>
       <div id="personContent"></div>
       <!-- Resumen de pagos parciales -->
@@ -511,9 +510,10 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
         <div id="psRows"></div>
         <div class="ps-tot"><span class="ps-tl">Total mesa</span><span class="ps-ta" id="psTot">$0</span></div>
       </div>
-      <div style="margin-top:14px;display:flex;gap:8px">
+      <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
+        <button class="btn btn-p" style="width:100%;padding:13px" id="addPersonBtn">👤 Ordenar por persona</button>
+        <button class="btn btn-p" style="width:100%;padding:13px" id="persCompartirBtn">🍹 Ordenar por mesa</button>
         <button class="btn btn-g" style="display:none" id="persPorPersonaBtn">+ Por persona</button>
-        <button class="btn btn-p" style="flex:1;padding:13px" id="persCompartirBtn">🍹 Ordenar por mesa</button>
         <button class="btn btn-g" style="display:none" id="persVerOrdenBtn">Ver Orden</button>
       </div>
     </div>
@@ -1163,6 +1163,7 @@ gid('logoutBtn').addEventListener('click',function(){
 // ══ MESAS ══
 function renderTables(){
   var g=gid('tablesGrid');g.innerHTML='';
+  // Mesas numeradas 1-NT
   for(var i=1;i<=NT;i++){
     (function(idx){
       var tot=tblTotal(idx),has=tblSubtotal(idx)>0,note=(orders[idx]&&orders[idx].tableNote)||'';
@@ -1172,6 +1173,15 @@ function renderTables(){
       g.appendChild(el);
     })(i);
   }
+  // Mesa Evento
+  (function(){
+    var key='evento';
+    var tot=tblTotal(key),has=tblSubtotal(key)>0,note=(orders[key]&&orders[key].tableNote)||'';
+    var el=document.createElement('div');el.className='tc evento'+(has?' has':'');
+    el.innerHTML='<div class="dot"></div><div class="num" style="font-size:13px;letter-spacing:.05em">EVT</div><div class="lbl">Evento</div><div class="tot">'+(has?money(tot):'—')+'</div><div class="tn">'+(note?esc(note):'')+'</div>';
+    el.addEventListener('click',function(){openTable(key);});
+    g.appendChild(el);
+  })();
 }
 
 // ══ MENÚ ══
@@ -1248,9 +1258,10 @@ function getPName(){if(!curTable||!curPersonId)return'';var ps=orders[curTable]&
 // ══ NAV ══
 function openTable(n){
   curTable=n;
-  gid('curTblLbl').textContent=n.toString().padStart(2,'0');
+  var lbl=typeof n==='number'?n.toString().padStart(2,'0'):n.toString().toUpperCase();
+  gid('curTblLbl').textContent=lbl;
   initTbl(n);
-  gid('persTblLbl').textContent=n.toString().padStart(2,'0');
+  gid('persTblLbl').textContent=lbl;
   curPersonId=(orders[n].persons[0]&&orders[n].persons[0].id)||null;
   showSc('persons');renderNS();renderPersonsView();
   gid('cartBar').classList.remove('show');updateBadges();
@@ -1265,8 +1276,8 @@ gid('backToTables').addEventListener('click',function(){
   else{showSc('tables');gid('cartBar').classList.remove('show');renderTables();}
 });
 gid('backToTables2').addEventListener('click',function(){showSc('tables');gid('cartBar').classList.remove('show');curTable=null;renderTables();});
-gid('viewCartBtn').addEventListener('click',function(){if(!curTable)return;gid('cartTblLbl').textContent=curTable.toString().padStart(2,'0');showSc('cart');renderNS();renderCart();});
-gid('goToCartBtn').addEventListener('click',function(){if(!curTable)return;gid('cartTblLbl').textContent=curTable.toString().padStart(2,'0');showSc('cart');renderNS();renderCart();});
+gid('viewCartBtn').addEventListener('click',function(){if(!curTable)return;gid('cartTblLbl').textContent=typeof curTable==='number'?curTable.toString().padStart(2,'0'):String(curTable).toUpperCase();showSc('cart');renderNS();renderCart();});
+gid('goToCartBtn').addEventListener('click',function(){if(!curTable)return;gid('cartTblLbl').textContent=typeof curTable==='number'?curTable.toString().padStart(2,'0'):String(curTable).toUpperCase();showSc('cart');renderNS();renderCart();});
 gid('backToMenu').addEventListener('click',function(){if(curTable){showSc('persons');renderPersonsView();}else{showSc('tables');renderTables();}});
 
 
@@ -1289,7 +1300,7 @@ gid('persCompartirBtn').addEventListener('click',function(){
 });
 gid('persVerOrdenBtn').addEventListener('click',function(){
   if(!curTable)return;
-  gid('cartTblLbl').textContent=curTable.toString().padStart(2,'0');
+  gid('cartTblLbl').textContent=typeof curTable==='number'?curTable.toString().padStart(2,'0'):String(curTable).toUpperCase();
   showSc('cart');renderNS();renderCart();
 });
 // Editar nota desde Personas
@@ -1309,7 +1320,7 @@ function updateCartBar(){
   var sc=currentScreen();
   if(sc!=='persons'&&sc!=='menu'){gid('cartBar').classList.remove('show');return;}
   var tot=tblTotal(curTable),cnt=tblCount(curTable);
-  gid('cbTable').textContent=curTable.toString().padStart(2,'0');
+  gid('cbTable').textContent=typeof curTable==='number'?curTable.toString().padStart(2,'0'):String(curTable).toUpperCase();
   gid('cbCount').textContent=cnt+' item'+(cnt!==1?'s':'');
   gid('cbTotal').textContent=Math.round(tot).toLocaleString('es-MX');
   gid('cartBadge').textContent=cnt;gid('cartBadge').style.display=cnt>0?'inline-flex':'none';
