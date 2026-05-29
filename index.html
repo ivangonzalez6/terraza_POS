@@ -952,11 +952,14 @@ function loadHistory(){
 function insertHist(rec){return spost('/rest/v1/history',{id:rec.id,table_num:rec.table,table_note:rec.tableNote||'',opened_at:new Date(rec.openedAt).toISOString(),closed_at:new Date(rec.closedAt).toISOString(),total:rec.total,item_count:rec.itemCount,items:rec.items||[],persons:rec.persons||[],payment_method:rec.paymentMethod||'efectivo'});}
 function updateHist(id,total,note){return spatch('/rest/v1/history?id=eq.'+id,{total:total,edit_note:note});}
 async function insertFinanceMovements(rec){
-  var today=new Date(rec.closedAt).toISOString().split('T')[0];
+  // Use the date the table was opened (for night→early-morning sessions)
+  var openDate=new Date(rec.openedAt).toISOString().split('T')[0];
+  var today=openDate;
   // Agrupar importe por método de pago
   var methods={efectivo:0,tarjeta:0,transferencia:0};
   var items=rec.items||[];
   items.forEach(function(it){
+    if(it.note==='Descuento 2×1')return; // skip discount lines, they reduce total already
     var pm=it.pm||rec.paymentMethod||'efectivo';
     if(!methods[pm])methods[pm]=0;
     methods[pm]+=it.p*it.q;
@@ -971,6 +974,7 @@ async function insertFinanceMovements(rec){
   // Construir mapa de productos
   var products={};
   items.forEach(function(it){
+    if(it.note==='Descuento 2×1')return;
     var name=it.n||'Producto';
     if(!products[name])products[name]={q:0,total:0};
     products[name].q+=it.q;products[name].total+=it.p*it.q;
@@ -1574,9 +1578,28 @@ gid('clearTableBtn').addEventListener('click',function(){
 
 // ══ PROMO 2x1 ══
 function getEligibleItems(){
-  var o=orders[curTable];if(!o)return[];var eligible=[];
-  if(o.items)o.items.forEach(function(it){var inCat=false;for(var i=0;i<MENU.length;i++){if(CATS_2X1.indexOf(MENU[i].cat)>=0){for(var j=0;j<MENU[i].items.length;j++){if(MENU[i].items[j].n===it.n){inCat=true;break;}}}if(inCat)break;}if(inCat)for(var q=0;q<it.q;q++)eligible.push({id:it.id+'_'+q,name:it.n,price:it.p});});
-  if(o.persons)o.persons.forEach(function(p){if(p.paid)return;if(p.items)p.items.forEach(function(it){var inCat=false;for(var i=0;i<MENU.length;i++){if(CATS_2X1.indexOf(MENU[i].cat)>=0){for(var j=0;j<MENU[i].items.length;j++){if(MENU[i].items[j].n===it.n){inCat=true;break;}}}if(inCat)break;}if(inCat)for(var q=0;q<it.q;q++)eligible.push({id:it.id+'_'+q,name:it.n+(p.name?' ('+p.name+')':''),price:it.p});});});
+  var o=orders[curTable];if(!o)return[];
+  // Count already-discounted units per product name
+  var alreadyDiscounted={};
+  if(o.discounts)o.discounts.forEach(function(d){
+    // label: "2×1 ProductName" or "2×1 ProductName ×N"
+    var m=d.label.replace(/^2×1\s*/,'').replace(/\s*×\d+$/,'');
+    var cnt=1;var mN=d.label.match(/×(\d+)$/);if(mN)cnt=parseInt(mN[1]);
+    if(!alreadyDiscounted[m])alreadyDiscounted[m]=0;
+    alreadyDiscounted[m]+=cnt;
+  });
+  var eligible=[];
+  function addEligible(it,personSuffix){
+    var inCat=false;
+    for(var i=0;i<MENU.length;i++){if(CATS_2X1.indexOf(MENU[i].cat)>=0){for(var j=0;j<MENU[i].items.length;j++){if(MENU[i].items[j].n===it.n){inCat=true;break;}}}if(inCat)break;}
+    if(!inCat)return;
+    var already=alreadyDiscounted[it.n]||0;
+    var available=it.q-already;
+    if(already>0)alreadyDiscounted[it.n]=Math.max(0,already-it.q);
+    for(var q=0;q<available;q++)eligible.push({id:it.id+'_'+q,name:it.n+(personSuffix?' ('+personSuffix+')':''),price:it.p});
+  }
+  if(o.items)o.items.forEach(function(it){addEligible(it,'');});
+  if(o.persons)o.persons.forEach(function(p){if(p.paid)return;if(p.items)p.items.forEach(function(it){addEligible(it,p.name);});});
   return eligible;
 }
 gid('promo2x1Btn').addEventListener('click',function(){
