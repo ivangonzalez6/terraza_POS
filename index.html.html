@@ -911,8 +911,21 @@ function loadHistory(){
 }
 function insertHist(rec){return spost('/rest/v1/history',{id:rec.id,table_num:rec.table,table_note:rec.tableNote||'',opened_at:new Date(rec.openedAt).toISOString(),closed_at:new Date(rec.closedAt).toISOString(),total:rec.total,item_count:rec.itemCount,items:rec.items||[],persons:rec.persons||[],payment_method:rec.paymentMethod||'efectivo'});}
 function updateHist(id,total,note){return spatch('/rest/v1/history?id=eq.'+id,{total:total,edit_note:note});}
-function deleteHist(id){return sdel('/rest/v1/history?id=eq.'+id);}
-function deleteAllHist(){return sdel('/rest/v1/history?closed_at=gte.2000-01-01');}
+async function deleteHist(id){
+  // Primero elimina de finance_movements si existe
+  var histRec=appHistory.find(function(h){return h.id===id;});
+  if(histRec){
+    await sdel('/rest/v1/finance_movements?metadata->total_day=eq.'+histRec.total+'&movement_date=eq.'+new Date(histRec.closed_at).toISOString().split('T')[0]+'&auto_generated=eq.true');
+  }
+  // Luego elimina de history
+  return sdel('/rest/v1/history?id=eq.'+id);
+}
+async function deleteAllHist(){
+  // Elimina todos los movimientos auto-generados de finanzas
+  await sdel('/rest/v1/finance_movements?auto_generated=eq.true');
+  // Luego elimina todo de history
+  return sdel('/rest/v1/history?closed_at=gte.2000-01-01');
+}
 function loadUsers(){return sfetch('/rest/v1/app_users?select=*&order=created_at.asc').then(function(r){return Array.isArray(r)?r:[];});}
 function loadConfig(k){return sfetch('/rest/v1/app_config?key=eq.'+k+'&select=value').then(function(r){return(r&&r[0])?r[0].value:null;});}
 function saveConfig(k,v){return spatch('/rest/v1/app_config?key=eq.'+k,{value:v,updated_at:new Date().toISOString()});}
@@ -2599,14 +2612,4 @@ gid('roleStats').addEventListener('click',function(){setRole('stats');});
 async function sync(){
   if(!loggedUser)return;
   var o=await loadOrders(),h=await loadHistory();
-  var oc=JSON.stringify(o)!==JSON.stringify(orders),hc=JSON.stringify(h)!==JSON.stringify(appHistory);
-  orders=o;appHistory=h;
-  if(oc){
-    if(gid('view-mesero').classList.contains('active')){if(gid('sc-tables').style.display!=='none')renderTables();else if(gid('sc-cart').style.display!=='none')renderCart();else if(gid('sc-persons').style.display!=='none')renderPersonsView();updateCartBar();updateBadges();}
-    if(gid('view-cocina').classList.contains('active'))renderKitchen();
-  }
-  if(hc&&gid('view-stats').classList.contains('active'))renderStats();
-}
-</script>
-</body>
-</html>
+  var oc=JSON.stringify(o)!==JSON.stringify(orders),h
