@@ -1298,7 +1298,7 @@ function openTable(n){
   gid('persTblLbl').textContent=lbl;
   curPersonId=(orders[n].persons[0]&&orders[n].persons[0].id)||null;
   showSc('persons');renderNS();renderPersonsView();
-  gid('cartBar').classList.remove('show');updateBadges();
+  updateBadges();
 }
 function renderNS(){
   if(!curTable)return;
@@ -1358,7 +1358,9 @@ function updateCartBar(){
   gid('cbCount').textContent=cnt+' item'+(cnt!==1?'s':'');
   gid('cbTotal').textContent=Math.round(tot).toLocaleString('es-MX');
   gid('cartBadge').textContent=cnt;gid('cartBadge').style.display=cnt>0?'inline-flex':'none';
-  if(cnt>0)gid('cartBar').classList.add('show');else gid('cartBar').classList.remove('show');
+  if(sc==='persons'){gid('cartBar').classList.add('show');}
+  else if(cnt>0){gid('cartBar').classList.add('show');}
+  else{gid('cartBar').classList.remove('show');}
 }
 
 // ══ TABLE NOTE ══
@@ -1584,39 +1586,42 @@ gid('clearTableBtn').addEventListener('click',function(){
 });
 
 // ══ PROMO 2x1 ══
+function menuItemPrice(name){
+  for(var i=0;i<MENU.length;i++){for(var j=0;j<MENU[i].items.length;j++){if(MENU[i].items[j].n===name)return MENU[i].items[j].p;}}
+  return null;
+}
+function isItemDiscounted(it){
+  if(it.discounted)return true;
+  var mp=menuItemPrice(it.n);
+  return mp!==null && Math.round(it.p) < Math.round(mp);
+}
+function isEligibleCat(name){
+  for(var i=0;i<MENU.length;i++){
+    if(CATS_2X1.indexOf(MENU[i].cat)>=0){
+      for(var j=0;j<MENU[i].items.length;j++){if(MENU[i].items[j].n===name)return true;}
+    }
+  }
+  return false;
+}
 function getEligibleItems(){
   var o=orders[curTable];if(!o)return[];
-  // Count already-discounted units per product name
-  var alreadyDiscounted={};
-  if(o.discounts)o.discounts.forEach(function(d){
-    // label: "2×1 ProductName" or "2×1 ProductName ×N"
-    var m=d.label.replace(/^2×1\s*/,'').replace(/\s*×\d+$/,'');
-    var cnt=1;var mN=d.label.match(/×(\d+)$/);if(mN)cnt=parseInt(mN[1]);
-    if(!alreadyDiscounted[m])alreadyDiscounted[m]=0;
-    alreadyDiscounted[m]+=cnt;
-  });
   var eligible=[];
-  function addEligible(it,personSuffix){
-    var inCat=false;
-    for(var i=0;i<MENU.length;i++){if(CATS_2X1.indexOf(MENU[i].cat)>=0){for(var j=0;j<MENU[i].items.length;j++){if(MENU[i].items[j].n===it.n){inCat=true;break;}}}if(inCat)break;}
-    if(!inCat)return;
-    var already=alreadyDiscounted[it.n]||0;
-    var available=it.q-already;
-    if(already>0)alreadyDiscounted[it.n]=Math.max(0,already-it.q);
-    for(var q=0;q<available;q++)eligible.push({id:it.id+'_'+q,name:it.n+(personSuffix?' ('+personSuffix+')':''),price:it.p});
-  }
-  if(o.items)o.items.forEach(function(it){addEligible(it,'');});
-  if(o.persons)o.persons.forEach(function(p){if(p.paid)return;if(p.items)p.items.forEach(function(it){addEligible(it,p.name);});});
+  if(o.items)o.items.forEach(function(it){
+    if(!isEligibleCat(it.n)||isItemDiscounted(it))return;
+    for(var q=0;q<it.q;q++)eligible.push({id:it.id+'_'+q,name:it.n,price:it.p,srcId:it.id,srcType:'general',personId:null});
+  });
+  if(o.persons)o.persons.forEach(function(p){
+    if(p.paid)return;
+    if(p.items)p.items.forEach(function(it){
+      if(!isEligibleCat(it.n)||isItemDiscounted(it))return;
+      for(var q=0;q<it.q;q++)eligible.push({id:it.id+'_'+q,name:it.n+' ('+p.name+')',price:it.p,srcId:it.id,srcType:'person',personId:p.id});
+    });
+  });
   return eligible;
 }
 gid('promo2x1Btn').addEventListener('click',function(){
   var eligible=getEligibleItems();
   if(!eligible.length){showToast('No hay cocteles elegibles para 2×1');return;}
-  var existing=orders[curTable]&&orders[curTable].discounts&&orders[curTable].discounts.length>0;
-  if(existing){
-    openConfirm('Ya hay descuentos aplicados','Esta mesa ya tiene descuentos 2×1. ¿Agregar más?','Continuar',function(){abrirPromoModal(eligible);});
-    return;
-  }
   abrirPromoModal(eligible);
 });
 function abrirPromoModal(eligible){
@@ -1634,10 +1639,41 @@ function abrirPromoModal(eligible){
 gid('promoCancel').addEventListener('click',function(){gid('promoModal').classList.remove('show');promoSelected={};});
 gid('promoApply').addEventListener('click',async function(){
   var keys=Object.keys(promoSelected);if(!keys.length){gid('promoErr').textContent='Selecciona al menos un producto';return;}
-  var groups={};
-  keys.forEach(function(k){var item=promoSelected[k];var key=item.name+'|'+item.price;if(!groups[key])groups[key]={name:item.name,price:item.price,count:0};groups[key].count++;});
+  // Group by srcId: how many slots of each source item were selected
+  var srcGroups={};
+  keys.forEach(function(k){
+    var item=promoSelected[k];
+    if(!srcGroups[item.srcId])srcGroups[item.srcId]={count:0,info:item};
+    srcGroups[item.srcId].count++;
+  });
   initTbl(curTable);
-  Object.keys(groups).forEach(function(k){var g=groups[k];orders[curTable].discounts.push({id:uid(),label:'2×1 '+g.name+(g.count>1?' ×'+g.count:''),amount:-(g.price*g.count*0.5)});});
+  var o=orders[curTable];
+  Object.keys(srcGroups).forEach(function(srcId){
+    var sg=srcGroups[srcId];var count=sg.count;var info=sg.info;
+    var target=null;
+    if(info.srcType==='general'){
+      for(var i=0;i<o.items.length;i++){if(o.items[i].id===srcId){target=o.items[i];break;}}
+    }else{
+      for(var i=0;i<o.persons.length;i++){
+        if(o.persons[i].id===info.personId){
+          for(var j=0;j<o.persons[i].items.length;j++){if(o.persons[i].items[j].id===srcId){target=o.persons[i].items[j];break;}}
+          break;
+        }
+      }
+    }
+    if(!target)return;
+    var halfPrice=Math.round(target.p*0.5);
+    if(count>=target.q){
+      // Discount all units
+      target.p=halfPrice;target.discounted=true;
+    }else{
+      // Split: keep remaining units at full price, add new item at half price
+      var newItem={id:uid(),n:target.n,p:halfPrice,q:count,note:target.note||'',addedAt:target.addedAt||Date.now(),status:target.status||'pending',discounted:true};
+      target.q-=count;
+      if(info.srcType==='general'){o.items.push(newItem);}
+      else{for(var i=0;i<o.persons.length;i++){if(o.persons[i].id===info.personId){o.persons[i].items.push(newItem);break;}}}
+    }
+  });
   await saveOrders(orders);gid('promoModal').classList.remove('show');promoSelected={};renderCart();updateCartBar();showToast('✓ Descuento 2×1 aplicado');
 });
 
