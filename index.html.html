@@ -318,6 +318,16 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
 .blocked-badge{font-size:9px;background:#eee;color:var(--faint);padding:2px 6px;border-radius:999px;margin-left:4px}
 .sep{height:1px;background:var(--line);margin:18px 0}
 
+/* ── Landing admin ── */
+.lm-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:6px}
+.lm-thumb{width:56px;height:42px;border-radius:8px;overflow:hidden;background:var(--bg);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:10px;letter-spacing:.15em;text-transform:uppercase;font-weight:600}
+.lm-thumb img,.lm-thumb video{width:100%;height:100%;object-fit:cover}
+.lm-info{flex:1;min-width:0}
+.lm-name{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;line-height:1.2}
+.lm-meta{font-size:10px;color:var(--faint);letter-spacing:.1em;text-transform:uppercase;font-weight:600;margin-top:2px}
+.lm-acts{display:flex;gap:4px;flex-shrink:0}
+.lm-acts .ai-btn{padding:6px 9px;font-size:9px}
+
 /* ── Pay modal ── */
 #payChangeWrap{display:none}
 #payShortWrap{display:none}
@@ -526,7 +536,7 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
 
   <!-- CAJA -->
   <div class="view" id="view-stats">
-    <h2 class="sec">Caja</h2>
+    <h2 class="sec">Caja <span style="font-size:9px;color:var(--gold);letter-spacing:.2em;font-weight:600;vertical-align:middle">v.landing</span></h2>
     <div class="per-tabs">
       <button class="per-tab active" data-period="day">Ventas del día</button>
       <button class="per-tab" data-period="week">Venta semanal</button>
@@ -556,6 +566,10 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
     </div>
     <div class="admin-link" id="adminRecipeBtn" style="margin-top:8px">
       <span class="admin-link-txt">📖 Administrar recetario</span>
+      <span class="admin-link-arr">›</span>
+    </div>
+    <div class="admin-link" id="adminLandingBtn" style="margin-top:8px">
+      <span class="admin-link-txt">🖼 Administrar landing page</span>
       <span class="admin-link-arr">›</span>
     </div>
   </div>
@@ -593,6 +607,23 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
     <!-- Filtro por categoría -->
     <div class="cat-tabs" id="recipeCatFilter" style="margin-bottom:4px"></div>
     <div id="recipeAdminList"></div>
+  </div>
+
+  <!-- LANDING PAGE ADMIN -->
+  <div class="view" id="view-landing-admin">
+    <div style="display:flex;align-items:center;gap:7px;margin:6px 0 0">
+      <button class="btn btn-g" style="flex:0;padding:7px 12px;font-size:10px" id="backToStatsFromLanding">← Caja</button>
+      <h2 class="sec" style="margin:7px 0;flex:1;font-size:22px">Landing page</h2>
+    </div>
+    <div class="sep"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <h2 class="sec" style="font-size:18px;margin:0">Imágenes y videos</h2>
+      <button class="btn btn-p" style="flex:0;padding:8px 14px;font-size:10px" id="addLandingMediaBtn">+ Agregar</button>
+    </div>
+    <div style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--faint);margin-bottom:10px;font-weight:500">
+      Los archivos se muestran en orden en la landing page. Arrastra ⠿ para reordenar.
+    </div>
+    <div id="landingMediaList"></div>
   </div>
 
   <!-- VISTA RECETA (cocina + admin) -->
@@ -707,6 +738,32 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
     <div class="ma"><button class="btn btn-g" id="ufCancel">Cancelar</button><button class="btn btn-p" id="ufSave">Guardar</button></div>
   </div>
 </div>
+<!-- MODAL agregar/editar media landing -->
+<div class="mb" id="landingMediaModal">
+  <div class="modal">
+    <h3 id="lmTitle">Agregar a landing</h3>
+    <div class="msub" id="lmSub"></div>
+    <label class="flbl" style="margin-top:10px">Nombre</label>
+    <input id="lmName" type="text" placeholder="Ej. Cócteles de la casa" style="margin-top:5px">
+    <label class="flbl" style="margin-top:10px">Tipo</label>
+    <select id="lmKind" style="margin-top:5px">
+      <option value="image">Imagen</option>
+      <option value="video">Video (mp4) o URL</option>
+    </select>
+    <label class="flbl" style="margin-top:10px" id="lmFileLabel">Archivo</label>
+    <input id="lmFile" type="file" accept="image/*" style="margin-top:5px;padding:8px;font-size:12px">
+    <label class="flbl" style="margin-top:10px;display:none" id="lmUrlLabel">o pega una URL (YouTube, Vimeo, mp4)</label>
+    <input id="lmUrl" type="text" placeholder="https://…" style="margin-top:5px;display:none">
+    <div id="lmPreview" style="margin-top:10px;border-radius:10px;overflow:hidden;background:var(--bg);display:none"></div>
+    <div id="lmProgress" style="margin-top:10px;font-size:11px;color:var(--gold);display:none">Subiendo… <span id="lmPct">0%</span></div>
+    <div class="ferr" id="lmErr"></div>
+    <div class="ma">
+      <button class="btn btn-g" id="lmCancel">Cancelar</button>
+      <button class="btn btn-p" id="lmSave">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL COBRO con cambio -->
 <div class="mb" id="payModal">
   <div class="modal" style="padding-bottom:32px">
@@ -1890,6 +1947,227 @@ gid('itemFSave').addEventListener('click',async function(){
 });
 
 // ══ SUPABASE RECETARIO ══
+
+// ══ LANDING MEDIA (DB + STORAGE) ══
+// Tabla: landing_media { id text PK, name text, kind text (image|video), url text, sort_order int, active bool, created_at timestamptz }
+// Bucket Storage: 'landing' (público)
+function loadLandingMedia(){return sfetch('/rest/v1/landing_media?select=*&order=sort_order.asc').then(function(r){return Array.isArray(r)?r:[];});}
+function insertLandingMedia(m){return spost('/rest/v1/landing_media',m);}
+function updateLandingMedia(id,data){return spatch('/rest/v1/landing_media?id=eq.'+id,data);}
+function deleteLandingMedia(id){return sdel('/rest/v1/landing_media?id=eq.'+id);}
+
+// Subir archivo binario a Supabase Storage (bucket "landing")
+async function uploadToStorage(file, fileName, onProgress){
+  var ext=(file.name.split('.').pop()||'bin').toLowerCase();
+  var safeName=fileName.replace(/[^a-z0-9-_]/gi,'-').toLowerCase()+'-'+Date.now()+'.'+ext;
+  var path=safeName;
+  return new Promise(function(resolve,reject){
+    var xhr=new XMLHttpRequest();
+    xhr.open('POST', SU+'/storage/v1/object/landing/'+encodeURIComponent(path), true);
+    xhr.setRequestHeader('Authorization','Bearer '+SK);
+    xhr.setRequestHeader('apikey',SK);
+    xhr.setRequestHeader('x-upsert','true');
+    xhr.setRequestHeader('Content-Type', file.type||'application/octet-stream');
+    xhr.upload.onprogress=function(e){if(e.lengthComputable&&onProgress)onProgress(Math.round((e.loaded/e.total)*100));};
+    xhr.onload=function(){
+      if(xhr.status>=200&&xhr.status<300){
+        var publicUrl=SU+'/storage/v1/object/public/landing/'+encodeURIComponent(path);
+        resolve(publicUrl);
+      }else{reject(new Error('Error '+xhr.status+': '+xhr.responseText));}
+    };
+    xhr.onerror=function(){reject(new Error('Error de red'));};
+    xhr.send(file);
+  });
+}
+
+// Borrar archivo de Storage (extrae el path del URL público)
+async function deleteFromStorage(url){
+  if(!url||url.indexOf('/storage/v1/object/public/landing/')<0)return;
+  var path=decodeURIComponent(url.split('/landing/')[1]||'');
+  if(!path)return;
+  return fetch(SU+'/storage/v1/object/landing/'+encodeURIComponent(path),{
+    method:'DELETE',headers:SH
+  }).catch(function(){});
+}
+
+// ── Render lista admin ──
+var landingMediaItems=[];
+var editingLandingId=null;
+
+async function renderLandingAdmin(){
+  var list=gid('landingMediaList');
+  list.innerHTML='<div class="empty"><div class="etit">Cargando…</div></div>';
+  landingMediaItems=await loadLandingMedia();
+  list.innerHTML='';
+  if(!landingMediaItems.length){
+    list.innerHTML='<div class="empty"><div class="etit">Sin archivos</div><div class="esub">Agrega imágenes o videos para tu landing</div></div>';
+    return;
+  }
+  landingMediaItems.forEach(function(m){
+    var el=document.createElement('div');
+    el.className='lm-row';
+    el.setAttribute('data-lm-id',m.id);
+    var thumbHTML;
+    if(m.kind==='image'){thumbHTML='<img src="'+esc(m.url)+'" alt="">';}
+    else{thumbHTML='<span>VIDEO</span>';}
+    el.innerHTML=
+      '<div class="drag-handle" title="Arrastrar">⠿</div>'+
+      '<div class="lm-thumb">'+thumbHTML+'</div>'+
+      '<div class="lm-info">'+
+        '<div class="lm-name">'+esc(m.name||'(Sin nombre)')+'</div>'+
+        '<div class="lm-meta">'+(m.kind==='video'?'🎬 Video':'🖼 Imagen')+'</div>'+
+      '</div>'+
+      '<div class="lm-acts">'+
+        '<button class="ai-btn ai-edit">Editar</button>'+
+        '<button class="ai-btn ai-del">Eliminar</button>'+
+      '</div>';
+    (function(media){
+      el.querySelector('.ai-edit').addEventListener('click',function(){openLandingMediaForm(media);});
+      el.querySelector('.ai-del').addEventListener('click',function(){
+        openConfirm('Eliminar "'+(media.name||'archivo')+'"','Se borrará el archivo del almacenamiento. Sin retorno.','Eliminar',async function(){
+          await deleteFromStorage(media.url);
+          await deleteLandingMedia(media.id);
+          await renderLandingAdmin();
+          showToast('Archivo eliminado');
+        });
+      });
+      makeDraggable(el,reorderLandingMedia);
+    })(m);
+    list.appendChild(el);
+  });
+}
+
+async function reorderLandingMedia(srcEl,dstEl,side){
+  var srcId=srcEl.getAttribute('data-lm-id');
+  var dstId=dstEl.getAttribute('data-lm-id');
+  var srcIdx=landingMediaItems.findIndex(function(x){return x.id===srcId;});
+  var dstIdx=landingMediaItems.findIndex(function(x){return x.id===dstId;});
+  if(srcIdx<0||dstIdx<0)return;
+  var moved=landingMediaItems.splice(srcIdx,1)[0];
+  dstIdx=landingMediaItems.findIndex(function(x){return x.id===dstId;});
+  var insertAt=(side==='below')?dstIdx+1:dstIdx;
+  landingMediaItems.splice(insertAt,0,moved);
+  for(var i=0;i<landingMediaItems.length;i++){
+    landingMediaItems[i].sort_order=i+1;
+    await updateLandingMedia(landingMediaItems[i].id,{sort_order:i+1});
+  }
+  await renderLandingAdmin();
+  showToast('✓ Orden actualizado');
+}
+
+function openLandingMediaForm(media){
+  editingLandingId=media?media.id:null;
+  gid('lmTitle').textContent=media?'Editar archivo':'Agregar a landing';
+  gid('lmSub').textContent=media?(media.name||''):'';
+  gid('lmName').value=media?(media.name||''):'';
+  gid('lmKind').value=media?media.kind:'image';
+  gid('lmFile').value='';
+  gid('lmUrl').value=media?(media.kind==='video'?media.url:''):'';
+  gid('lmErr').textContent='';
+  gid('lmProgress').style.display='none';
+  gid('lmPreview').style.display='none';
+  gid('lmPreview').innerHTML='';
+  toggleLmFields();
+  if(media){renderLmPreview(media.url,media.kind);}
+  gid('landingMediaModal').classList.add('show');
+}
+
+function toggleLmFields(){
+  var kind=gid('lmKind').value;
+  if(kind==='image'){
+    gid('lmFile').setAttribute('accept','image/*');
+    gid('lmFileLabel').style.display='block';
+    gid('lmFile').style.display='block';
+    gid('lmUrlLabel').style.display='none';
+    gid('lmUrl').style.display='none';
+  }else{
+    gid('lmFile').setAttribute('accept','video/mp4,video/webm,video/*');
+    gid('lmFileLabel').textContent='Archivo (mp4 / webm)';
+    gid('lmFileLabel').style.display='block';
+    gid('lmFile').style.display='block';
+    gid('lmUrlLabel').style.display='block';
+    gid('lmUrl').style.display='block';
+  }
+}
+
+function renderLmPreview(url,kind){
+  var p=gid('lmPreview');
+  if(!url){p.style.display='none';p.innerHTML='';return;}
+  if(kind==='image'){
+    p.innerHTML='<img src="'+esc(url)+'" style="width:100%;max-height:200px;object-fit:cover;display:block">';
+  }else{
+    // YouTube/Vimeo embed handled in landing page; here just show URL or video tag
+    if(/youtube\.com|youtu\.be|vimeo\.com/.test(url)){
+      p.innerHTML='<div style="padding:14px;text-align:center;font-size:11px;color:var(--faint);letter-spacing:.15em;text-transform:uppercase">Video externo: '+esc(url.substring(0,40))+'…</div>';
+    }else{
+      p.innerHTML='<video src="'+esc(url)+'" style="width:100%;max-height:200px;display:block" muted playsinline controls></video>';
+    }
+  }
+  p.style.display='block';
+}
+
+gid('lmKind').addEventListener('change',toggleLmFields);
+gid('lmFile').addEventListener('change',function(){
+  var f=gid('lmFile').files[0];
+  if(!f){gid('lmPreview').style.display='none';return;}
+  var url=URL.createObjectURL(f);
+  renderLmPreview(url,gid('lmKind').value);
+});
+gid('lmCancel').addEventListener('click',function(){gid('landingMediaModal').classList.remove('show');editingLandingId=null;});
+
+gid('lmSave').addEventListener('click',async function(){
+  var name=gid('lmName').value.trim();
+  var kind=gid('lmKind').value;
+  var file=gid('lmFile').files[0];
+  var url=gid('lmUrl').value.trim();
+  if(!name){gid('lmErr').textContent='Pon un nombre';return;}
+  gid('lmErr').textContent='';
+  var saveBtn=gid('lmSave');saveBtn.disabled=true;saveBtn.textContent='Guardando…';
+  try{
+    var finalUrl=null;
+    if(file){
+      // Subir archivo
+      gid('lmProgress').style.display='block';
+      finalUrl=await uploadToStorage(file,name,function(pct){gid('lmPct').textContent=pct+'%';});
+      gid('lmProgress').style.display='none';
+    }else if(url){
+      finalUrl=url;
+    }else if(editingLandingId){
+      // Editing without changing file — keep existing URL
+      var existing=landingMediaItems.find(function(x){return x.id===editingLandingId;});
+      finalUrl=existing?existing.url:null;
+    }
+    if(!finalUrl){gid('lmErr').textContent='Sube un archivo o pega una URL';saveBtn.disabled=false;saveBtn.textContent='Guardar';return;}
+    if(editingLandingId){
+      var oldItem=landingMediaItems.find(function(x){return x.id===editingLandingId;});
+      // If file changed, delete old storage file
+      if(file&&oldItem&&oldItem.url&&oldItem.url!==finalUrl){await deleteFromStorage(oldItem.url);}
+      await updateLandingMedia(editingLandingId,{name:name,kind:kind,url:finalUrl});
+      showToast('✓ Archivo actualizado');
+    }else{
+      var maxOrd=landingMediaItems.reduce(function(m,x){return Math.max(m,x.sort_order||0);},0);
+      var newRec={id:'lm-'+uid(),name:name,kind:kind,url:finalUrl,sort_order:maxOrd+1,active:true,created_at:new Date().toISOString()};
+      await insertLandingMedia(newRec);
+      showToast('✓ Archivo agregado');
+    }
+    gid('landingMediaModal').classList.remove('show');
+    editingLandingId=null;
+    await renderLandingAdmin();
+  }catch(err){
+    gid('lmErr').textContent='Error: '+(err.message||err);
+    gid('lmProgress').style.display='none';
+  }
+  saveBtn.disabled=false;saveBtn.textContent='Guardar';
+});
+
+gid('addLandingMediaBtn').addEventListener('click',function(){openLandingMediaForm(null);});
+gid('backToStatsFromLanding').addEventListener('click',function(){setRole('stats');});
+gid('adminLandingBtn').addEventListener('click',async function(){
+  var ok=await askPass('Contraseña de administrador');if(!ok)return;
+  await renderLandingAdmin();
+  setRole('landing-admin');
+});
+
 function loadRecipes(catFilter){
   var q='/rest/v1/recipes?select=*&order=category_name.asc,item_name.asc&active=eq.true';
   if(catFilter)q+='&category_name=eq.'+encodeURIComponent(catFilter);
@@ -2265,6 +2543,7 @@ function setRole(role){
   else if(role==='menu-admin'){gid('view-menu-admin').classList.add('active');gid('cartBar').classList.remove('show');}
   else if(role==='recipe-admin'){gid('view-recipe-admin').classList.add('active');gid('cartBar').classList.remove('show');}
   else if(role==='recipe-detail'){gid('view-recipe-detail').classList.add('active');gid('cartBar').classList.remove('show');}
+  else if(role==='landing-admin'){gid('view-landing-admin').classList.add('active');gid('cartBar').classList.remove('show');}
 }
 gid('roleMesero').addEventListener('click',function(){setRole('mesero');});
 gid('roleCocina').addEventListener('click',function(){setRole('cocina');});
