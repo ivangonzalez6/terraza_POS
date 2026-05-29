@@ -777,12 +777,21 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
       <span style="font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--faint);font-weight:600">Total a cobrar</span>
       <span id="payModalTotal" style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--gold)"></span>
     </div>
-    <!-- Campo: pago del cliente -->
+    <!-- Método de pago obligatorio -->
+    <label class="flbl">Método de pago</label>
+    <div id="payMethodGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:5px;margin-bottom:6px">
+      <div class="pay-pm" data-pm="efectivo" style="background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 6px;text-align:center;cursor:pointer;font-size:10px;letter-spacing:.15em;text-transform:uppercase;font-weight:600;color:var(--dim);transition:all .15s">💵 Efectivo</div>
+      <div class="pay-pm" data-pm="tarjeta" style="background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 6px;text-align:center;cursor:pointer;font-size:10px;letter-spacing:.15em;text-transform:uppercase;font-weight:600;color:var(--dim);transition:all .15s">💳 Tarjeta</div>
+      <div class="pay-pm" data-pm="transferencia" style="background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 6px;text-align:center;cursor:pointer;font-size:10px;letter-spacing:.15em;text-transform:uppercase;font-weight:600;color:var(--dim);transition:all .15s">📱 Transfer.</div>
+    </div>
+    <!-- Campo: pago del cliente (solo aplica para efectivo) -->
+    <div id="payCashWrap">
     <label class="flbl">Pago del cliente</label>
     <div style="position:relative;margin-top:5px">
       <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--faint);font-size:14px;pointer-events:none">$</span>
       <input id="payClientAmt" type="number" min="0" step="1" placeholder="0"
         style="padding-left:26px;font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--ink)">
+    </div>
     </div>
     <!-- Cambio -->
     <div id="payChangeWrap" style="margin-top:10px;padding:12px 16px;border-radius:12px;background:#f0f9ec;border:1px solid #a8c995;display:none;justify-content:space-between;align-items:center">
@@ -900,7 +909,7 @@ function loadHistory(){
     return rows.map(function(h){return{id:h.id,table:h.table_num,tableNote:h.table_note||'',openedAt:+new Date(h.opened_at),closedAt:+new Date(h.closed_at),total:+h.total,itemCount:h.item_count,items:h.items||[],persons:h.persons||[],editNote:h.edit_note||''};});
   });
 }
-function insertHist(rec){return spost('/rest/v1/history',{id:rec.id,table_num:rec.table,table_note:rec.tableNote||'',opened_at:new Date(rec.openedAt).toISOString(),closed_at:new Date(rec.closedAt).toISOString(),total:rec.total,item_count:rec.itemCount,items:rec.items||[],persons:rec.persons||[]});}
+function insertHist(rec){return spost('/rest/v1/history',{id:rec.id,table_num:rec.table,table_note:rec.tableNote||'',opened_at:new Date(rec.openedAt).toISOString(),closed_at:new Date(rec.closedAt).toISOString(),total:rec.total,item_count:rec.itemCount,items:rec.items||[],persons:rec.persons||[],payment_method:rec.paymentMethod||'efectivo'});}
 function updateHist(id,total,note){return spatch('/rest/v1/history?id=eq.'+id,{total:total,edit_note:note});}
 function deleteHist(id){return sdel('/rest/v1/history?id=eq.'+id);}
 function deleteAllHist(){return sdel('/rest/v1/history?closed_at=gte.2000-01-01');}
@@ -1228,8 +1237,9 @@ function removeIt(it){var o=orders[curTable];if(!o)return;if(it._src==='p'){var 
 
 // ══ COBRAR Y CERRAR ══
 
-// ══ PAY MODAL (cobro con cambio) ══
+// ══ PAY MODAL (cobro con cambio + método de pago) ══
 var _payModalCb=null;
+var _payMethod=null;
 
 function openPayModal(title, sub, total, confirmLabel, onConfirm){
   gid('payModalTitle').textContent=title;
@@ -1240,19 +1250,50 @@ function openPayModal(title, sub, total, confirmLabel, onConfirm){
   gid('payShortWrap').style.display='none';
   gid('payModalConfirm').textContent=confirmLabel||'Cobrar y cerrar';
   _payModalCb=onConfirm;
+  _payMethod=null;
+  // Reset payment method selection
+  document.querySelectorAll('.pay-pm').forEach(function(b){
+    b.style.background='var(--bg)';
+    b.style.color='var(--dim)';
+    b.style.borderColor='var(--line)';
+  });
+  // Cash wrap visible by default until selection
+  gid('payCashWrap').style.display='block';
   gid('payModal').classList.add('show');
   setTimeout(function(){gid('payClientAmt').focus();},280);
-  // Store total for change calc
   gid('payClientAmt').setAttribute('data-total', total);
 }
 
 function closePayModal(){
   gid('payModal').classList.remove('show');
   _payModalCb=null;
+  _payMethod=null;
   gid('payClientAmt').value='';
   gid('payChangeWrap').style.display='none';
   gid('payShortWrap').style.display='none';
 }
+
+// Payment method buttons
+document.querySelectorAll('.pay-pm').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    _payMethod=btn.getAttribute('data-pm');
+    document.querySelectorAll('.pay-pm').forEach(function(b){
+      var active=b===btn;
+      b.style.background=active?'var(--gold)':'var(--bg)';
+      b.style.color=active?'#fff':'var(--dim)';
+      b.style.borderColor=active?'var(--gold)':'var(--line)';
+    });
+    // Hide cash-given/change field for non-cash methods
+    if(_payMethod==='efectivo'){
+      gid('payCashWrap').style.display='block';
+    }else{
+      gid('payCashWrap').style.display='none';
+      gid('payChangeWrap').style.display='none';
+      gid('payShortWrap').style.display='none';
+      gid('payClientAmt').value='';
+    }
+  });
+});
 
 // Change calculation
 gid('payClientAmt').addEventListener('input',function(){
@@ -1276,13 +1317,14 @@ gid('payModalCancel').addEventListener('click',closePayModal);
 gid('payModal').addEventListener('click',function(e){if(e.target===gid('payModal'))closePayModal();});
 gid('payModalConfirm').addEventListener('click',async function(){
   var cb=_payModalCb;
-  if(cb){
-    var given=parseFloat(gid('payClientAmt').value)||0;
-    var total=parseFloat(gid('payClientAmt').getAttribute('data-total'))||0;
-    if(given>0&&given<total){showToast('El pago es menor al total');return;}
-    closePayModal();
-    await cb();
-  }
+  if(!cb)return;
+  if(!_payMethod){showToast('Selecciona el método de pago');return;}
+  var given=parseFloat(gid('payClientAmt').value)||0;
+  var total=parseFloat(gid('payClientAmt').getAttribute('data-total'))||0;
+  if(_payMethod==='efectivo'&&given>0&&given<total){showToast('El pago es menor al total');return;}
+  var method=_payMethod;
+  closePayModal();
+  await cb(method);
 });
 
 function doCloseTable(t){
@@ -1293,19 +1335,23 @@ function doCloseTable(t){
   var remaining=tot;
   var paid=tblPaid(t);
   var sub=paid>0?'Ya cobrado: '+money(paid):' ';
-  openPayModal('Cobrar mesa '+t,sub,remaining,'Cobrar y cerrar',async function(){
+  openPayModal('Cobrar mesa '+t,sub,remaining,'Cobrar y cerrar',async function(method){
+    var fallbackPm=method||'efectivo';
     var all=[];
-    if(o.items)o.items.forEach(function(it){all.push({n:it.n,p:it.p,q:it.q,note:it.note||'',paid:false});});
-    if(o.persons)o.persons.forEach(function(p){if(p.items)p.items.forEach(function(it){all.push({n:it.n,p:it.p,q:it.q,note:it.note||'',person:p.name,paid:!!p.paid});});});
-    if(o.discounts&&o.discounts.length)o.discounts.forEach(function(d){all.push({n:d.label,p:d.amount,q:1,note:'Descuento 2×1'});});
-    var pb=o.persons?o.persons.map(function(p){return{name:p.name,total:pTotal(p),count:pCount(p),paid:!!p.paid};}):[];
+    if(o.items)o.items.forEach(function(it){all.push({n:it.n,p:it.p,q:it.q,note:it.note||'',paid:false,pm:fallbackPm});});
+    if(o.persons)o.persons.forEach(function(p){
+      var personPm=p.paymentMethod||fallbackPm;
+      if(p.items)p.items.forEach(function(it){all.push({n:it.n,p:it.p,q:it.q,note:it.note||'',person:p.name,paid:!!p.paid,pm:personPm});});
+    });
+    if(o.discounts&&o.discounts.length)o.discounts.forEach(function(d){all.push({n:d.label,p:d.amount,q:1,note:'Descuento 2×1',pm:fallbackPm});});
+    var pb=o.persons?o.persons.map(function(p){return{name:p.name,total:pTotal(p),count:pCount(p),paid:!!p.paid,paymentMethod:p.paymentMethod||fallbackPm};}):[];
     var totalClosed=tblSubtotal(t)+tblDiscount(t);
-    var rec={id:uid(),table:t,tableNote:o.tableNote||'',openedAt:o.openedAt||Date.now(),closedAt:Date.now(),total:totalClosed,itemCount:all.length,items:all,persons:pb};
+    var rec={id:uid(),table:t,tableNote:o.tableNote||'',openedAt:o.openedAt||Date.now(),closedAt:Date.now(),total:totalClosed,itemCount:all.length,items:all,persons:pb,paymentMethod:fallbackPm};
     appHistory.unshift(rec);
     delete orders[t];
     await saveOrders(orders);
     await insertHist(rec);
-    showToast('✓ Cuenta cerrada · '+money(totalClosed));
+    showToast('✓ Cuenta cerrada · '+money(totalClosed)+' ('+fallbackPm+')');
     curTable=null;curPersonId=null;
     showSc('tables');gid('cartBar').classList.remove('show');
     renderTables();
@@ -1420,9 +1466,9 @@ function renderPersonsView(){
       payBtn.addEventListener('click',function(){
         if(!per.items||!per.items.length){showToast('Sin productos para cobrar');return;}
         (function(person,amt){
-          openPayModal('Cobrar a '+person.name,'',amt,'Cobrar',async function(){
-            for(var ii=0;ii<orders[curTable].persons.length;ii++){if(orders[curTable].persons[ii].id===person.id){orders[curTable].persons[ii].paid=true;break;}}
-            await saveOrders(orders);renderPersonsView();updateCartBar();showToast('✓ '+person.name+' pagó '+money(amt));
+          openPayModal('Cobrar a '+person.name,'',amt,'Cobrar',async function(method){
+            for(var ii=0;ii<orders[curTable].persons.length;ii++){if(orders[curTable].persons[ii].id===person.id){orders[curTable].persons[ii].paid=true;orders[curTable].persons[ii].paymentMethod=method||'efectivo';break;}}
+            await saveOrders(orders);renderPersonsView();updateCartBar();showToast('✓ '+person.name+' pagó '+money(amt)+' ('+(method||'efectivo')+')');
           });
         })(per,subtotal);
       });
