@@ -1071,12 +1071,17 @@ async function doLogin(){
     gid('loginScreen').style.display='none';gid('appShell').style.display='block';
     renderTables();renderCatTabs();renderMenu();
     setInterval(sync,3000);
-  }catch(err){gid('loginErr').textContent='Error: '+err.message;}
+  }catch(err){
+    console.error('Login error:', err);
+    gid('loginErr').textContent='Error: '+err.message;
+  }
   finally{gid('loginBtn').disabled=false;gid('loginBtn').textContent='Entrar';}
 }
-gid('loginBtn').addEventListener('click',doLogin);
-gid('loginUser').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
-gid('loginPass').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+setTimeout(function(){
+  if(gid('loginBtn'))gid('loginBtn').addEventListener('click',doLogin);
+  if(gid('loginUser'))gid('loginUser').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+  if(gid('loginPass'))gid('loginPass').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+},50);
 gid('logoutBtn').addEventListener('click',function(){
   openConfirm('Cerrar sesión','¿Deseas salir?','Salir',function(){
     loggedUser=null;gid('loginUser').value='';gid('loginPass').value='';gid('loginErr').textContent='';
@@ -2583,7 +2588,7 @@ function renderUserList(){
     var el=document.createElement('div');el.className='u-item';
     el.innerHTML='<div class="u-av '+(u.active?'':'blocked')+'">'+ini(u.username)+'</div><div class="u-info"><div class="u-name">'+esc(u.username)+(!u.active?'<span class="blocked-badge">Bloqueado</span>':'')+'</div><div class="u-role">'+(rl[u.role]||u.role)+'</div></div><div class="u-acts"><button class="u-btn u-edit">Editar</button><button class="u-btn u-block">'+(u.active?'Bloquear':'Desbloquear')+'</button>'+(u.id!=='user-admin-01'?'<button class="u-btn u-del">Eliminar</button>':'')+'</div>';
     (function(user){
-      el.querySelector('.u-edit').addEventListener('click',function(){editingUserId=user.id;gid('ufTitle').textContent='Editar usuario';gid('ufSub').textContent=user.username;gid('ufUser').value=user.username;gid('ufPass').value=user.password||'';gid('ufPassLabel').textContent='Contraseña actual';gid('ufRole').value=user.role;gid('ufErr').textContent='';gid('userFormModal').classList.add('show');setTimeout(function(){gid('ufUser').focus();},250);});
+      el.querySelector('.u-edit').addEventListener('click',function(){editingUserId=user.id;gid('ufTitle').textContent='Editar usuario';gid('ufSub').textContent=user.username;gid('ufUser').value=user.username;gid('ufPass').value='';gid('ufPassLabel').textContent='Contraseña (dejar en blanco para no cambiar)';gid('ufRole').value=user.role;gid('ufErr').textContent='';gid('userFormModal').classList.add('show');setTimeout(function(){gid('ufUser').focus();},250);});
       el.querySelector('.u-block').addEventListener('click',async function(){var na=!user.active;await updateUser(user.id,{active:na});user.active=na;renderUserList();showToast(na?'Usuario desbloqueado':'Usuario bloqueado');});
       var db=el.querySelector('.u-del');if(db)db.addEventListener('click',function(){openConfirm('Eliminar usuario','¿Eliminar a '+user.username+'?','Eliminar',async function(){await deleteUser(user.id);appUsers=appUsers.filter(function(x){return x.id!==user.id;});renderUserList();showToast('Usuario eliminado');});});
     })(u);
