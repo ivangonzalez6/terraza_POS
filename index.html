@@ -502,7 +502,7 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
       <div class="ns"><span class="nl">Mesa</span><span class="nv e" id="persNote">Sin identificación</span></div>
       <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
         <div class="p-tabs" id="personTabs" style="flex:1"></div>
-        <button class="add-p-btn" id="addPersonBtn" style="display:none">+ Persona</button>
+        <button class="add-p-btn" id="addPersonBtn">+ Persona</button>
       </div>
       <div id="personContent"></div>
       <!-- Resumen de pagos parciales -->
@@ -928,14 +928,67 @@ function loadHistory(){
 }
 function insertHist(rec){return spost('/rest/v1/history',{id:rec.id,table_num:rec.table,table_note:rec.tableNote||'',opened_at:new Date(rec.openedAt).toISOString(),closed_at:new Date(rec.closedAt).toISOString(),total:rec.total,item_count:rec.itemCount,items:rec.items||[],persons:rec.persons||[],payment_method:rec.paymentMethod||'efectivo'});}
 function updateHist(id,total,note){return spatch('/rest/v1/history?id=eq.'+id,{total:total,edit_note:note});}
-async function deleteHist(id){
-  // Primero elimina de finance_movements si existe
-  var histRec=appHistory.find(function(h){return h.id===id;});
-  if(histRec){
-    var movDate=new Date(histRec.closedAt).toISOString().split('T')[0];
-    await sdel('/rest/v1/finance_movements?movement_date=eq.'+movDate+'&auto_generated=eq.true&subcategory=eq.ventas');
+async function insertFinanceMovements(rec){
+  var today=new Date(rec.closedAt).toISOString().split('T')[0];
+  // Agrupar importe por método de pago
+  var methods={efectivo:0,tarjeta:0,transferencia:0};
+  var items=rec.items||[];
+  items.forEach(function(it){
+    var pm=it.pm||rec.paymentMethod||'efectivo';
+    if(!methods[pm])methods[pm]=0;
+    methods[pm]+=it.p*it.q;
+  });
+  // Si no hay items detallados, asignar total al método principal
+  var hasDetail=items.some(function(it){return it.pm;});
+  if(!hasDetail||Object.values(methods).every(function(v){return v===0;})){
+    methods={};methods[rec.paymentMethod||'efectivo']=rec.total;
   }
-  // Luego elimina de history
+  var methodsUsed=Object.keys(methods).filter(function(k){return methods[k]>0;});
+  if(!methodsUsed.length)methodsUsed=[rec.paymentMethod||'efectivo'];
+  // Construir mapa de productos
+  var products={};
+  items.forEach(function(it){
+    var name=it.n||'Producto';
+    if(!products[name])products[name]={q:0,total:0};
+    products[name].q+=it.q;products[name].total+=it.p*it.q;
+  });
+  for(var i=0;i<methodsUsed.length;i++){
+    var pm=methodsUsed[i],amt=methods[pm];
+    if(amt<=0)continue;
+    var fmId='fm-'+rec.id+(methodsUsed.length>1?'-'+pm:'');
+    var fmRec={
+      id:fmId,kind:'ingreso',category:'Ingresos',subcategory:'ventas',
+      description:'Mesa '+rec.table+(rec.tableNote?' · '+rec.tableNote:'')+' · '+pm.charAt(0).toUpperCase()+pm.slice(1),
+      amount:amt,payment_method:pm,movement_date:today,
+      created_by:loggedUser?loggedUser.username:'',
+      auto_generated:true,
+      metadata:{hist_id:rec.id,products:i===0?products:{},methods:i===0?methods:{},total_day:rec.total}
+    };
+    await spost('/rest/v1/finance_movements',fmRec);
+  }
+}
+async function updateFinanceMovements(histId,newTotal,paymentMethod){
+  // Eliminar movimientos anteriores y re-insertar con nuevo total
+  await sdel('/rest/v1/finance_movements?metadata->>hist_id=eq.'+histId+'&auto_generated=eq.true');
+  var today=new Date().toISOString().split('T')[0];
+  var histRec=appHistory.find(function(h){return h.id===histId;});
+  if(histRec){
+    today=new Date(histRec.closedAt).toISOString().split('T')[0];
+  }
+  var pm=paymentMethod||'efectivo';
+  var fmRec={
+    id:'fm-'+histId,kind:'ingreso',category:'Ingresos',subcategory:'ventas',
+    description:'Mesa '+(histRec?histRec.table:'?')+(histRec&&histRec.tableNote?' · '+histRec.tableNote:'')+' · '+pm.charAt(0).toUpperCase()+pm.slice(1)+' (editado)',
+    amount:newTotal,payment_method:pm,movement_date:today,
+    created_by:loggedUser?loggedUser.username:'',
+    auto_generated:true,
+    metadata:{hist_id:histId,total_day:newTotal}
+  };
+  await spost('/rest/v1/finance_movements',fmRec);
+}
+async function deleteHist(id){
+  // Elimina los finance_movements vinculados por hist_id
+  await sdel('/rest/v1/finance_movements?metadata->>hist_id=eq.'+id+'&auto_generated=eq.true');
   return sdel('/rest/v1/history?id=eq.'+id);
 }
 async function deleteAllHist(){
@@ -1468,6 +1521,7 @@ function doCloseTable(t){
     delete orders[t];
     await saveOrders(orders);
     await insertHist(rec);
+    await insertFinanceMovements(rec);
     showToast('✓ Cuenta cerrada · '+money(totalClosed)+' ('+fallbackPm+')');
     curTable=null;curPersonId=null;
     showSc('tables');gid('cartBar').classList.remove('show');
@@ -1720,7 +1774,7 @@ function renderStats(){
 function showHistDetail(h){var m='Mesa '+h.table+' · '+new Date(h.closedAt).toLocaleString('es-MX')+'\n';if(h.persons&&h.persons.length){m+='\nPor persona:\n';h.persons.forEach(function(p){m+='  '+p.name+': '+money(p.total)+(p.paid?' (Pagado)':'')+'\n';});}m+='\nProductos:\n';h.items.forEach(function(it){m+='  '+it.q+'× '+it.n+(it.person?' ('+it.person+')':'')+(it.note?' – '+it.note:'')+' · '+money(it.p*it.q)+'\n';});m+='\nTotal: '+money(h.total);alert(m);}
 function openEditSale(h){editSaleId=h.id;gid('esSaleDesc').textContent='Mesa '+h.table+' · '+new Date(h.closedAt).toLocaleString('es-MX');gid('esTotal').value=h.total;gid('esNote').value=h.editNote||'';gid('editSaleModal').classList.add('show');setTimeout(function(){gid('esTotal').focus();},250);}
 gid('esCancel').addEventListener('click',function(){gid('editSaleModal').classList.remove('show');editSaleId=null;});
-gid('esSave').addEventListener('click',async function(){if(!editSaleId)return;var nt=parseFloat(gid('esTotal').value);if(isNaN(nt)||nt<0){showToast('Total inválido');return;}var note=gid('esNote').value.trim();await updateHist(editSaleId,nt,note);var r=null;for(var i=0;i<appHistory.length;i++){if(appHistory[i].id===editSaleId){r=appHistory[i];break;}}if(r){r.total=nt;r.editNote=note;}gid('editSaleModal').classList.remove('show');editSaleId=null;renderStats();showToast('✓ Venta actualizada');});
+gid('esSave').addEventListener('click',async function(){if(!editSaleId)return;var nt=parseFloat(gid('esTotal').value);if(isNaN(nt)||nt<0){showToast('Total inválido');return;}var note=gid('esNote').value.trim();await updateHist(editSaleId,nt,note);var r=null;for(var i=0;i<appHistory.length;i++){if(appHistory[i].id===editSaleId){r=appHistory[i];break;}}if(r){r.total=nt;r.editNote=note;}await updateFinanceMovements(editSaleId,nt,r&&r.paymentMethod);gid('editSaleModal').classList.remove('show');editSaleId=null;renderStats();showToast('✓ Venta actualizada');});
 document.querySelectorAll('.per-tab').forEach(function(btn){btn.addEventListener('click',async function(){var p=btn.getAttribute('data-period');if(p!=='day'){var ok=await askPass('Contraseña para ver '+pLabel(p).toLowerCase());if(!ok)return;}curPeriod=p;renderStats();});});
 gid('exportCSV').addEventListener('click',async function(){var ok=await askPass('Contraseña para exportar CSV');if(!ok)return;var f=filtHist(curPeriod);if(!f.length){showToast('Sin datos');return;}var csv='fecha,hora,mesa,persona,producto,nota,cantidad,precio_unitario,subtotal,total_cuenta\n';f.forEach(function(h){var d=new Date(h.closedAt),fe=d.toISOString().slice(0,10),ho=d.toTimeString().slice(0,5);h.items.forEach(function(it){var nt=(it.note||'').replace(/"/g,'""'),ps=(it.person||'').replace(/"/g,'""');csv+=fe+','+ho+','+h.table+',"'+ps+'","'+it.n+'","'+nt+'",'+it.q+','+it.p+','+it.p*it.q+','+h.total+'\n';});});dlFile('terraza_luna_'+Date.now()+'.csv',csv,'text/csv');showToast('CSV descargado');});
 gid('exportJSON').addEventListener('click',async function(){var ok=await askPass('Contraseña para exportar JSON');if(!ok)return;var f=filtHist(curPeriod);if(!f.length){showToast('Sin datos');return;}dlFile('terraza_luna_'+Date.now()+'.json',JSON.stringify(f,null,2),'application/json');showToast('JSON descargado');});
