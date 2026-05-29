@@ -486,10 +486,13 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
         <div class="sr" id="paidRow" style="display:none;color:var(--ok)"><span>Ya pagado</span><span id="sumPaid"></span></div>
         <div class="sr tot"><span>Restante</span><b id="sumTot">$0</b></div>
       </div>
-      <div class="ma" id="cartActions" style="margin-top:10px;display:none">
-        <button class="btn btn-g" id="clearTableBtn">Vaciar</button>
-        <button class="btn btn-g" style="border-color:#3a7a3a;color:#3a7a3a" id="promo2x1Btn">2×1</button>
-        <button class="btn btn-p" id="closeTableBtn">Cobrar y cerrar</button>
+      <div id="cartActions" style="margin-top:10px;display:none">
+        <div class="ma" style="margin-top:0;margin-bottom:8px">
+          <button class="btn btn-g" id="clearTableBtn">Vaciar</button>
+          <button class="btn btn-g" style="border-color:#3a7a3a;color:#3a7a3a" id="promo2x1Btn">2×1</button>
+          <button class="btn btn-p" id="closeTableBtn">Cobrar Mesa y Cerrar</button>
+        </div>
+        <button class="btn btn-g" style="width:100%;border-color:var(--gold);color:var(--gold);padding:11px" id="cobrarPersonaBtn">👥 Cobrar por persona</button>
       </div>
     </div>
     <div id="sc-persons" style="display:none">
@@ -511,7 +514,20 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
       </div>
       <div class="ma" style="margin-top:14px">
         <button class="btn btn-g" id="persBackMenu">← Volver al menú</button>
-        <button class="btn btn-p" id="persCloseTable">Cobrar restante y cerrar</button>
+      </div>
+    </div>
+    <div id="sc-ppay" style="display:none">
+      <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+        <button class="btn btn-g" style="flex:0;padding:7px 12px;font-size:10px" id="backFromPPay">← Cuenta</button>
+        <h2 class="sec" style="margin:7px 0;flex:1;font-size:22px">Cobrar por persona · Mesa <span id="ppayTblLbl"></span></h2>
+      </div>
+      <div id="ppayList" style="padding:4px 2px;margin-top:8px"></div>
+      <div class="summ" id="ppaySumm" style="display:none;margin-top:12px">
+        <div class="sr" id="ppayPaidRow" style="color:var(--ok);display:none"><span>Ya pagado</span><span id="ppayPaid">$0</span></div>
+        <div class="sr tot"><span>Restante</span><b id="ppayRemaining">$0</b></div>
+      </div>
+      <div style="margin-top:12px;display:none" id="ppayActions">
+        <button class="btn btn-p" style="width:100%;padding:14px" id="ppayCloseBtn">Cobrar restante y cerrar</button>
       </div>
     </div>
     <div id="sc-pmenu" style="display:none">
@@ -915,7 +931,8 @@ async function deleteHist(id){
   // Primero elimina de finance_movements si existe
   var histRec=appHistory.find(function(h){return h.id===id;});
   if(histRec){
-    await sdel('/rest/v1/finance_movements?metadata->total_day=eq.'+histRec.total+'&movement_date=eq.'+new Date(histRec.closed_at).toISOString().split('T')[0]+'&auto_generated=eq.true');
+    var movDate=new Date(histRec.closedAt).toISOString().split('T')[0];
+    await sdel('/rest/v1/finance_movements?movement_date=eq.'+movDate+'&auto_generated=eq.true&subcategory=eq.ventas');
   }
   // Luego elimina de history
   return sdel('/rest/v1/history?id=eq.'+id);
@@ -1012,7 +1029,7 @@ function initTbl(t){
   if(!orders[t].items)orders[t].items=[];
   if(!orders[t].discounts)orders[t].discounts=[];
 }
-function showSc(n){['tables','menu','cart','persons','pmenu'].forEach(function(s){gid('sc-'+s).style.display=(s===n)?'block':'none';});}
+function showSc(n){['tables','menu','cart','persons','ppay','pmenu'].forEach(function(s){gid('sc-'+s).style.display=(s===n)?'block':'none';});}
 function persItemCount(t){var o=orders[t];if(!o||!o.persons)return 0;return o.persons.reduce(function(s,p){return s+pCount(p);},0);}
 
 // ══ PASSWORD EYE ══
@@ -1248,7 +1265,7 @@ function renderCart(){
   if(disc<0){gid('discRow').style.display='flex';gid('sumDisc').textContent=money(disc);}else gid('discRow').style.display='none';
   if(paid>0){gid('paidRow').style.display='flex';gid('sumPaid').textContent='-'+money(paid);}else gid('paidRow').style.display='none';
   gid('sumTot').textContent=money(tot);
-  gid('orderSumm').style.display='block';gid('cartActions').style.display='flex';
+  gid('orderSumm').style.display='block';gid('cartActions').style.display='block';
 }
 function findIt(it){var o=orders[curTable];if(!o)return null;if(it._src==='p'){var per=null;for(var i=0;i<o.persons.length;i++){if(o.persons[i].id===it._pid){per=o.persons[i];break;}}if(!per||!per.items)return null;for(var j=0;j<per.items.length;j++){if(per.items[j].id===it.id)return per.items[j];}return null;}if(!o.items)return null;for(var k=0;k<o.items.length;k++){if(o.items[k].id===it.id)return o.items[k];}return null;}
 function removeIt(it){var o=orders[curTable];if(!o)return;if(it._src==='p'){var per=null;for(var i=0;i<o.persons.length;i++){if(o.persons[i].id===it._pid){per=o.persons[i];break;}}if(per&&per.items)per.items=per.items.filter(function(x){return x.id!==it.id;});}else if(o.items)o.items=o.items.filter(function(x){return x.id!==it.id;});}
@@ -1376,7 +1393,6 @@ function doCloseTable(t){
   });
 }
 gid('closeTableBtn').addEventListener('click',function(){if(curTable)doCloseTable(curTable);});
-gid('persCloseTable').addEventListener('click',function(){if(curTable)doCloseTable(curTable);});
 gid('clearTableBtn').addEventListener('click',function(){
   if(!curTable)return;var t=curTable;
   openConfirm('Vaciar mesa '+t,'¿Eliminar todos los productos?','Vaciar',async function(){
@@ -1460,8 +1476,8 @@ function renderPersonsView(){
       itemsHTML=per.items.map(function(it){return'<div class="pil"><span class="pil-n">'+esc(it.n)+(it.note?'<span class="pil-note">"'+esc(it.note)+'"</span>':'')+'</span><span class="pil-q">'+it.q+'×</span><span class="pil-p">'+money(it.p*it.q)+'</span>'+(per.paid?'':'<button class="pil-del" data-iid="'+it.id+'" data-pid="'+per.id+'">×</button>')+'</div>';}).join('');
     }
     var payBtnHtml=per.paid
-      ?'<div style="display:flex;align-items:center;gap:8px;margin-top:12px;padding:10px;background:#f0f9ec;border-radius:8px;border:1px solid #a8c995"><span style="font-size:12px;color:var(--ok);font-weight:600">✓ Pagado · '+money(subtotal)+'</span><button class="partial-pay-btn" style="border-color:var(--faint);color:var(--faint);font-size:10px" id="undoPayBtn">Deshacer</button></div>'
-      :'<button class="p-add" style="margin-top:12px;width:100%;background:var(--ok);color:#fff;border-color:var(--ok)" id="payPersonBtn">💰 Cobrar a '+esc(per.name)+' · '+money(subtotal)+'</button>';
+      ?'<div style="display:flex;align-items:center;gap:8px;margin-top:12px;padding:10px;background:#f0f9ec;border-radius:8px;border:1px solid #a8c995"><span style="font-size:12px;color:var(--ok);font-weight:600">✓ Pagado · '+money(subtotal)+'</span></div>'
+      :'';
     card.innerHTML='<div class="p-head"><div style="display:flex;align-items:center;flex:1"><div class="p-av" style="background:'+col+'">'+ini(per.name)+'</div><div class="p-name">'+esc(per.name)+(per.paid?' <span style="font-size:11px;color:var(--ok)">✓ Pagado</span>':'')+'</div></div><div style="text-align:right"><div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)">Subtotal</div><div class="p-sub">'+money(subtotal)+'</div></div></div><div id="pItemsWrap">'+itemsHTML+'</div>'+(per.paid?'':per.items&&per.items.length?'<button class="p-add" style="margin-top:10px;width:100%" id="openPMenuBtn">+ Agregar productos</button>':'<button class="p-add" style="margin-top:10px;width:100%" id="openPMenuBtn">+ Agregar productos</button>')+payBtnHtml;
 
     // Delete item buttons
@@ -1477,27 +1493,6 @@ function renderPersonsView(){
     var openPBtn=card.querySelector('#openPMenuBtn');
     if(openPBtn&&!per.paid){
       openPBtn.addEventListener('click',function(){curPersonId=per.id;gid('pmenuName').textContent=per.name;pMenuCat=MENU[0].cat;showSc('pmenu');renderPersonCatTabs();renderPersonMenu();});
-    }
-    // Pay person button
-    var payBtn=card.querySelector('#payPersonBtn');
-    if(payBtn){
-      payBtn.addEventListener('click',function(){
-        if(!per.items||!per.items.length){showToast('Sin productos para cobrar');return;}
-        (function(person,amt){
-          openPayModal('Cobrar a '+person.name,'',amt,'Cobrar',async function(method){
-            for(var ii=0;ii<orders[curTable].persons.length;ii++){if(orders[curTable].persons[ii].id===person.id){orders[curTable].persons[ii].paid=true;orders[curTable].persons[ii].paymentMethod=method||'efectivo';break;}}
-            await saveOrders(orders);renderPersonsView();updateCartBar();showToast('✓ '+person.name+' pagó '+money(amt)+' ('+(method||'efectivo')+')');
-          });
-        })(per,subtotal);
-      });
-    }
-    // Undo pay button
-    var undoBtn=card.querySelector('#undoPayBtn');
-    if(undoBtn){
-      undoBtn.addEventListener('click',async function(){
-        for(var ii=0;ii<orders[curTable].persons.length;ii++){if(orders[curTable].persons[ii].id===per.id){orders[curTable].persons[ii].paid=false;break;}}
-        await saveOrders(orders);renderPersonsView();updateCartBar();showToast('Pago deshecho');
-      });
     }
     cont.appendChild(card);
   }
@@ -2613,20 +2608,88 @@ gid('roleMesero').addEventListener('click',function(){setRole('mesero');});
 gid('roleCocina').addEventListener('click',function(){setRole('cocina');});
 gid('roleStats').addEventListener('click',function(){setRole('stats');});
 
+// ══ COBRAR POR PERSONA ══
+function renderPerPersonPay(){
+  var o=orders[curTable];if(!o){showSc('cart');return;}
+  gid('ppayTblLbl').textContent=curTable;
+  var list=gid('ppayList');list.innerHTML='';
+  var persons=o.persons||[];
+  var totalPaid=tblPaid(curTable);
+  var remaining=tblTotal(curTable);
+
+  persons.forEach(function(p,idx){
+    var col=pCol(idx),sub=pTotal(p);
+    var card=document.createElement('div');card.className='p-card';card.style.marginBottom='10px';
+    var itemsHTML=p.items&&p.items.length
+      ?p.items.map(function(it){return'<div class="pil"><span class="pil-n">'+esc(it.n)+(it.note?'<span class="pil-note">"'+esc(it.note)+'"</span>':'')+'</span><span class="pil-q">'+it.q+'×</span><span class="pil-p">'+money(it.p*it.q)+'</span></div>';}).join('')
+      :'<div style="font-size:11px;color:var(--faint);padding:6px 2px">Sin productos</div>';
+    var actionHTML=p.paid
+      ?'<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding:9px 12px;background:#f0f9ec;border-radius:8px;border:1px solid #a8c995"><span style="font-size:12px;color:var(--ok);font-weight:600">✓ Pagado · '+money(sub)+'</span><button class="btn btn-g ppay-undo" data-pid="'+p.id+'" style="font-size:10px;padding:4px 10px;border-color:var(--faint);color:var(--faint)">Deshacer</button></div>'
+      :(sub>0?'<button class="btn btn-p ppay-pay" data-pid="'+p.id+'" data-amt="'+sub+'" data-name="'+esc(p.name)+'" style="width:100%;margin-top:10px">💰 Cobrar a '+esc(p.name)+' · '+money(sub)+'</button>':'');
+    card.innerHTML='<div class="p-head"><div style="display:flex;align-items:center;flex:1"><div class="p-av" style="background:'+col+'">'+ini(p.name)+'</div><div class="p-name">'+esc(p.name)+(p.paid?' <span style="font-size:11px;color:var(--ok)">✓ Pagado</span>':'')+'</div></div><div style="text-align:right"><div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)">Total</div><div class="p-sub">'+money(sub)+'</div></div></div><div style="margin-top:8px">'+itemsHTML+'</div>'+actionHTML;
+    list.appendChild(card);
+  });
+
+  if(o.items&&o.items.length){
+    var genSub=o.items.reduce(function(s,it){return s+it.p*it.q;},0);
+    var genCard=document.createElement('div');genCard.className='p-card';genCard.style.marginBottom='10px';
+    var genItemsHTML=o.items.map(function(it){return'<div class="pil"><span class="pil-n">'+esc(it.n)+(it.note?'<span class="pil-note">"'+esc(it.note)+'"</span>':'')+'</span><span class="pil-q">'+it.q+'×</span><span class="pil-p">'+money(it.p*it.q)+'</span></div>';}).join('');
+    genCard.innerHTML='<div class="p-head"><div style="display:flex;align-items:center;flex:1"><div class="p-av" style="background:var(--faint)">G</div><div class="p-name">Cuenta general</div></div><div style="text-align:right"><div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)">Total</div><div class="p-sub">'+money(genSub)+'</div></div></div><div style="margin-top:8px">'+genItemsHTML+'</div>';
+    list.appendChild(genCard);
+  }
+
+  var summ=gid('ppaySumm'),actions=gid('ppayActions');
+  var hasItems=(o.items&&o.items.length)||(persons.some(function(p){return p.items&&p.items.length;}));
+  if(hasItems){
+    summ.style.display='block';
+    if(totalPaid>0){gid('ppayPaidRow').style.display='flex';gid('ppayPaid').textContent='-'+money(totalPaid);}
+    else gid('ppayPaidRow').style.display='none';
+    gid('ppayRemaining').textContent=money(Math.max(0,remaining));
+    actions.style.display='block';
+  }else{summ.style.display='none';actions.style.display='none';}
+
+  list.querySelectorAll('.ppay-pay').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var pid=btn.getAttribute('data-pid');
+      var amt=parseFloat(btn.getAttribute('data-amt'));
+      var name=btn.getAttribute('data-name');
+      if(!amt){showToast('Sin productos para cobrar');return;}
+      openPayModal('Cobrar a '+name,'',amt,'Cobrar',async function(method){
+        for(var i=0;i<orders[curTable].persons.length;i++){
+          if(orders[curTable].persons[i].id===pid){orders[curTable].persons[i].paid=true;orders[curTable].persons[i].paymentMethod=method||'efectivo';break;}
+        }
+        await saveOrders(orders);renderPerPersonPay();updateCartBar();
+        showToast('✓ '+name+' pagó '+money(amt)+' ('+(method||'efectivo')+')');
+      });
+    });
+  });
+
+  list.querySelectorAll('.ppay-undo').forEach(function(btn){
+    btn.addEventListener('click',async function(){
+      var pid=btn.getAttribute('data-pid');
+      for(var i=0;i<orders[curTable].persons.length;i++){
+        if(orders[curTable].persons[i].id===pid){orders[curTable].persons[i].paid=false;orders[curTable].persons[i].paymentMethod=null;break;}
+      }
+      await saveOrders(orders);renderPerPersonPay();updateCartBar();showToast('Pago deshecho');
+    });
+  });
+}
+gid('cobrarPersonaBtn').addEventListener('click',function(){
+  if(!curTable)return;
+  var o=orders[curTable];
+  if(!o||((!o.persons||!o.persons.length)&&(!o.items||!o.items.length))){showToast('La cuenta está vacía');return;}
+  renderPerPersonPay();showSc('ppay');gid('cartBar').classList.remove('show');
+});
+gid('backFromPPay').addEventListener('click',function(){showSc('cart');renderCart();updateCartBar();});
+gid('ppayCloseBtn').addEventListener('click',function(){if(curTable)doCloseTable(curTable);});
+
 // ══ SYNC ══
 async function sync(){
   try{
     var fresh=await loadOrders();
     if(fresh&&typeof fresh==='object'){
-      // Merge remote orders without overwriting local pending changes
-      Object.keys(fresh).forEach(function(t){
-        if(!orders[t]){orders[t]=fresh[t];}
-      });
+      Object.keys(fresh).forEach(function(t){if(!orders[t])orders[t]=fresh[t];});
     }
-    var now=Date.now();
-    Object.keys(lastSeen).forEach(function(t){
-      if(now-lastSeen[t]>300000)delete lastSeen[t]; // clean stale
-    });
   }catch(e){/* silent */}
 }
 </script>
