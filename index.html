@@ -968,6 +968,13 @@ async function insertFinanceMovements(rec){
   var hasDetail=items.some(function(it){return it.pm;});
   if(!hasDetail||Object.values(methods).every(function(v){return v===0;})){
     methods={};methods[rec.paymentMethod||'efectivo']=rec.total;
+  }else{
+    // Reconcile: always trust rec.total over computed sum (discounts may be in item prices)
+    var computedTotal=Object.values(methods).reduce(function(s,v){return s+v;},0);
+    if(computedTotal>0&&Math.abs(computedTotal-rec.total)>0.5){
+      var scale=rec.total/computedTotal;
+      Object.keys(methods).forEach(function(k){methods[k]=Math.round(methods[k]*scale*100)/100;});
+    }
   }
   var methodsUsed=Object.keys(methods).filter(function(k){return methods[k]>0;});
   if(!methodsUsed.length)methodsUsed=[rec.paymentMethod||'efectivo'];
@@ -1373,7 +1380,7 @@ function renderCart(){
     var d=document.createElement('div');d.className='ol';
     var badge=it._src==='p'?'<span style="display:inline-block;padding:2px 7px;border-radius:999px;font-size:9px;font-weight:600;color:#fff;background:'+it._pc+';margin-top:3px">'+esc(it._pn)+(it._ppaid?' ✓':'')+'</span>':'';
     var priceStyle=it._ppaid?'class="ol-p ol-paid"':'class="ol-p"';
-    d.innerHTML='<div class="ol-l"><div class="ol-n"'+(it._ppaid?' style="opacity:.5"':'')+'>'+esc(it.n)+'</div>'+(it.note?'<div class="ol-note">"'+esc(it.note)+'"</div>':'')+'<div class="ol-m">'+money(it.p)+' c/u</div>'+badge+'</div><div class="ol-r">'+(!it._ppaid?'<div class="qpill"><button data-a="d">−</button><span class="q">'+it.q+'</span><button data-a="i">+</button></div>':'<span style="font-size:11px;color:var(--ok);padding:0 6px">Pagado</span>')+'<div '+priceStyle+'>'+money(it.p*it.q)+'</div></div>';
+    d.innerHTML='<div class="ol-l"><div class="ol-n"'+(it._ppaid?' style="opacity:.5"':'')+'>'+esc(it.n)+(it.discounted?'<span style="display:inline-block;padding:1px 5px;border-radius:4px;font-size:9px;font-weight:700;color:#fff;background:var(--ok);margin-left:5px">2×1</span>':'')+'</div>'+(it.note?'<div class="ol-note">"'+esc(it.note)+'"</div>':'')+'<div class="ol-m">'+money(it.p)+' c/u</div>'+badge+'</div><div class="ol-r">'+(!it._ppaid?'<div class="qpill"><button data-a="d">−</button><span class="q">'+it.q+'</span><button data-a="i">+</button></div>':'<span style="font-size:11px;color:var(--ok);padding:0 6px">Pagado</span>')+'<div '+priceStyle+'>'+money(it.p*it.q)+'</div></div>';
     if(!it._ppaid){
       (function(item){
         d.querySelector('[data-a=i]').addEventListener('click',async function(){var t=findIt(item);if(t)t.q+=1;await saveOrders(orders);renderCart();updateCartBar();});
