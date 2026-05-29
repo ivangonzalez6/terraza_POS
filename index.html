@@ -497,12 +497,12 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
       <div style="display:flex;align-items:center;gap:7px;margin:6px 0 0">
         <button class="btn btn-g" style="flex:0;padding:7px 12px;font-size:10px" id="backToTables2">← Mesas</button>
         <h2 class="sec" style="margin:7px 0;flex:1;font-size:22px">Personas · Mesa <span id="persTblLbl"></span></h2>
-        <button class="btn btn-g" style="flex:0;padding:7px 12px;font-size:10px" id="editNotePerBtn">Editar</button>
+        <button class="btn btn-g" style="flex:0;padding:7px 12px;font-size:10px" id="editNotePerBtn">Identificar Mesa</button>
       </div>
       <div class="ns"><span class="nl">Mesa</span><span class="nv e" id="persNote">Sin identificación</span></div>
       <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
         <div class="p-tabs" id="personTabs" style="flex:1"></div>
-        <button class="add-p-btn" id="addPersonBtn">+ Persona</button>
+        <button class="add-p-btn" id="addPersonBtn" style="display:none">+ Persona</button>
       </div>
       <div id="personContent"></div>
       <!-- Resumen de pagos parciales -->
@@ -512,9 +512,9 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
         <div class="ps-tot"><span class="ps-tl">Total mesa</span><span class="ps-ta" id="psTot">$0</span></div>
       </div>
       <div style="margin-top:14px;display:flex;gap:8px">
-        <button class="btn btn-g" style="flex:1" id="persPorPersonaBtn">+ Por persona</button>
-        <button class="btn btn-g" style="flex:1;border-color:var(--gold);color:var(--gold)" id="persCompartirBtn">🤝 Compartir</button>
-        <button class="btn btn-p" style="flex:1" id="persVerOrdenBtn">Ver Orden</button>
+        <button class="btn btn-g" style="display:none" id="persPorPersonaBtn">+ Por persona</button>
+        <button class="btn btn-p" style="flex:1;padding:13px" id="persCompartirBtn">🍹 Ordenar por mesa</button>
+        <button class="btn btn-g" style="display:none" id="persVerOrdenBtn">Ver Orden</button>
       </div>
     </div>
     <div id="sc-ppay" style="display:none">
@@ -675,7 +675,7 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
       <div class="ci-lbl">Mesa <span id="cbTable"></span> · <span id="cbCount">0 items</span></div>
       <div class="ci-tot"><small>$</small><span id="cbTotal">0</span></div>
     </div>
-    <button class="cart-btn" id="goToCartBtn">Ver cuenta</button>
+    <button class="cart-btn" id="goToCartBtn">Ver Orden</button>
   </div>
 </div>
 
@@ -1030,7 +1030,7 @@ function initTbl(t){
   if(!orders[t].items)orders[t].items=[];
   if(!orders[t].discounts)orders[t].discounts=[];
 }
-function showSc(n){['tables','menu','cart','persons','ppay','pmenu'].forEach(function(s){gid('sc-'+s).style.display=(s===n)?'block':'none';});}
+function showSc(n){['tables','menu','cart','persons','ppay','pmenu'].forEach(function(s){gid('sc-'+s).style.display=(s===n)?'block':'none';});updateCartBar();}
 function persItemCount(t){var o=orders[t];if(!o||!o.persons)return 0;return o.persons.reduce(function(s,p){return s+pCount(p);},0);}
 
 // ══ PASSWORD EYE ══
@@ -1246,8 +1246,15 @@ gid('editNotePerBtn').addEventListener('click',function(){
   gid('tnInput').value=(orders[curTable]&&orders[curTable].tableNote)||'';
   gid('tableNoteModal').classList.add('show');setTimeout(function(){gid('tnInput').focus();},250);
 });
+function currentScreen(){
+  var ss=['tables','menu','cart','persons','ppay','pmenu'];
+  for(var i=0;i<ss.length;i++){var el=gid('sc-'+ss[i]);if(el&&el.style.display!=='none')return ss[i];}
+  return null;
+}
 function updateCartBar(){
   if(!curTable){gid('cartBar').classList.remove('show');return;}
+  var sc=currentScreen();
+  if(sc!=='persons'&&sc!=='menu'){gid('cartBar').classList.remove('show');return;}
   var tot=tblTotal(curTable),cnt=tblCount(curTable);
   gid('cbTable').textContent=curTable.toString().padStart(2,'0');
   gid('cbCount').textContent=cnt+' item'+(cnt!==1?'s':'');
