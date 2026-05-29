@@ -464,10 +464,9 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
     </div>
     <div id="sc-menu" style="display:none">
       <div style="display:flex;align-items:center;gap:7px;margin:6px 0 0;flex-wrap:wrap">
-        <button class="btn btn-g" style="flex:0;padding:7px 12px;font-size:10px" id="backToTables">← Mesas</button>
-        <h2 class="sec" style="margin:7px 0;flex:1;font-size:22px">Mesa <span id="curTblLbl"></span></h2>
-        <button class="btn btn-g" style="flex:0;padding:7px 12px;font-size:10px" id="goPersonsBtn">Por persona <span id="persBadge" class="nbadge" style="display:none">0</span></button>
-        <button class="btn btn-g" style="flex:0;padding:7px 12px;font-size:10px" id="viewCartBtn">Cuenta <span id="cartBadge" class="nbadge" style="display:none">0</span></button>
+        <button class="btn btn-g" style="flex:0;padding:7px 12px;font-size:10px" id="backToTables">← Personas</button>
+        <h2 class="sec" style="margin:7px 0;flex:1;font-size:22px">Compartir · Mesa <span id="curTblLbl"></span></h2>
+        <button class="btn btn-g" style="flex:0;padding:7px 12px;font-size:10px" id="viewCartBtn">Ver Orden <span id="cartBadge" class="nbadge" style="display:none">0</span></button>
       </div>
       <div class="ns"><span class="nl">Nota</span><span class="nv e" id="menuNote">Sin identificación</span><button id="editNoteBtn">Editar</button></div>
       <div class="cat-tabs" id="catTabs"></div>
@@ -475,16 +474,15 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
     </div>
     <div id="sc-cart" style="display:none">
       <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
-        <button class="btn btn-g" style="flex:0;padding:7px 12px;font-size:10px" id="backToMenu">← Menú</button>
-        <h2 class="sec" style="margin:7px 0;flex:1;font-size:22px">Cuenta · Mesa <span id="cartTblLbl"></span></h2>
+        <button class="btn btn-g" style="flex:0;padding:7px 12px;font-size:10px" id="backToMenu">← Personas</button>
+        <h2 class="sec" style="margin:7px 0;flex:1;font-size:22px">Orden · Mesa <span id="cartTblLbl"></span></h2>
       </div>
-      <div class="ns"><span class="nl">Nota</span><span class="nv e" id="cartNote">Sin identificación</span></div>
+      <div class="ns"><span class="nl">Mesa</span><span class="nv e" id="cartNote">Sin identificación</span></div>
       <div id="orderDetail" style="padding:4px 2px"></div>
-      <div class="summ" id="orderSumm" style="display:none">
-        <div class="sr"><span>Subtotal</span><span id="sumSub">$0</span></div>
-        <div class="sr" id="discRow" style="display:none;color:var(--ok)"><span>Descuento 2×1</span><span id="sumDisc"></span></div>
-        <div class="sr" id="paidRow" style="display:none;color:var(--ok)"><span>Ya pagado</span><span id="sumPaid"></span></div>
-        <div class="sr tot"><span>Restante</span><b id="sumTot">$0</b></div>
+      <div class="ps" id="orderPersonSumm" style="display:none;margin-top:12px">
+        <div class="ps-hd">Resumen por persona</div>
+        <div id="orderPsRows"></div>
+        <div class="ps-tot"><span class="ps-tl">Restante</span><span class="ps-ta" id="orderPsTot">$0</span></div>
       </div>
       <div id="cartActions" style="margin-top:10px;display:none">
         <div class="ma" style="margin-top:0;margin-bottom:8px">
@@ -497,8 +495,9 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
     </div>
     <div id="sc-persons" style="display:none">
       <div style="display:flex;align-items:center;gap:7px;margin:6px 0 0">
-        <button class="btn btn-g" style="flex:0;padding:7px 12px;font-size:10px" id="backToMenuFromP">← Menú</button>
+        <button class="btn btn-g" style="flex:0;padding:7px 12px;font-size:10px" id="backToTables2">← Mesas</button>
         <h2 class="sec" style="margin:7px 0;flex:1;font-size:22px">Personas · Mesa <span id="persTblLbl"></span></h2>
+        <button class="btn btn-g" style="flex:0;padding:7px 12px;font-size:10px" id="editNotePerBtn">Editar</button>
       </div>
       <div class="ns"><span class="nl">Mesa</span><span class="nv e" id="persNote">Sin identificación</span></div>
       <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
@@ -512,13 +511,15 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
         <div id="psRows"></div>
         <div class="ps-tot"><span class="ps-tl">Total mesa</span><span class="ps-ta" id="psTot">$0</span></div>
       </div>
-      <div class="ma" style="margin-top:14px">
-        <button class="btn btn-g" id="persBackMenu">← Volver al menú</button>
+      <div style="margin-top:14px;display:flex;gap:8px">
+        <button class="btn btn-g" style="flex:1" id="persPorPersonaBtn">+ Por persona</button>
+        <button class="btn btn-g" style="flex:1;border-color:var(--gold);color:var(--gold)" id="persCompartirBtn">🤝 Compartir</button>
+        <button class="btn btn-p" style="flex:1" id="persVerOrdenBtn">Ver Orden</button>
       </div>
     </div>
     <div id="sc-ppay" style="display:none">
       <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
-        <button class="btn btn-g" style="flex:0;padding:7px 12px;font-size:10px" id="backFromPPay">← Cuenta</button>
+        <button class="btn btn-g" style="flex:0;padding:7px 12px;font-size:10px" id="backFromPPay">← Orden</button>
         <h2 class="sec" style="margin:7px 0;flex:1;font-size:22px">Cobrar por persona · Mesa <span id="ppayTblLbl"></span></h2>
       </div>
       <div id="ppayList" style="padding:4px 2px;margin-top:8px"></div>
@@ -1155,7 +1156,6 @@ function updateBadges(){
   if(!curTable)return;
   var c=tblCount(curTable),pc=persItemCount(curTable);
   gid('cartBadge').textContent=c;gid('cartBadge').style.display=c>0?'inline-flex':'none';
-  gid('persBadge').textContent=pc;gid('persBadge').style.display=pc>0?'inline-flex':'none';
 }
 
 // ══ NOTE MODAL ══
@@ -1179,8 +1179,7 @@ gid('noteSave').addEventListener('click',async function(){
     // If this table had everything delivered, new item resets the order clock
     _resetOrderTimeIfNeeded(curTable);
     gid('noteModal').classList.remove('show');pendItem=null;
-    await saveOrders(orders);showToast('✓ Agregado a '+getPName());
-    if(gid('sc-pmenu').style.display!=='none'){showSc('persons');renderPersonsView();}
+    await saveOrders(orders);updateBadges();showToast('✓ Agregado a '+getPName());
   }else{
     var items=orders[curTable].items,exG=null;
     for(var k=0;k<items.length;k++){if(items[k].n===pendItem.n&&(items[k].note||'')===note){exG=items[k];break;}}
@@ -1194,25 +1193,59 @@ gid('noteSave').addEventListener('click',async function(){
 function getPName(){if(!curTable||!curPersonId)return'';var ps=orders[curTable]&&orders[curTable].persons;if(!ps)return'';for(var i=0;i<ps.length;i++){if(ps[i].id===curPersonId)return ps[i].name;}return'';}
 
 // ══ NAV ══
-function openTable(n){curTable=n;gid('curTblLbl').textContent=n.toString().padStart(2,'0');showSc('menu');curCat=MENU[0].cat;renderCatTabs();renderMenu();renderNS();updateCartBar();updateBadges();}
+function openTable(n){
+  curTable=n;
+  gid('curTblLbl').textContent=n.toString().padStart(2,'0');
+  initTbl(n);
+  gid('persTblLbl').textContent=n.toString().padStart(2,'0');
+  curPersonId=(orders[n].persons[0]&&orders[n].persons[0].id)||null;
+  showSc('persons');renderNS();renderPersonsView();
+  gid('cartBar').classList.remove('show');updateBadges();
+}
 function renderNS(){
   if(!curTable)return;
   var note=(orders[curTable]&&orders[curTable].tableNote)||'';
   ['menuNote','cartNote','persNote'].forEach(function(id){var el=gid(id);if(!el)return;if(note){el.textContent=note;el.classList.remove('e');}else{el.textContent='Sin identificación';el.classList.add('e');}});
 }
-gid('backToTables').addEventListener('click',function(){showSc('tables');gid('cartBar').classList.remove('show');curTable=null;renderTables();});
-gid('viewCartBtn').addEventListener('click',function(){gid('cartTblLbl').textContent=curTable.toString().padStart(2,'0');showSc('cart');renderNS();renderCart();});
-gid('goToCartBtn').addEventListener('click',function(){gid('cartTblLbl').textContent=curTable.toString().padStart(2,'0');showSc('cart');renderNS();renderCart();});
-gid('backToMenu').addEventListener('click',function(){showSc('menu');});
-gid('goPersonsBtn').addEventListener('click',function(){
-  if(!curTable)return;initTbl(curTable);
-  gid('persTblLbl').textContent=curTable.toString().padStart(2,'0');
-  curPersonId=(orders[curTable].persons[0]&&orders[curTable].persons[0].id)||null;
-  showSc('persons');renderNS();renderPersonsView();gid('cartBar').classList.remove('show');
+gid('backToTables').addEventListener('click',function(){
+  if(curTable){showSc('persons');renderPersonsView();}
+  else{showSc('tables');gid('cartBar').classList.remove('show');renderTables();}
 });
-gid('backToMenuFromP').addEventListener('click',function(){showSc('menu');updateBadges();updateCartBar();});
-gid('persBackMenu').addEventListener('click',function(){showSc('menu');updateBadges();updateCartBar();});
+gid('backToTables2').addEventListener('click',function(){showSc('tables');gid('cartBar').classList.remove('show');curTable=null;renderTables();});
+gid('viewCartBtn').addEventListener('click',function(){if(!curTable)return;gid('cartTblLbl').textContent=curTable.toString().padStart(2,'0');showSc('cart');renderNS();renderCart();});
+gid('goToCartBtn').addEventListener('click',function(){if(!curTable)return;gid('cartTblLbl').textContent=curTable.toString().padStart(2,'0');showSc('cart');renderNS();renderCart();});
+gid('backToMenu').addEventListener('click',function(){if(curTable){showSc('persons');renderPersonsView();}else{showSc('tables');renderTables();}});
+
+
 gid('backToPersons').addEventListener('click',function(){showSc('persons');renderPersonsView();});
+// Personas bottom buttons
+gid('persPorPersonaBtn').addEventListener('click',function(){
+  if(!curTable)return;
+  var o=orders[curTable];if(!o||!o.persons||!o.persons.length){showToast('Agrega una persona primero');return;}
+  if(!curPersonId){curPersonId=o.persons[0].id;}
+  var per=null;for(var i=0;i<o.persons.length;i++){if(o.persons[i].id===curPersonId){per=o.persons[i];break;}}
+  if(!per){showToast('Selecciona una persona');return;}
+  gid('pmenuName').textContent=per.name;pMenuCat=MENU[0].cat;
+  showSc('pmenu');renderPersonCatTabs();renderPersonMenu();
+});
+gid('persCompartirBtn').addEventListener('click',function(){
+  if(!curTable)return;
+  gid('curTblLbl').textContent=curTable.toString().padStart(2,'0');
+  curCat=MENU[0].cat;renderCatTabs();renderMenu();renderNS();
+  showSc('menu');
+});
+gid('persVerOrdenBtn').addEventListener('click',function(){
+  if(!curTable)return;
+  gid('cartTblLbl').textContent=curTable.toString().padStart(2,'0');
+  showSc('cart');renderNS();renderCart();
+});
+// Editar nota desde Personas
+gid('editNotePerBtn').addEventListener('click',function(){
+  if(!curTable)return;
+  gid('tnLbl').textContent=curTable.toString().padStart(2,'0');
+  gid('tnInput').value=(orders[curTable]&&orders[curTable].tableNote)||'';
+  gid('tableNoteModal').classList.add('show');setTimeout(function(){gid('tnInput').focus();},250);
+});
 function updateCartBar(){
   if(!curTable){gid('cartBar').classList.remove('show');return;}
   var tot=tblTotal(curTable),cnt=tblCount(curTable);
@@ -1235,8 +1268,8 @@ function renderCart(){
   if(o&&o.items)o.items.forEach(function(it){all.push(Object.assign({},it,{_src:'g'}));});
   if(o&&o.persons)o.persons.forEach(function(p,idx){if(p.items)p.items.forEach(function(it){all.push(Object.assign({},it,{_src:'p',_pn:p.name,_pid:p.id,_pc:PC[idx%PC.length],_ppaid:p.paid}));});});
   if(!all.length&&(!o||!o.discounts||!o.discounts.length)){
-    wrap.innerHTML='<div class="empty"><div class="etit crescent">Cuenta vacía</div><div class="esub">Agrega productos desde el menú</div></div>';
-    gid('orderSumm').style.display='none';gid('cartActions').style.display='none';return;
+    wrap.innerHTML='<div class="empty"><div class="etit crescent">Orden vacía</div><div class="esub">Agrega productos desde Compartir o Por Persona</div></div>';
+    gid('orderPersonSumm').style.display='none';gid('cartActions').style.display='none';return;
   }
   all.forEach(function(it){
     var d=document.createElement('div');d.className='ol';
@@ -1260,12 +1293,54 @@ function renderCart(){
       wrap.appendChild(dl);
     });
   }
-  var sub=tblSubtotal(curTable),disc=tblDiscount(curTable),paid=tblPaid(curTable),tot=tblTotal(curTable);
-  gid('sumSub').textContent=money(sub);
-  if(disc<0){gid('discRow').style.display='flex';gid('sumDisc').textContent=money(disc);}else gid('discRow').style.display='none';
-  if(paid>0){gid('paidRow').style.display='flex';gid('sumPaid').textContent='-'+money(paid);}else gid('paidRow').style.display='none';
-  gid('sumTot').textContent=money(tot);
-  gid('orderSumm').style.display='block';gid('cartActions').style.display='block';
+  // Per-person summary in Orden view
+  renderOrderPersonSumm();
+  gid('orderPersonSumm').style.display='block';gid('cartActions').style.display='block';
+}
+function renderOrderPersonSumm(){
+  if(!curTable)return;
+  var o=orders[curTable];
+  var persons=o&&o.persons||[];
+  var rows=gid('orderPsRows');rows.innerHTML='';
+  var totalAll=0,totalPaid=0;
+  persons.forEach(function(p,idx){
+    var sub=pTotal(p);totalAll+=sub;if(p.paid)totalPaid+=sub;
+    var r=document.createElement('div');r.className='ps-row';
+    r.innerHTML='<div class="ps-av" style="background:'+pCol(idx)+'">'+ini(p.name)+'</div>'
+      +'<span class="ps-nm">'+esc(p.name)+'</span>'
+      +'<span class="ps-cnt">'+pCount(p)+' prod.</span>'
+      +'<span class="ps-am" style="'+(p.paid?'color:var(--ok)':'')+'">'+money(sub)+(p.paid?' ✓':'')+'</span>';
+    rows.appendChild(r);
+  });
+  var genTotal=0;
+  if(o&&o.items&&o.items.length){
+    genTotal=o.items.reduce(function(s,it){return s+it.p*it.q;},0);totalAll+=genTotal;
+    var rg=document.createElement('div');rg.className='ps-row';
+    rg.innerHTML='<div class="ps-av" style="background:var(--faint)">G</div>'
+      +'<span class="ps-nm" style="font-style:italic">Compartido</span>'
+      +'<span class="ps-cnt">'+o.items.reduce(function(s,it){return s+it.q;},0)+' prod.</span>'
+      +'<span class="ps-am">'+money(genTotal)+'</span>';
+    rows.appendChild(rg);
+  }
+  var discTotal=tblDiscount(curTable);
+  if(discTotal<0){
+    var rd=document.createElement('div');rd.className='ps-row';
+    rd.innerHTML='<div class="ps-av" style="background:var(--ok)">%</div>'
+      +'<span class="ps-nm" style="color:var(--ok)">Descuentos 2×1</span>'
+      +'<span class="ps-cnt"></span>'
+      +'<span class="ps-am" style="color:var(--ok)">'+money(discTotal)+'</span>';
+    rows.appendChild(rd);
+  }
+  if(totalPaid>0){
+    var rp=document.createElement('div');rp.className='ps-row';
+    rp.innerHTML='<div class="ps-av" style="background:var(--ok)">✓</div>'
+      +'<span class="ps-nm" style="color:var(--ok)">Ya cobrado</span>'
+      +'<span class="ps-cnt"></span>'
+      +'<span class="ps-am" style="color:var(--ok)">-'+money(totalPaid)+'</span>';
+    rows.appendChild(rp);
+  }
+  var remaining=Math.max(0,totalAll+discTotal-totalPaid);
+  gid('orderPsTot').textContent=money(remaining);
 }
 function findIt(it){var o=orders[curTable];if(!o)return null;if(it._src==='p'){var per=null;for(var i=0;i<o.persons.length;i++){if(o.persons[i].id===it._pid){per=o.persons[i];break;}}if(!per||!per.items)return null;for(var j=0;j<per.items.length;j++){if(per.items[j].id===it.id)return per.items[j];}return null;}if(!o.items)return null;for(var k=0;k<o.items.length;k++){if(o.items[k].id===it.id)return o.items[k];}return null;}
 function removeIt(it){var o=orders[curTable];if(!o)return;if(it._src==='p'){var per=null;for(var i=0;i<o.persons.length;i++){if(o.persons[i].id===it._pid){per=o.persons[i];break;}}if(per&&per.items)per.items=per.items.filter(function(x){return x.id!==it.id;});}else if(o.items)o.items=o.items.filter(function(x){return x.id!==it.id;});}
