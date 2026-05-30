@@ -1158,6 +1158,16 @@ function openConfirm(title,body,okTxt,onOk,onCancel){
 }
 
 // ══ LOGIN ══
+async function startSession(found){
+  loggedUser=found;
+  try{localStorage.setItem('tl_session',JSON.stringify({username:found.username,role:found.role}));}catch(e){}
+  var ap=await loadConfig('admin_password');if(ap)adminPass=ap;
+  orders=await loadOrders();appHistory=await loadHistory();
+  await rebuildMenuFromDB();
+  gid('loginScreen').style.display='none';gid('appShell').style.display='block';
+  renderTables();renderCatTabs();renderMenu();
+  setInterval(sync,3000);
+}
 async function doLogin(){
   var u=gid('loginUser').value.trim(),p=gid('loginPass').value;
   gid('loginErr').textContent='';
@@ -1169,19 +1179,29 @@ async function doLogin(){
     var found=null;for(var i=0;i<users.length;i++){if(users[i].username===u&&users[i].user_password===p){found=users[i];break;}}
     if(!found){gid('loginErr').textContent='Usuario o contraseña incorrectos';return;}
     if(!found.active){gid('loginErr').textContent='Usuario bloqueado.';return;}
-    loggedUser=found;appUsers=users;
-    var ap=await loadConfig('admin_password');if(ap)adminPass=ap;
-    orders=await loadOrders();appHistory=await loadHistory();
-    await rebuildMenuFromDB();
-    gid('loginScreen').style.display='none';gid('appShell').style.display='block';
-    renderTables();renderCatTabs();renderMenu();
-    setInterval(sync,3000);
+    appUsers=users;
+    await startSession(found);
   }catch(err){
     console.error('Login error:', err);
     gid('loginErr').textContent='Error: '+err.message;
   }
   finally{gid('loginBtn').disabled=false;gid('loginBtn').textContent='Entrar';}
 }
+// Restaurar sesión al recargar
+(async function tryRestoreSession(){
+  try{
+    var saved=localStorage.getItem('tl_session');
+    if(!saved)return;
+    var s=JSON.parse(saved);
+    if(!s||!s.username)return;
+    var users=await loadUsers();
+    if(!users||!users.length)return;
+    var found=null;for(var i=0;i<users.length;i++){if(users[i].username===s.username&&users[i].active){found=users[i];break;}}
+    if(!found){localStorage.removeItem('tl_session');return;}
+    appUsers=users;
+    await startSession(found);
+  }catch(e){/* silent — user will see login screen */}
+})();
 setTimeout(function(){
   if(gid('loginBtn'))gid('loginBtn').addEventListener('click',doLogin);
   if(gid('loginUser'))gid('loginUser').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
@@ -1189,7 +1209,8 @@ setTimeout(function(){
 },50);
 gid('logoutBtn').addEventListener('click',function(){
   openConfirm('Cerrar sesión','¿Deseas salir?','Salir',function(){
-    loggedUser=null;gid('loginUser').value='';gid('loginPass').value='';gid('loginErr').textContent='';
+    loggedUser=null;try{localStorage.removeItem('tl_session');}catch(e){}
+    gid('loginUser').value='';gid('loginPass').value='';gid('loginErr').textContent='';
     gid('appShell').style.display='none';gid('loginScreen').style.display='flex';
   });
 });
