@@ -3160,6 +3160,9 @@ async function sync(){
 }
 
 // ══ LEALTAD ADMIN ══
+var _loyaltyRewardsCache=[], _loyaltyPromosCache=[];
+function editLoyaltyRewardById(id){var r=_loyaltyRewardsCache.find(function(x){return x.id===id;});if(r)openLoyaltyRewardModal(r);}
+function editLoyaltyPromoById(id){var p=_loyaltyPromosCache.find(function(x){return x.id===id;});if(p)openLoyaltyPromoModal(p);}
 var SUPA_L='https://biuaxkpyujypiigxolwt.supabase.co';
 var KEY_L='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpdWF4a3B5dWp5cGlpZ3hvbHd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MDY1ODUsImV4cCI6MjA5NTQ4MjU4NX0.4MJ2WfTo6tDNImcN0E5RCy4ilU2-sXnmRb6_BB85YaQ';
 var loyaltyAdminPw='';
@@ -3203,20 +3206,20 @@ async function checkLoyaltyPw(){
 
 async function loadLoyaltyRewards(){
   try{
-    var rewards=await loyaltyApi('GET','loyalty_rewards',null,'?order=visitas_requeridas.asc&select=*')||[];
+    var rewards=await loyaltyApi('GET','loyalty_rewards',null,'?order=visitas_requeridas.asc&select=*')||[];_loyaltyRewardsCache=rewards;
     var list=gid('loyaltyRewardsList');
     if(!rewards.length){list.innerHTML='<p style="color:var(--faint);font-size:13px;padding:8px 0">Sin niveles. ¡Crea el primero!</p>';return;}
     list.innerHTML=rewards.map(function(r){
       return '<div style="display:flex;align-items:flex-start;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:8px">'+
         '<div style="flex:1">'+
           '<div style="font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:3px">Nivel '+r.nivel+' · '+r.visitas_requeridas+' visitas</div>'+
-          '<div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600">'+esc(r.recompensa)+'</div>'+
+          '<div style="font-family:Georgia,serif;font-size:17px;font-weight:600">'+esc(r.recompensa)+'</div>'+
           (r.descripcion?'<div style="font-size:12px;color:var(--faint);margin-top:2px">'+esc(r.descripcion)+'</div>':'')+
           (!r.activo?'<div style="font-size:11px;color:var(--faint)">(inactivo)</div>':'')+
         '</div>'+
         '<div style="display:flex;gap:6px;flex-shrink:0">'+
-          '<button class="btn btn-g" style="padding:5px 10px;font-size:10px" onclick="editLoyaltyReward('+JSON.stringify(r).replace(/"/g,"&quot;")+')" >Editar</button>'+
-          '<button class="btn" style="padding:5px 10px;font-size:10px;background:var(--danger);box-shadow:none" onclick="deleteLoyaltyReward(''+r.id+'')">✕</button>'+
+          '<button class="btn btn-g" style="padding:5px 10px;font-size:10px" onclick="editLoyaltyRewardById(&quot;'+r.id+'&quot;)">Editar</button>'+
+          '<button class="btn btn-d" style="padding:5px 10px;font-size:10px" onclick="deleteLoyaltyReward(&quot;'+r.id+'&quot;)">✕</button>'+
         '</div>'+
       '</div>';
     }).join('');
@@ -3256,19 +3259,19 @@ async function deleteLoyaltyReward(id){
 
 async function loadLoyaltyPromos(){
   try{
-    var promos=await loyaltyApi('GET','loyalty_promotions',null,'?order=created_at.desc&select=*')||[];
+    var promos=await loyaltyApi('GET','loyalty_promotions',null,'?order=created_at.desc&select=*')||[];_loyaltyPromosCache=promos;
     var list=gid('loyaltyPromosList');
     if(!promos.length){list.innerHTML='<p style="color:var(--faint);font-size:13px;padding:8px 0">Sin promociones. ¡Crea la primera!</p>';return;}
     list.innerHTML=promos.map(function(p){
       return '<div style="display:flex;align-items:flex-start;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:8px">'+
         '<div style="flex:1">'+
-          '<div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600">'+esc(p.titulo)+(p.activa?' <span style="font-size:9px;background:rgba(58,122,58,.1);color:#3a7a3a;border-radius:999px;padding:2px 8px;vertical-align:middle;font-family:sans-serif">Activa</span>':'')+'</div>'+
+          '<div style="font-family:Georgia,serif;font-size:17px;font-weight:600">'+esc(p.titulo)+(p.activa?' <span style="font-size:9px;background:rgba(58,122,58,.1);color:#3a7a3a;border-radius:999px;padding:2px 8px;vertical-align:middle;font-family:sans-serif">Activa</span>':'')+'</div>'+
           '<div style="font-size:12px;color:var(--faint);margin-top:2px">'+esc(p.descripcion)+'</div>'+
           (p.fecha_fin?'<div style="font-size:10px;color:var(--faint);margin-top:4px;text-transform:uppercase;letter-spacing:.1em">Hasta '+new Date(p.fecha_fin+'T12:00:00').toLocaleDateString('es-MX',{day:'numeric',month:'short'})+'</div>':'')+
         '</div>'+
         '<div style="display:flex;gap:6px;flex-shrink:0">'+
-          '<button class="btn btn-g" style="padding:5px 10px;font-size:10px" onclick="editLoyaltyPromo('+JSON.stringify(p).replace(/"/g,"&quot;")+')" >Editar</button>'+
-          '<button class="btn" style="padding:5px 10px;font-size:10px;background:var(--danger);box-shadow:none" onclick="deleteLoyaltyPromo(''+p.id+'')">✕</button>'+
+          '<button class="btn btn-g" style="padding:5px 10px;font-size:10px" onclick="editLoyaltyPromoById(&quot;'+p.id+'&quot;)">Editar</button>'+
+          '<button class="btn btn-d" style="padding:5px 10px;font-size:10px" onclick="deleteLoyaltyPromo(&quot;'+p.id+'&quot;)">✕</button>'+
         '</div>'+
       '</div>';
     }).join('');
