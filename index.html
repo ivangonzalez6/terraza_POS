@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Terraza Luna · POS</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -1753,6 +1755,7 @@ function doCloseTable(t){
     curTable=null;curPersonId=null;
     showSc('tables');gid('cartBar').classList.remove('show');
     renderTables();
+    setTimeout(function(){showLoyaltyCheckModal();},400);
   });
 }
 gid('closeTableBtn').addEventListener('click',function(){if(curTable)doCloseTable(curTable);});
@@ -3159,6 +3162,111 @@ async function sync(){
   }catch(e){/* silent */}
 }
 
+// ══ LEALTAD POST-CIERRE ══
+var _loyaltyScanner=null, _loyaltyScanning=false, _loyaltyFoundClient=null;
+var LOYALTY_REG_URL = 'https://terrazaloyalty.vercel.app/loyalty-register.html';
+
+function showLoyaltyCheckModal(){
+  var m=gid('loyaltyCheckModal');m.style.display='flex';m.classList.add('open');
+}
+function closeLoyaltyCheckModal(){
+  var m=gid('loyaltyCheckModal');m.classList.remove('open');m.style.display='none';
+}
+
+function loyaltyCheckYes(){
+  closeLoyaltyCheckModal();
+  _loyaltyFoundClient=null;
+  gid('loyaltyClientFound').style.display='none';
+  gid('loyaltyMarkVisitBtn').style.display='none';
+  gid('loyaltyWaInput').value='';
+  gid('loyaltyScanMsg').innerHTML='';
+  gid('loyaltyScannerBox').innerHTML='';
+  gid('loyaltyStartScanBtn').style.display='';
+  gid('loyaltyStopScanBtn').style.display='none';
+  var m=gid('loyaltyScanModal');m.style.display='flex';m.classList.add('open');
+}
+function loyaltyCheckNo(){
+  closeLoyaltyCheckModal();
+  // Ask if they want to create a card
+  gid('loyaltyRegQR').innerHTML='';
+  new QRCode(gid('loyaltyRegQR'),{text:LOYALTY_REG_URL,width:200,height:200,colorDark:'#1a1610',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+  var m=gid('loyaltyCreateModal');m.style.display='flex';m.classList.add('open');
+}
+function closeLoyaltyCreateModal(){
+  var m=gid('loyaltyCreateModal');m.classList.remove('open');m.style.display='none';
+}
+function closeLoyaltyScanModal(){
+  stopLoyaltyScan();
+  var m=gid('loyaltyScanModal');m.classList.remove('open');m.style.display='none';
+}
+
+function startLoyaltyScan(){
+  if(_loyaltyScanning)return;
+  _loyaltyScanner=new Html5Qrcode('loyaltyScannerBox');
+  _loyaltyScanner.start({facingMode:'environment'},{fps:10,qrbox:{width:200,height:200}},async function(decoded){
+    await stopLoyaltyScan();
+    try{
+      var url=new URL(decoded);
+      var id=url.searchParams.get('id');
+      if(id)await loyaltyLoadClientById(id);
+      else setLoyaltyScanMsg('QR no válido','err');
+    }catch(e){setLoyaltyScanMsg('QR no válido','err');}
+  },function(){}).then(function(){
+    _loyaltyScanning=true;
+    gid('loyaltyStartScanBtn').style.display='none';
+    gid('loyaltyStopScanBtn').style.display='';
+  }).catch(function(e){setLoyaltyScanMsg('Sin acceso a cámara','err');});
+}
+async function stopLoyaltyScan(){
+  if(_loyaltyScanner&&_loyaltyScanning){await _loyaltyScanner.stop().catch(function(){});_loyaltyScanning=false;}
+  gid('loyaltyStartScanBtn').style.display='';
+  gid('loyaltyStopScanBtn').style.display='none';
+}
+async function loyaltySearchByWa(){
+  var wa=gid('loyaltyWaInput').value.trim();if(!wa)return;
+  setLoyaltyScanMsg('Buscando…','');
+  try{
+    var rows=await loyaltyApi('GET','loyalty_clients',null,'?whatsapp=eq.'+encodeURIComponent(wa)+'&select=*');
+    if(!rows||!rows.length){setLoyaltyScanMsg('Cliente no encontrado','err');return;}
+    loyaltyShowClient(rows[0]);
+  }catch(e){setLoyaltyScanMsg('Error de conexión','err');}
+}
+async function loyaltyLoadClientById(id){
+  try{
+    var rows=await loyaltyApi('GET','loyalty_clients',null,'?id=eq.'+id+'&select=*');
+    if(!rows||!rows.length){setLoyaltyScanMsg('Cliente no encontrado','err');return;}
+    loyaltyShowClient(rows[0]);
+  }catch(e){setLoyaltyScanMsg('Error al cargar','err');}
+}
+function loyaltyShowClient(c){
+  _loyaltyFoundClient=c;
+  gid('loyaltyClientName').textContent=c.nombre;
+  gid('loyaltyClientMeta').textContent=c.whatsapp+' · '+c.visitas_totales+' visitas';
+  gid('loyaltyClientFound').style.display='block';
+  gid('loyaltyMarkVisitBtn').style.display='';
+  setLoyaltyScanMsg('','');
+}
+async function loyaltyMarkVisit(){
+  if(!_loyaltyFoundClient)return;
+  var c=_loyaltyFoundClient;
+  try{
+    await loyaltyApi('POST','loyalty_visits',{client_id:c.id,marcado_por:loggedUser?loggedUser.username:'pos'});
+    var ns=c.sellos>=10?0:c.sellos+1;
+    var nt=c.visitas_totales+1;
+    await loyaltyApi('PATCH','loyalty_clients',{sellos:ns,visitas_totales:nt,updated_at:new Date().toISOString()},'?id=eq.'+c.id);
+    setLoyaltyScanMsg('✓ Visita registrada para '+c.nombre+'. Visitas: '+nt,'ok');
+    gid('loyaltyMarkVisitBtn').style.display='none';
+    _loyaltyFoundClient=null;
+    setTimeout(function(){closeLoyaltyScanModal();},1600);
+  }catch(e){setLoyaltyScanMsg('Error al registrar','err');}
+}
+function setLoyaltyScanMsg(m,t){
+  var el=gid('loyaltyScanMsg');
+  if(!m){el.innerHTML='';return;}
+  var color=t==='ok'?'#3a7a3a':t==='err'?'#a8442f':'var(--faint)';
+  el.innerHTML='<div style="font-size:13px;color:'+color+';padding:6px 0">'+m+'</div>';
+}
+
 // ══ LEALTAD ADMIN ══
 var _loyaltyRewardsCache=[], _loyaltyPromosCache=[];
 function editLoyaltyRewardById(id){var r=_loyaltyRewardsCache.find(function(x){return x.id===id;});if(r)openLoyaltyRewardModal(r);}
@@ -3395,6 +3503,61 @@ async function deleteLoyaltyPromo(id){
     <div style="display:flex;gap:8px">
       <button class="btn btn-g" style="flex:1" onclick="var m=gid('loyaltyPwModal');m.classList.remove('open');m.style.display='none'">Cancelar</button>
       <button class="btn btn-p" style="flex:1" onclick="checkLoyaltyPw()">Entrar →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LOYALTY POST-CLOSE MODALS ══ -->
+<div class="overlay" id="loyaltyCheckModal" style="display:none;align-items:flex-end;justify-content:center;padding:0">
+  <div class="modal" style="padding-bottom:32px">
+    <h3 style="text-align:center;margin-bottom:8px">¿Cuenta con tarjeta de lealtad?</h3>
+    <p class="msub" style="text-align:center;margin-bottom:24px">Registra la visita del cliente en su tarjeta</p>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-g" style="flex:1;padding:14px;font-size:13px" onclick="loyaltyCheckNo()">No</button>
+      <button class="btn btn-p" style="flex:1;padding:14px;font-size:13px" onclick="loyaltyCheckYes()">Sí</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="loyaltyScanModal" style="display:none;align-items:flex-end;justify-content:center;padding:0">
+  <div class="modal" style="padding-bottom:28px">
+    <h3>Registrar visita</h3>
+    <p class="msub">Escanea el QR del cliente o busca por WhatsApp</p>
+    <div id="loyaltyScannerBox" style="border-radius:10px;overflow:hidden;border:1px solid var(--line2);max-height:240px;margin-bottom:14px"></div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="btn btn-g" style="flex:0;padding:8px 12px;font-size:11px" id="loyaltyStartScanBtn" onclick="startLoyaltyScan()">📷 Cámara</button>
+      <button class="btn btn-g" style="flex:0;padding:8px 12px;font-size:11px;display:none" id="loyaltyStopScanBtn" onclick="stopLoyaltyScan()">Detener</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="flex:1;height:1px;background:var(--line)"></div>
+      <span style="font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.15em">o por WhatsApp</span>
+      <div style="flex:1;height:1px;background:var(--line)"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <input type="tel" id="loyaltyWaInput" placeholder="Número de WhatsApp" style="flex:1;padding:10px;border:1px solid var(--line2);border-radius:10px;font-size:14px;outline:none;font-family:inherit" onkeydown="if(event.key==='Enter')loyaltySearchByWa()">
+      <button class="btn btn-p" style="flex:0;padding:10px 14px" onclick="loyaltySearchByWa()">Buscar</button>
+    </div>
+    <div id="loyaltyClientFound" style="display:none;background:var(--bg);border:1px solid var(--line2);border-radius:12px;padding:14px 16px;margin-bottom:14px">
+      <div id="loyaltyClientName" style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;margin-bottom:4px"></div>
+      <div id="loyaltyClientMeta" style="font-size:12px;color:var(--faint)"></div>
+    </div>
+    <div id="loyaltyScanMsg" style="margin-bottom:10px"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-g" style="flex:1" onclick="closeLoyaltyScanModal()">Cancelar</button>
+      <button class="btn btn-p" style="flex:1;display:none" id="loyaltyMarkVisitBtn" onclick="loyaltyMarkVisit()">✓ Marcar visita</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="loyaltyCreateModal" style="display:none;align-items:flex-end;justify-content:center;padding:0">
+  <div class="modal" style="padding-bottom:32px">
+    <h3 style="text-align:center;margin-bottom:8px">¿Desea crear una tarjeta?</h3>
+    <p class="msub" style="text-align:center;margin-bottom:20px">El cliente puede registrarse escaneando este QR</p>
+    <div id="loyaltyRegQR" style="display:flex;justify-content:center;margin-bottom:20px"></div>
+    <p style="text-align:center;font-size:11px;color:var(--faint);margin-bottom:20px">Escanear para registrarse</p>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-g" style="flex:1;padding:14px;font-size:13px" onclick="closeLoyaltyCreateModal()">No, cerrar</button>
+      <button class="btn btn-p" style="flex:1;padding:14px;font-size:13px" onclick="closeLoyaltyCreateModal()">Listo</button>
     </div>
   </div>
 </div>
