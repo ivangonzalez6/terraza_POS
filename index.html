@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Terraza Luna · POS</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -11,8 +11,8 @@
   --line:#d8cfbd;--line2:#c4b89f;--gold:#8a6420;--golds:#6b4d18;
   --danger:#a8442f;--ok:#3a7a3a;
 }
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'Inter Tight',sans-serif;overscroll-behavior:none}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'Inter Tight',sans-serif;overscroll-behavior:none;touch-action:manipulation}
 body{min-height:100vh;background:radial-gradient(900px 500px at 90% -10%,rgba(138,100,32,.08),transparent 60%),radial-gradient(700px 400px at -10% 110%,rgba(138,100,32,.05),transparent 60%),var(--bg)}
 button,input,textarea,select{font:inherit;color:inherit}
 button{background:none;border:0;cursor:pointer}
@@ -784,6 +784,39 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
   </div>
 </div>
 
+<!-- MODAL CERVEZA -->
+<div class="mb" id="cerveceraModal">
+  <div class="modal">
+    <h3 id="crvTitle">¿Cómo quieres tu cerveza?</h3>
+    <div class="msub" id="crvSub"></div>
+    <div id="crvStep1">
+      <label class="flbl" style="margin-bottom:8px;display:block">Estilo</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
+        <button class="crv-style btn btn-g" data-style="Natural">🍺 Natural</button>
+        <button class="crv-style btn btn-g" data-style="Chelada">🍋 Chelada</button>
+        <button class="crv-style btn btn-g" data-style="Michelada">🌶 Michelada</button>
+        <button class="crv-style btn btn-g" data-style="Española">🍅 Española</button>
+      </div>
+    </div>
+    <div id="crvStep2" style="display:none;margin-top:10px">
+      <label class="flbl" style="margin-bottom:8px;display:block">Tamaño</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
+        <button class="crv-size btn btn-g" data-size="half">½ litro</button>
+        <button class="crv-size btn btn-g" data-size="full">1 litro</button>
+      </div>
+    </div>
+    <div id="crvPricePreview" style="text-align:center;font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--gold);font-weight:600;margin:10px 0;min-height:30px"></div>
+    <div id="crvNoteWrap" style="display:none">
+      <label class="flbl">Nota (opcional)</label>
+      <textarea id="crvNote" placeholder="Ej: sin hielo…" rows="2" style="margin-top:5px"></textarea>
+    </div>
+    <div class="ma" style="margin-top:14px">
+      <button class="btn btn-g" id="crvCancel">Cancelar</button>
+      <button class="btn btn-p" id="crvAdd" style="display:none">Agregar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL COBRO con cambio -->
 <div class="mb" id="payModal">
   <div class="modal" style="padding-bottom:32px">
@@ -914,6 +947,13 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
 <div class="save-err" id="saveErr"></div>
 
 <script>
+// ══ iOS ZOOM PREVENTION ══
+document.addEventListener('gesturestart',function(e){e.preventDefault();},{passive:false});
+document.addEventListener('gesturechange',function(e){e.preventDefault();},{passive:false});
+document.addEventListener('gestureend',function(e){e.preventDefault();},{passive:false});
+// Double-tap zoom prevention
+;(function(){var last=0;document.addEventListener('touchend',function(e){var now=Date.now();if(now-last<300){e.preventDefault();}last=now;},{passive:false});})();
+
 // ══ RED ══
 function isOnline(){return navigator.onLine;}
 function showNetBanner(offline){
@@ -1065,6 +1105,16 @@ var MENU=[  // se sobreescribe desde BD al iniciar
 ];
 
 var PC=['#8a6420','#1d6b7a','#6b3a7a','#3a7a3a','#7a3a3a','#4a6b2d','#2d3a7a','#7a5a1d'];
+var BEER_ADDON_NAMES=['Chelado (½ lt)','Michelada (½ lt)','Española (½ lt)'];
+var BEER_ADDON_MAP={'Chelada':'Chelado (½ lt)','Michelada':'Michelada (½ lt)','Española':'Española (½ lt)'};
+function isBeerAddon(name){return BEER_ADDON_NAMES.indexOf(name)>=0;}
+function isBeer(catName,itemName){return catName==='Cervezas'&&!isBeerAddon(itemName);}
+function getBeerAddonPrice(style){
+  var addonName=BEER_ADDON_MAP[style];
+  if(!addonName)return 0;
+  for(var i=0;i<MENU.length;i++){for(var j=0;j<MENU[i].items.length;j++){if(MENU[i].items[j].n===addonName)return MENU[i].items[j].p;}}
+  return{'Chelada':5,'Michelada':10,'Española':15}[style]||0;
+}
 var NT=12;
 var orders={},appHistory=[],appUsers=[],adminPass='Unwell06$';
 var curTable=null,curCat=MENU[0].cat,curPersonId=null,pMenuCat=MENU[0].cat;
@@ -1246,11 +1296,15 @@ function renderMenu(){
   var group=null;for(var i=0;i<MENU.length;i++){if(MENU[i].cat===curCat){group=MENU[i];break;}}
   if(!group)return;
   group.items.forEach(function(it){
+    if(isBeerAddon(it.n))return; // Ocultar chelada/michelada/española del carrusel
     var row=document.createElement('div');row.className='mi';
     row.innerHTML='<div class="mi-l"><div class="mi-n">'+esc(it.n)+'</div>'+(it.d?'<div class="mi-d">'+esc(it.d)+'</div>':'')+'</div><div class="mi-r"><div class="mi-p">'+money(it.p)+'</div><button class="add-btn">+</button></div>';
     (function(item){
-      row.querySelector('.add-btn').addEventListener('click',function(e){e.stopPropagation();row.classList.add('flash');setTimeout(function(){row.classList.remove('flash');},500);openNoteModal(item,'general');});
-      row.addEventListener('click',function(){openNoteModal(item,'general');});
+      var openFn=isBeer(group.cat,item.n)
+        ?function(){openCerveceraModal(item,'general');}
+        :function(){openNoteModal(item,'general');};
+      row.querySelector('.add-btn').addEventListener('click',function(e){e.stopPropagation();row.classList.add('flash');setTimeout(function(){row.classList.remove('flash');},500);openFn();});
+      row.addEventListener('click',openFn);
     })(it);
     list.appendChild(row);
   });
@@ -1261,11 +1315,15 @@ function renderPersonMenu(){
   var group=null;for(var i=0;i<MENU.length;i++){if(MENU[i].cat===pMenuCat){group=MENU[i];break;}}
   if(!group)return;
   group.items.forEach(function(it){
+    if(isBeerAddon(it.n))return; // Ocultar chelada/michelada/española del carrusel
     var row=document.createElement('div');row.className='mi';
     row.innerHTML='<div class="mi-l"><div class="mi-n">'+esc(it.n)+'</div>'+(it.d?'<div class="mi-d">'+esc(it.d)+'</div>':'')+'</div><div class="mi-r"><div class="mi-p">'+money(it.p)+'</div><button class="add-btn">+</button></div>';
     (function(item){
-      row.querySelector('.add-btn').addEventListener('click',function(e){e.stopPropagation();row.classList.add('flash');setTimeout(function(){row.classList.remove('flash');},500);openNoteModal(item,'person');});
-      row.addEventListener('click',function(){openNoteModal(item,'person');});
+      var openFn=isBeer(group.cat,item.n)
+        ?function(){openCerveceraModal(item,'person');}
+        :function(){openNoteModal(item,'person');};
+      row.querySelector('.add-btn').addEventListener('click',function(e){e.stopPropagation();row.classList.add('flash');setTimeout(function(){row.classList.remove('flash');},500);openFn();});
+      row.addEventListener('click',openFn);
     })(it);
     list.appendChild(row);
   });
@@ -1275,6 +1333,79 @@ function updateBadges(){
   var c=tblCount(curTable),pc=persItemCount(curTable);
   gid('cartBadge').textContent=c;gid('cartBadge').style.display=c>0?'inline-flex':'none';
 }
+
+// ══ MODAL CERVEZA ══
+var _crvItem=null,_crvTarget=null,_crvStyle=null,_crvSize=null;
+function openCerveceraModal(it,target){
+  _crvItem=it;_crvTarget=target;_crvStyle=null;_crvSize=null;
+  gid('crvTitle').textContent=it.n;
+  gid('crvSub').textContent=money(it.p);
+  gid('crvStep1').style.display='block';
+  gid('crvStep2').style.display='none';
+  gid('crvNoteWrap').style.display='none';
+  gid('crvNote').value='';
+  gid('crvAdd').style.display='none';
+  gid('crvPricePreview').textContent='';
+  document.querySelectorAll('.crv-style,.crv-size').forEach(function(b){b.style.background='';b.style.color='';b.style.borderColor='';});
+  gid('cerveceraModal').classList.add('show');
+}
+document.querySelectorAll('.crv-style').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    _crvStyle=btn.getAttribute('data-style');
+    document.querySelectorAll('.crv-style').forEach(function(b){var a=b===btn;b.style.background=a?'var(--gold)':'';b.style.color=a?'#fff':'';b.style.borderColor=a?'var(--gold)':'';});
+    if(_crvStyle==='Natural'){
+      gid('crvStep2').style.display='none';
+      gid('crvNoteWrap').style.display='block';
+      gid('crvAdd').style.display='';
+      gid('crvPricePreview').textContent=money(_crvItem.p);
+    }else{
+      gid('crvStep2').style.display='block';
+      gid('crvNoteWrap').style.display='none';
+      gid('crvAdd').style.display='none';
+      _crvSize=null;
+      document.querySelectorAll('.crv-size').forEach(function(b){b.style.background='';b.style.color='';b.style.borderColor='';});
+      var ap=getBeerAddonPrice(_crvStyle),half=_crvItem.p+ap;
+      gid('crvPricePreview').textContent='½ lt: '+money(half)+'   ·   1 lt: '+money(half*2);
+    }
+  });
+});
+document.querySelectorAll('.crv-size').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    _crvSize=btn.getAttribute('data-size');
+    document.querySelectorAll('.crv-size').forEach(function(b){var a=b===btn;b.style.background=a?'var(--gold)':'';b.style.color=a?'#fff':'';b.style.borderColor=a?'var(--gold)':'';});
+    var ap=getBeerAddonPrice(_crvStyle),half=_crvItem.p+ap;
+    var price=_crvSize==='full'?half*2:half;
+    gid('crvPricePreview').textContent=money(price);
+    gid('crvNoteWrap').style.display='block';
+    gid('crvAdd').style.display='';
+  });
+});
+gid('crvCancel').addEventListener('click',function(){gid('cerveceraModal').classList.remove('show');_crvItem=null;_crvTarget=null;_crvStyle=null;_crvSize=null;});
+gid('crvAdd').addEventListener('click',async function(){
+  if(!_crvItem||!curTable)return;
+  var note=gid('crvNote').value.trim();
+  var finalName,finalPrice;
+  if(_crvStyle==='Natural'){
+    finalName=_crvItem.n;finalPrice=_crvItem.p;
+  }else{
+    var ap=getBeerAddonPrice(_crvStyle),half=_crvItem.p+ap;
+    var sizeLabel=_crvSize==='full'?'1 lt':'½ lt';
+    finalName=_crvItem.n+' '+_crvStyle+' ('+sizeLabel+')';
+    finalPrice=_crvSize==='full'?half*2:half;
+  }
+  var newItem={id:uid(),n:finalName,p:finalPrice,q:1,note:note,addedAt:Date.now(),status:'pending'};
+  initTbl(curTable);_resetOrderTimeIfNeeded(curTable);
+  if(_crvTarget==='person'&&curPersonId){
+    var ps=orders[curTable].persons;
+    for(var i=0;i<ps.length;i++){if(ps[i].id===curPersonId){if(!ps[i].items)ps[i].items=[];ps[i].items.push(newItem);break;}}
+  }else{
+    if(!orders[curTable].items)orders[curTable].items=[];
+    orders[curTable].items.push(newItem);
+  }
+  gid('cerveceraModal').classList.remove('show');_crvItem=null;_crvTarget=null;_crvStyle=null;_crvSize=null;
+  await saveOrders(orders);updateCartBar();updateBadges();
+  showToast('✓ '+finalName+' agregada');
+});
 
 // ══ NOTE MODAL ══
 function openNoteModal(it,target){
@@ -1298,12 +1429,6 @@ gid('noteSave').addEventListener('click',async function(){
     _resetOrderTimeIfNeeded(curTable);
     gid('noteModal').classList.remove('show');pendItem=null;
     await saveOrders(orders);updateBadges();showToast('✓ Agregado a '+getPName());
-    // Modal para ver orden después de agregar por persona
-    openConfirm('¿Ver la orden?','Producto agregado a '+getPName()+'.','Ver Orden',function(){
-      if(!curTable)return;
-      gid('cartTblLbl').textContent=typeof curTable==='number'?curTable.toString().padStart(2,'0'):String(curTable).toUpperCase();
-      showSc('cart');renderNS();renderCart();
-    });
   }else{
     var items=orders[curTable].items,exG=null;
     for(var k=0;k<items.length;k++){if(items[k].n===pendItem.n&&(items[k].note||'')===note){exG=items[k];break;}}
