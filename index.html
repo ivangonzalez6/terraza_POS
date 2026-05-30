@@ -592,6 +592,10 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
       <span class="admin-link-txt">🖼 Administrar landing page</span>
       <span class="admin-link-arr">›</span>
     </div>
+    <div class="admin-link" id="adminLoyaltyBtn" style="margin-top:8px;background:linear-gradient(135deg,#fff8e8,#fff);border-color:rgba(138,100,32,.35)">
+      <span class="admin-link-txt" style="color:var(--gold)">💳 Administrar Lealtad</span>
+      <span class="admin-link-arr" style="color:var(--gold)">›</span>
+    </div>
   </div>
 
   <!-- MENÚ ADMIN -->
@@ -644,6 +648,31 @@ h2.sec::after{content:'';flex:1;height:1px;background:var(--line);margin-left:6p
       Los archivos se muestran en orden en la landing page. Arrastra ⠿ para reordenar.
     </div>
     <div id="landingMediaList"></div>
+  </div>
+
+  <!-- LEALTAD ADMIN -->
+  <div class="view" id="view-loyalty-admin">
+    <div style="display:flex;align-items:center;gap:7px;margin:6px 0 0">
+      <button class="btn btn-g" style="flex:0;padding:7px 12px;font-size:10px" id="backToStatsFromLoyalty">← Caja</button>
+      <h2 class="sec" style="margin:7px 0;flex:1;font-size:22px">💳 Administrar Lealtad</h2>
+    </div>
+    <div class="sep"></div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <h2 class="sec" style="font-size:18px;margin:0">Niveles de Recompensa</h2>
+      <button class="btn btn-p" style="flex:0;padding:8px 14px;font-size:10px" id="addRewardLevelBtn">+ Nivel</button>
+    </div>
+    <p style="font-size:11px;color:var(--faint);margin-bottom:12px;line-height:1.5">Define cuántas visitas desbloquean cada recompensa. Aparecen en la tarjeta del cliente.</p>
+    <div id="loyaltyRewardsList"></div>
+
+    <div class="sep" style="margin:18px 0"></div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <h2 class="sec" style="font-size:18px;margin:0">Promociones Activas</h2>
+      <button class="btn btn-p" style="flex:0;padding:8px 14px;font-size:10px" id="addLoyaltyPromoBtn">+ Promo</button>
+    </div>
+    <p style="font-size:11px;color:var(--faint);margin-bottom:12px;line-height:1.5">Las promociones activas aparecen en la tarjeta de lealtad de todos los clientes.</p>
+    <div id="loyaltyPromosList"></div>
   </div>
 
   <!-- VISTA RECETA (cocina + admin) -->
@@ -2625,6 +2654,13 @@ gid('adminLandingBtn').addEventListener('click',async function(){
   setRole('landing-admin');
 });
 
+gid('adminLoyaltyBtn').addEventListener('click',function(){
+  openLoyaltyPw();
+});
+gid('backToStatsFromLoyalty').addEventListener('click',function(){setRole('stats');});
+gid('addRewardLevelBtn').addEventListener('click',function(){openLoyaltyRewardModal(null);});
+gid('addLoyaltyPromoBtn').addEventListener('click',function(){openLoyaltyPromoModal(null);});
+
 function loadRecipes(catFilter){
   var q='/rest/v1/recipes?select=*&order=category_name.asc,item_name.asc&active=eq.true';
   if(catFilter)q+='&category_name=eq.'+encodeURIComponent(catFilter);
@@ -3001,6 +3037,7 @@ function setRole(role){
   else if(role==='recipe-admin'){gid('view-recipe-admin').classList.add('active');gid('cartBar').classList.remove('show');}
   else if(role==='recipe-detail'){gid('view-recipe-detail').classList.add('active');gid('cartBar').classList.remove('show');}
   else if(role==='landing-admin'){gid('view-landing-admin').classList.add('active');gid('cartBar').classList.remove('show');}
+  else if(role==='loyalty-admin'){gid('view-loyalty-admin').classList.add('active');gid('cartBar').classList.remove('show');}
 }
 gid('roleMesero').addEventListener('click',function(){setRole('mesero');});
 gid('roleCocina').addEventListener('click',function(){setRole('cocina');});
@@ -3121,6 +3158,243 @@ async function sync(){
     }
   }catch(e){/* silent */}
 }
+
+// ══ LEALTAD ADMIN ══
+var SUPA_L='https://biuaxkpyujypiigxolwt.supabase.co';
+var KEY_L='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpdWF4a3B5dWp5cGlpZ3hvbHd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MDY1ODUsImV4cCI6MjA5NTQ4MjU4NX0.4MJ2WfTo6tDNImcN0E5RCy4ilU2-sXnmRb6_BB85YaQ';
+var loyaltyAdminPw='';
+var loyaltyEditingRewardId=null, loyaltyEditingPromoId=null;
+
+async function loyaltyApi(method,table,body,filter){
+  filter=filter||'';
+  var headers={'apikey':KEY_L,'Authorization':'Bearer '+KEY_L,'Content-Type':'application/json'};
+  if(method==='POST'||method==='PATCH')headers['Prefer']='return=representation';
+  var opts={method:method,headers:headers};
+  if(body)opts.body=JSON.stringify(body);
+  var r=await fetch(SUPA_L+'/rest/v1/'+table+filter,opts);
+  if(!r.ok){var e=await r.text();throw new Error(e);}
+  return r.status===204?null:r.json();
+}
+
+function openLoyaltyPw(){
+  var m=gid('loyaltyPwModal');m.style.display='flex';m.classList.add('open');
+  gid('loyaltyPwInput').value='';gid('loyaltyPwMsg').innerHTML='';
+  setTimeout(function(){gid('loyaltyPwInput').focus();},100);
+}
+
+async function checkLoyaltyPw(){
+  var pw=gid('loyaltyPwInput').value;
+  // Check against app_settings
+  try{
+    var rows=await loyaltyApi('GET','app_settings',null,'?key=eq.loyalty_admin_password&select=value');
+    var storedPw=(rows&&rows.length)?rows[0].value:adminPass;
+    if(pw===storedPw||pw===adminPass){
+      loyaltyAdminPw=pw;
+      var m=gid('loyaltyPwModal');m.classList.remove('open');m.style.display='none';
+      setRole('loyalty-admin');
+      loadLoyaltyRewards();loadLoyaltyPromos();
+    } else {
+      gid('loyaltyPwMsg').innerHTML='<div style="color:#a8442f;font-size:12px;padding:6px 0">Contraseña incorrecta.</div>';
+    }
+  }catch(e){
+    gid('loyaltyPwMsg').innerHTML='<div style="color:#a8442f;font-size:12px;padding:6px 0">Error de conexión.</div>';
+  }
+}
+
+async function loadLoyaltyRewards(){
+  try{
+    var rewards=await loyaltyApi('GET','loyalty_rewards',null,'?order=visitas_requeridas.asc&select=*')||[];
+    var list=gid('loyaltyRewardsList');
+    if(!rewards.length){list.innerHTML='<p style="color:var(--faint);font-size:13px;padding:8px 0">Sin niveles. ¡Crea el primero!</p>';return;}
+    list.innerHTML=rewards.map(function(r){
+      return '<div style="display:flex;align-items:flex-start;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:8px">'+
+        '<div style="flex:1">'+
+          '<div style="font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:3px">Nivel '+r.nivel+' · '+r.visitas_requeridas+' visitas</div>'+
+          '<div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600">'+esc(r.recompensa)+'</div>'+
+          (r.descripcion?'<div style="font-size:12px;color:var(--faint);margin-top:2px">'+esc(r.descripcion)+'</div>':'')+
+          (!r.activo?'<div style="font-size:11px;color:var(--faint)">(inactivo)</div>':'')+
+        '</div>'+
+        '<div style="display:flex;gap:6px;flex-shrink:0">'+
+          '<button class="btn btn-g" style="padding:5px 10px;font-size:10px" onclick="editLoyaltyReward('+JSON.stringify(r).replace(/"/g,"&quot;")+')" >Editar</button>'+
+          '<button class="btn" style="padding:5px 10px;font-size:10px;background:var(--danger);box-shadow:none" onclick="deleteLoyaltyReward(''+r.id+'')">✕</button>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }catch(e){console.error(e);}
+}
+
+function openLoyaltyRewardModal(r){
+  r=r||null;loyaltyEditingRewardId=r?r.id:null;
+  gid('loyaltyRewardModalTitle').textContent=r?'Editar nivel':'Nuevo nivel';
+  gid('lrNivel').value=r?r.nivel:1;
+  gid('lrVisitas').value=r?r.visitas_requeridas:5;
+  gid('lrRecompensa').value=r?r.recompensa:'';
+  gid('lrDesc').value=r?(r.descripcion||''):'';
+  gid('lrMsg').innerHTML='';
+  var m=gid('loyaltyRewardModal');m.style.display='flex';m.classList.add('open');
+}
+function editLoyaltyReward(r){openLoyaltyRewardModal(r);}
+function closeLoyaltyRewardModal(){var m=gid('loyaltyRewardModal');m.classList.remove('open');m.style.display='none';}
+
+async function saveLoyaltyReward(){
+  var recompensa=gid('lrRecompensa').value.trim();
+  var visitas=parseInt(gid('lrVisitas').value)||0;
+  if(!recompensa||!visitas){gid('lrMsg').innerHTML='<div style="color:#a8442f;font-size:12px">Completa los campos requeridos.</div>';return;}
+  var payload={nivel:parseInt(gid('lrNivel').value)||1,visitas_requeridas:visitas,recompensa:recompensa,descripcion:gid('lrDesc').value.trim(),activo:true,updated_at:new Date().toISOString()};
+  try{
+    if(loyaltyEditingRewardId)await loyaltyApi('PATCH','loyalty_rewards',payload,'?id=eq.'+loyaltyEditingRewardId);
+    else await loyaltyApi('POST','loyalty_rewards',payload);
+    closeLoyaltyRewardModal();loadLoyaltyRewards();
+  }catch(e){gid('lrMsg').innerHTML='<div style="color:#a8442f;font-size:12px">Error: '+e.message+'</div>';}
+}
+
+async function deleteLoyaltyReward(id){
+  if(!confirm('¿Eliminar este nivel?'))return;
+  await loyaltyApi('DELETE','loyalty_rewards',null,'?id=eq.'+id);
+  loadLoyaltyRewards();
+}
+
+async function loadLoyaltyPromos(){
+  try{
+    var promos=await loyaltyApi('GET','loyalty_promotions',null,'?order=created_at.desc&select=*')||[];
+    var list=gid('loyaltyPromosList');
+    if(!promos.length){list.innerHTML='<p style="color:var(--faint);font-size:13px;padding:8px 0">Sin promociones. ¡Crea la primera!</p>';return;}
+    list.innerHTML=promos.map(function(p){
+      return '<div style="display:flex;align-items:flex-start;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:8px">'+
+        '<div style="flex:1">'+
+          '<div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600">'+esc(p.titulo)+(p.activa?' <span style="font-size:9px;background:rgba(58,122,58,.1);color:#3a7a3a;border-radius:999px;padding:2px 8px;vertical-align:middle;font-family:sans-serif">Activa</span>':'')+'</div>'+
+          '<div style="font-size:12px;color:var(--faint);margin-top:2px">'+esc(p.descripcion)+'</div>'+
+          (p.fecha_fin?'<div style="font-size:10px;color:var(--faint);margin-top:4px;text-transform:uppercase;letter-spacing:.1em">Hasta '+new Date(p.fecha_fin+'T12:00:00').toLocaleDateString('es-MX',{day:'numeric',month:'short'})+'</div>':'')+
+        '</div>'+
+        '<div style="display:flex;gap:6px;flex-shrink:0">'+
+          '<button class="btn btn-g" style="padding:5px 10px;font-size:10px" onclick="editLoyaltyPromo('+JSON.stringify(p).replace(/"/g,"&quot;")+')" >Editar</button>'+
+          '<button class="btn" style="padding:5px 10px;font-size:10px;background:var(--danger);box-shadow:none" onclick="deleteLoyaltyPromo(''+p.id+'')">✕</button>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }catch(e){console.error(e);}
+}
+
+function openLoyaltyPromoModal(p){
+  p=p||null;loyaltyEditingPromoId=p?p.id:null;
+  gid('loyaltyPromoModalTitle').textContent=p?'Editar promoción':'Nueva promoción';
+  gid('lpTitulo').value=p?p.titulo:'';
+  gid('lpDesc2').value=p?p.descripcion:'';
+  gid('lpInicio').value=p?(p.fecha_inicio||''):'';
+  gid('lpFin').value=p?(p.fecha_fin||''):'';
+  gid('lpImg').value=p?(p.imagen_url||''):'';
+  gid('lpActiva').value=(p&&p.activa===false)?'false':'true';
+  gid('lpMsg').innerHTML='';
+  var m=gid('loyaltyPromoModal');m.style.display='flex';m.classList.add('open');
+}
+function editLoyaltyPromo(p){openLoyaltyPromoModal(p);}
+function closeLoyaltyPromoModal(){var m=gid('loyaltyPromoModal');m.classList.remove('open');m.style.display='none';}
+
+async function saveLoyaltyPromo(){
+  var titulo=gid('lpTitulo').value.trim();
+  var desc=gid('lpDesc2').value.trim();
+  if(!titulo||!desc){gid('lpMsg').innerHTML='<div style="color:#a8442f;font-size:12px">Título y descripción requeridos.</div>';return;}
+  var payload={titulo:titulo,descripcion:desc,fecha_inicio:gid('lpInicio').value||null,fecha_fin:gid('lpFin').value||null,imagen_url:gid('lpImg').value.trim()||'',activa:gid('lpActiva').value==='true'};
+  try{
+    if(loyaltyEditingPromoId)await loyaltyApi('PATCH','loyalty_promotions',payload,'?id=eq.'+loyaltyEditingPromoId);
+    else await loyaltyApi('POST','loyalty_promotions',payload);
+    closeLoyaltyPromoModal();loadLoyaltyPromos();
+  }catch(e){gid('lpMsg').innerHTML='<div style="color:#a8442f;font-size:12px">Error: '+e.message+'</div>';}
+}
+
+async function deleteLoyaltyPromo(id){
+  if(!confirm('¿Eliminar esta promoción?'))return;
+  await loyaltyApi('DELETE','loyalty_promotions',null,'?id=eq.'+id);
+  loadLoyaltyPromos();
+}
 </script>
+
+<!-- LOYALTY REWARD MODAL -->
+<div class="overlay" id="loyaltyRewardModal" style="display:none;align-items:flex-end;justify-content:center;padding:0;position:fixed;inset:0;background:rgba(26,22,16,.5);backdrop-filter:blur(8px);z-index:300">
+  <div class="modal">
+    <h3 id="loyaltyRewardModalTitle">Nuevo nivel</h3>
+    <p class="msub">Define las visitas requeridas y la recompensa para este nivel.</p>
+    <input type="hidden" id="lrId">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div>
+        <label style="font-size:9px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:5px">Nivel</label>
+        <input type="number" id="lrNivel" min="1" value="1" style="width:100%;padding:10px;border:1px solid var(--line2);border-radius:10px;font-size:14px;outline:none;font-family:inherit">
+      </div>
+      <div>
+        <label style="font-size:9px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:5px">Visitas</label>
+        <input type="number" id="lrVisitas" min="1" value="5" style="width:100%;padding:10px;border:1px solid var(--line2);border-radius:10px;font-size:14px;outline:none;font-family:inherit">
+      </div>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:9px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:5px">Recompensa *</label>
+      <input type="text" id="lrRecompensa" placeholder="Ej. Bebida gratis" style="width:100%;padding:10px;border:1px solid var(--line2);border-radius:10px;font-size:14px;outline:none;font-family:inherit">
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:9px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:5px">Descripción</label>
+      <input type="text" id="lrDesc" placeholder="Descripción opcional" style="width:100%;padding:10px;border:1px solid var(--line2);border-radius:10px;font-size:14px;outline:none;font-family:inherit">
+    </div>
+    <div id="lrMsg" style="margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-g" style="flex:1" onclick="closeLoyaltyRewardModal()">Cancelar</button>
+      <button class="btn btn-p" style="flex:1" onclick="saveLoyaltyReward()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOYALTY PROMO MODAL -->
+<div class="overlay" id="loyaltyPromoModal" style="display:none;align-items:flex-end;justify-content:center;padding:0;position:fixed;inset:0;background:rgba(26,22,16,.5);backdrop-filter:blur(8px);z-index:300">
+  <div class="modal">
+    <h3 id="loyaltyPromoModalTitle">Nueva promoción</h3>
+    <input type="hidden" id="lpId">
+    <div style="margin-bottom:12px">
+      <label style="font-size:9px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:5px">Título *</label>
+      <input type="text" id="lpTitulo" placeholder="Ej. Happy Hour 2×1" style="width:100%;padding:10px;border:1px solid var(--line2);border-radius:10px;font-size:14px;outline:none;font-family:inherit">
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:9px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:5px">Descripción *</label>
+      <textarea id="lpDesc2" rows="3" placeholder="Detalle de la promoción" style="width:100%;padding:10px;border:1px solid var(--line2);border-radius:10px;font-size:14px;outline:none;resize:vertical;font-family:inherit"></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div>
+        <label style="font-size:9px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:5px">Fecha inicio</label>
+        <input type="date" id="lpInicio" style="width:100%;padding:10px;border:1px solid var(--line2);border-radius:10px;font-size:14px;outline:none;font-family:inherit">
+      </div>
+      <div>
+        <label style="font-size:9px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:5px">Fecha fin</label>
+        <input type="date" id="lpFin" style="width:100%;padding:10px;border:1px solid var(--line2);border-radius:10px;font-size:14px;outline:none;font-family:inherit">
+      </div>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:9px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:5px">URL imagen (opcional)</label>
+      <input type="url" id="lpImg" placeholder="https://…" style="width:100%;padding:10px;border:1px solid var(--line2);border-radius:10px;font-size:14px;outline:none;font-family:inherit">
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:9px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:5px">Estado</label>
+      <select id="lpActiva" style="width:100%;padding:10px;border:1px solid var(--line2);border-radius:10px;font-size:14px;outline:none;background:#fff;font-family:inherit">
+        <option value="true">Activa</option><option value="false">Inactiva</option>
+      </select>
+    </div>
+    <div id="lpMsg" style="margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-g" style="flex:1" onclick="closeLoyaltyPromoModal()">Cancelar</button>
+      <button class="btn btn-p" style="flex:1" onclick="saveLoyaltyPromo()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOYALTY ADMIN PASSWORD MODAL -->
+<div class="overlay" id="loyaltyPwModal" style="display:none;align-items:flex-end;justify-content:center;padding:0;position:fixed;inset:0;background:rgba(26,22,16,.5);backdrop-filter:blur(8px);z-index:300">
+  <div class="modal">
+    <h3>💳 Administrar Lealtad</h3>
+    <p class="msub">Ingresa la contraseña de administrador para continuar.</p>
+    <input type="password" id="loyaltyPwInput" placeholder="Contraseña" style="width:100%;padding:12px;border:1px solid var(--line2);border-radius:10px;font-size:16px;outline:none;margin-bottom:12px;font-family:inherit" onkeydown="if(event.key==='Enter')checkLoyaltyPw()">
+    <div id="loyaltyPwMsg" style="margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-g" style="flex:1" onclick="var m=gid('loyaltyPwModal');m.classList.remove('open');m.style.display='none'">Cancelar</button>
+      <button class="btn btn-p" style="flex:1" onclick="checkLoyaltyPw()">Entrar →</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
