@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Terraza Luna · POS</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -1038,7 +1038,7 @@ function insertUser(u){return spost('/rest/v1/app_users',u);}
 function updateUser(id,data){return spatch('/rest/v1/app_users?id=eq.'+id,data);}
 function deleteUser(id){return sdel('/rest/v1/app_users?id=eq.'+id);}
 
-var CATS_2X1=['Mojitos','Gin & Tonic','Caipiroska (Vodka)','Daiquirí (Ron)','Margarita (Tequila)','Frozen (Vodka)','Coctelería Clásica','Alta Coctelería'];
+var CATS_2X1=['Mojitos','Gin & Tonic','Caipiroska (Vodka)','Daiquirí (Ron)','Margarita (Tequila)','Frozen (Vodka)','Coctelería Clásica','Alta Coctelería','Brandy & Mezcal','Mezcalitas'];
 var SF=[{n:'Clásico',p:50},{n:'Frutos rojos',p:60},{n:'Fresa',p:60},{n:'Mora',p:60},{n:'Arándano',p:60},{n:'Maracuyá',p:60}];
 var SFF=[{n:'Coco',p:60},{n:'Piña',p:60},{n:'Mango',p:60},{n:'Clásico',p:50},{n:'Frutos rojos',p:60},{n:'Fresa',p:60},{n:'Mora',p:60},{n:'Arándano',p:60},{n:'Maracuyá',p:60}];
 var MENU=[  // se sobreescribe desde BD al iniciar
@@ -1298,6 +1298,12 @@ gid('noteSave').addEventListener('click',async function(){
     _resetOrderTimeIfNeeded(curTable);
     gid('noteModal').classList.remove('show');pendItem=null;
     await saveOrders(orders);updateBadges();showToast('✓ Agregado a '+getPName());
+    // Modal para ver orden después de agregar por persona
+    openConfirm('¿Ver la orden?','Producto agregado a '+getPName()+'.','Ver Orden',function(){
+      if(!curTable)return;
+      gid('cartTblLbl').textContent=typeof curTable==='number'?curTable.toString().padStart(2,'0'):String(curTable).toUpperCase();
+      showSc('cart');renderNS();renderCart();
+    });
   }else{
     var items=orders[curTable].items,exG=null;
     for(var k=0;k<items.length;k++){if(items[k].n===pendItem.n&&(items[k].note||'')===note){exG=items[k];break;}}
@@ -1926,6 +1932,9 @@ async function rebuildMenuFromDB(){
       newMenu.push({cat:cat.name,items:activeItems});
     }
   }
+  // Ordenar categorías e ítems alfabéticamente
+  newMenu.sort(function(a,b){return a.cat.localeCompare(b.cat,'es');});
+  newMenu.forEach(function(g){g.items.sort(function(a,b){return a.n.localeCompare(b.n,'es');});});
   MENU=newMenu;
   // Reset current category to first
   if(MENU.length)curCat=MENU[0].cat;
@@ -2874,6 +2883,26 @@ gid('roleMesero').addEventListener('click',function(){setRole('mesero');});
 gid('roleCocina').addEventListener('click',function(){setRole('cocina');});
 gid('roleStats').addEventListener('click',function(){setRole('stats');});
 
+// ══ CIERRE AUTOMÁTICO CUANDO REMANENTE = $0 ══
+async function doAutoCloseTable(t){
+  var o=orders[t];if(!o)return;
+  var sub=tblSubtotal(t),disc=tblDiscount(t),totalClosed=sub+disc;
+  var all=[];
+  if(o.items)o.items.forEach(function(it){all.push({n:it.n,p:it.p,q:it.q,note:it.note||'',paid:false,pm:'efectivo'});});
+  if(o.persons)o.persons.forEach(function(p){
+    var pm=p.paymentMethod||'efectivo';
+    if(p.items)p.items.forEach(function(it){all.push({n:it.n,p:it.p,q:it.q,note:it.note||'',person:p.name,paid:true,pm:pm});});
+  });
+  if(o.discounts&&o.discounts.length)o.discounts.forEach(function(d){all.push({n:d.label,p:d.amount,q:1,note:'Descuento 2×1',pm:'efectivo'});});
+  var pb=o.persons?o.persons.map(function(p){return{name:p.name,total:pTotal(p),count:pCount(p),paid:true,paymentMethod:p.paymentMethod||'efectivo'};}):[];
+  var rec={id:uid(),table:t,tableNote:o.tableNote||'',openedAt:o.openedAt||Date.now(),closedAt:Date.now(),total:totalClosed,itemCount:all.length,items:all,persons:pb,paymentMethod:'efectivo'};
+  appHistory.unshift(rec);delete orders[t];
+  await saveOrders(orders);await insertHist(rec);await insertFinanceMovements(rec);
+  showToast('✓ Mesa cerrada · '+money(totalClosed));
+  curTable=null;curPersonId=null;
+  showSc('tables');gid('cartBar').classList.remove('show');renderTables();
+}
+
 // ══ COBRAR POR PERSONA ══
 function renderPerPersonPay(){
   var o=orders[curTable];if(!o){showSc('cart');return;}
@@ -2921,11 +2950,18 @@ function renderPerPersonPay(){
       var name=btn.getAttribute('data-name');
       if(!amt){showToast('Sin productos para cobrar');return;}
       openPayModal('Cobrar a '+name,'',amt,'Cobrar',async function(method){
-        for(var i=0;i<orders[curTable].persons.length;i++){
-          if(orders[curTable].persons[i].id===pid){orders[curTable].persons[i].paid=true;orders[curTable].persons[i].paymentMethod=method||'efectivo';break;}
+        var tbl=curTable;
+        for(var i=0;i<orders[tbl].persons.length;i++){
+          if(orders[tbl].persons[i].id===pid){orders[tbl].persons[i].paid=true;orders[tbl].persons[i].paymentMethod=method||'efectivo';break;}
         }
-        await saveOrders(orders);renderPerPersonPay();updateCartBar();
+        await saveOrders(orders);
         showToast('✓ '+name+' pagó '+money(amt)+' ('+(method||'efectivo')+')');
+        // Cerrar automáticamente si el remanente es $0
+        if(tblTotal(tbl)===0){
+          await doAutoCloseTable(tbl);
+        }else{
+          renderPerPersonPay();updateCartBar();
+        }
       });
     });
   });
@@ -2947,7 +2983,11 @@ gid('cobrarPersonaBtn').addEventListener('click',function(){
   renderPerPersonPay();showSc('ppay');gid('cartBar').classList.remove('show');
 });
 gid('backFromPPay').addEventListener('click',function(){showSc('cart');renderCart();updateCartBar();});
-gid('ppayCloseBtn').addEventListener('click',function(){if(curTable)doCloseTable(curTable);});
+gid('ppayCloseBtn').addEventListener('click',function(){
+  if(!curTable)return;
+  if(tblTotal(curTable)===0){doAutoCloseTable(curTable);}
+  else{doCloseTable(curTable);}
+});
 
 // ══ SYNC ══
 async function sync(){
