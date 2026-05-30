@@ -992,8 +992,9 @@ function loadHistory(){
 function insertHist(rec){return spost('/rest/v1/history',{id:rec.id,table_num:rec.table,table_note:rec.tableNote||'',opened_at:new Date(rec.openedAt).toISOString(),closed_at:new Date(rec.closedAt).toISOString(),total:rec.total,item_count:rec.itemCount,items:rec.items||[],persons:rec.persons||[],payment_method:rec.paymentMethod||'efectivo'});}
 function updateHist(id,total,note){return spatch('/rest/v1/history?id=eq.'+id,{total:total,edit_note:note});}
 async function insertFinanceMovements(rec){
-  // Use the date the table was opened (for night→early-morning sessions)
-  var openDate=new Date(rec.openedAt).toISOString().split('T')[0];
+  // Usar fecha LOCAL del openedAt (primer producto) — evita desfase UTC en noche/madrugada
+  var openDt=new Date(rec.openedAt);
+  var openDate=openDt.getFullYear()+'-'+String(openDt.getMonth()+1).padStart(2,'0')+'-'+String(openDt.getDate()).padStart(2,'0');
   var today=openDate;
   // Agrupar importe por método de pago
   var methods={efectivo:0,tarjeta:0,transferencia:0};
@@ -1047,7 +1048,9 @@ async function updateFinanceMovements(histId,newTotal,paymentMethod){
   var today=new Date().toISOString().split('T')[0];
   var histRec=appHistory.find(function(h){return h.id===histId;});
   if(histRec){
-    today=new Date(histRec.closedAt).toISOString().split('T')[0];
+    // Usar fecha local del openedAt, no del cierre
+    var refDt=new Date(histRec.openedAt||histRec.closedAt);
+    today=refDt.getFullYear()+'-'+String(refDt.getMonth()+1).padStart(2,'0')+'-'+String(refDt.getDate()).padStart(2,'0');
   }
   var pm=paymentMethod||'efectivo';
   var fmRec={
@@ -1353,20 +1356,14 @@ document.querySelectorAll('.crv-style').forEach(function(btn){
   btn.addEventListener('click',function(){
     _crvStyle=btn.getAttribute('data-style');
     document.querySelectorAll('.crv-style').forEach(function(b){var a=b===btn;b.style.background=a?'var(--gold)':'';b.style.color=a?'#fff':'';b.style.borderColor=a?'var(--gold)':'';});
-    if(_crvStyle==='Natural'){
-      gid('crvStep2').style.display='none';
-      gid('crvNoteWrap').style.display='block';
-      gid('crvAdd').style.display='';
-      gid('crvPricePreview').textContent=money(_crvItem.p);
-    }else{
-      gid('crvStep2').style.display='block';
-      gid('crvNoteWrap').style.display='none';
-      gid('crvAdd').style.display='none';
-      _crvSize=null;
-      document.querySelectorAll('.crv-size').forEach(function(b){b.style.background='';b.style.color='';b.style.borderColor='';});
-      var ap=getBeerAddonPrice(_crvStyle),half=_crvItem.p+ap;
-      gid('crvPricePreview').textContent='½ lt: '+money(half)+'   ·   1 lt: '+money(half*2);
-    }
+    // Siempre mostrar opciones de tamaño
+    gid('crvStep2').style.display='block';
+    gid('crvNoteWrap').style.display='none';
+    gid('crvAdd').style.display='none';
+    _crvSize=null;
+    document.querySelectorAll('.crv-size').forEach(function(b){b.style.background='';b.style.color='';b.style.borderColor='';});
+    var ap=getBeerAddonPrice(_crvStyle),half=_crvItem.p+ap;
+    gid('crvPricePreview').textContent='½ lt: '+money(half)+'   ·   1 lt: '+money(half*2);
   });
 });
 document.querySelectorAll('.crv-size').forEach(function(btn){
@@ -1385,11 +1382,12 @@ gid('crvAdd').addEventListener('click',async function(){
   if(!_crvItem||!curTable)return;
   var note=gid('crvNote').value.trim();
   var finalName,finalPrice;
+  var ap=getBeerAddonPrice(_crvStyle),half=_crvItem.p+ap;
+  var sizeLabel=_crvSize==='full'?'1 lt':'½ lt';
   if(_crvStyle==='Natural'){
-    finalName=_crvItem.n;finalPrice=_crvItem.p;
+    finalName=_crvItem.n+' ('+sizeLabel+')';
+    finalPrice=_crvSize==='full'?_crvItem.p*2:_crvItem.p;
   }else{
-    var ap=getBeerAddonPrice(_crvStyle),half=_crvItem.p+ap;
-    var sizeLabel=_crvSize==='full'?'1 lt':'½ lt';
     finalName=_crvItem.n+' '+_crvStyle+' ('+sizeLabel+')';
     finalPrice=_crvSize==='full'?half*2:half;
   }
